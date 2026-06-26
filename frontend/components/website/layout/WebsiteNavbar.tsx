@@ -71,7 +71,7 @@ export default function WebsiteNavbar() {
           {/* Auth Buttons */}
           <div className="hidden lg:flex items-center gap-4">
             <Link
-              href="/host/login"
+              href="/login"
               className="font-sans text-xs font-semibold text-text-primary hover:text-text-brand uppercase tracking-wider transition-colors duration-200 px-3 py-2"
             >
               Log In
@@ -158,7 +158,7 @@ export default function WebsiteNavbar() {
         {/* Bottom Login and Host Buttons */}
         <div className="flex flex-col gap-3.5 pt-6 border-t border-divider mt-auto">
           <Link
-            href="/host/login"
+            href="/login"
             onClick={() => setMobileMenuOpen(false)}
             className="flex items-center justify-center font-sans font-semibold text-xs text-text-primary hover:text-text-brand uppercase tracking-wider py-3 border border-border rounded-button transition-colors duration-200"
           >
