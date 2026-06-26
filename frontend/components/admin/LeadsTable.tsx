@@ -33,11 +33,12 @@ export default function LeadsTable({ initialLeads }: LeadsTableProps) {
     }
   };
 
-  // Filter leads by name or email
+  // Filter leads by name, email, or role
   const filteredLeads = leads.filter(
     (lead) =>
       lead.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.email.toLowerCase().includes(searchTerm.toLowerCase())
+      lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -85,6 +86,9 @@ export default function LeadsTable({ initialLeads }: LeadsTableProps) {
                 <th className="font-heading font-bold text-xs text-text-secondary px-6 uppercase tracking-wider">
                   Email Address
                 </th>
+                <th className="font-heading font-bold text-xs text-text-secondary px-6 uppercase tracking-wider">
+                  Role
+                </th>
                 <th className="font-heading font-bold text-xs text-text-secondary px-6 uppercase tracking-wider text-right">
                   Registered Date
                 </th>
@@ -103,6 +107,17 @@ export default function LeadsTable({ initialLeads }: LeadsTableProps) {
                     <td className="font-sans text-xs md:text-sm text-text-brand px-6 py-4.5">
                       {lead.email}
                     </td>
+                    <td className="font-sans text-xs px-6 py-4.5">
+                      {lead.role === "HOST" ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-accent-bg border border-primary/20 text-text-brand uppercase tracking-wider">
+                          Host
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/5 border border-white/10 text-text-muted uppercase tracking-wider">
+                          Player
+                        </span>
+                      )}
+                    </td>
                     <td className="font-sans text-xs text-text-muted px-6 py-4.5 text-right">
                       {new Date(lead.createdAt).toLocaleString("en-GB", {
                         dateStyle: "medium",
@@ -113,7 +128,7 @@ export default function LeadsTable({ initialLeads }: LeadsTableProps) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={3} className="text-center py-12 bg-bg font-sans text-xs md:text-sm text-text-muted/40">
+                  <td colSpan={4} className="text-center py-12 bg-bg font-sans text-xs md:text-sm text-text-muted/40">
                     No leads found matching your search.
                   </td>
                 </tr>

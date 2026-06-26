@@ -8,11 +8,13 @@ import { prisma } from "../../../lib/db";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { fullName, email } = body;
+    const { fullName, email, role } = body;
 
     // 1. Basic sanitization
     const cleanName = fullName?.trim() || "";
     const cleanEmail = email?.trim()?.toLowerCase() || "";
+    const rawRole = role?.trim()?.toUpperCase() || "CUSTOMER";
+    const cleanRole = ["HOST", "CUSTOMER"].includes(rawRole) ? rawRole : "CUSTOMER";
 
     // 2. Server-side validations
     if (!cleanName) {
@@ -42,6 +44,7 @@ export async function POST(req: NextRequest) {
       data: {
         fullName: cleanName,
         email: cleanEmail,
+        role: cleanRole,
       },
     });
 

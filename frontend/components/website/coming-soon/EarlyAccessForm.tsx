@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import InputField from "../shared/InputField";
 import PrimaryButton from "../shared/PrimaryButton";
+import { cn } from "../../../lib/utils";
 
 /**
  * Early Access Lead Form allowing interested users to register.
@@ -11,6 +12,7 @@ import PrimaryButton from "../shared/PrimaryButton";
 export default function EarlyAccessForm() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"CUSTOMER" | "HOST">("CUSTOMER");
   
   const [nameError, setNameError] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -58,6 +60,7 @@ export default function EarlyAccessForm() {
         body: JSON.stringify({
           fullName: fullName.trim(),
           email: email.trim(),
+          role: role,
         }),
       });
 
@@ -70,6 +73,7 @@ export default function EarlyAccessForm() {
       setIsSuccess(true);
       setFullName("");
       setEmail("");
+      setRole("CUSTOMER");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to submit. Please try again.";
       setGeneralError(msg);
@@ -149,6 +153,41 @@ export default function EarlyAccessForm() {
             disabled={isSubmitting}
             required
           />
+
+          {/* Role Selection */}
+          <div className="flex flex-col gap-1.5 w-full">
+            <label className="font-sans font-medium text-xs md:text-sm text-text-secondary select-none self-start mb-0.5">
+              I want to:
+            </label>
+            <div className="flex gap-3 w-full">
+              <button
+                type="button"
+                onClick={() => setRole("CUSTOMER")}
+                disabled={isSubmitting}
+                className={cn(
+                  "flex-1 font-sans text-xs md:text-sm font-semibold py-2.5 rounded-button border text-center transition-all duration-200 cursor-pointer disabled:opacity-50 select-none",
+                  role === "CUSTOMER"
+                    ? "bg-accent-bg border-primary text-text-brand shadow-glow"
+                    : "bg-bg border-border text-text-muted hover:text-text-primary"
+                )}
+              >
+                Enter Draws (Player)
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole("HOST")}
+                disabled={isSubmitting}
+                className={cn(
+                  "flex-1 font-sans text-xs md:text-sm font-semibold py-2.5 rounded-button border text-center transition-all duration-200 cursor-pointer disabled:opacity-50 select-none",
+                  role === "HOST"
+                    ? "bg-accent-bg border-primary text-text-brand shadow-glow"
+                    : "bg-bg border-border text-text-muted hover:text-text-primary"
+                )}
+              >
+                Host Draws (Host)
+              </button>
+            </div>
+          </div>
 
           {/* Submit Button */}
           <PrimaryButton

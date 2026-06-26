@@ -11,5 +11,6 @@ model Lead {
   id        String   @id @default(cuid())
   fullName  String
   email     String   @unique
+  role      String   @default("CUSTOMER")
   createdAt DateTime @default(now())
 }
