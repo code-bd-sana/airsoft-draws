@@ -5,8 +5,8 @@ export const BRAND_NAME = "Airsoft Draws";
 export const NAV_LINKS: NavLink[] = [
   { label: "Live Raffles", href: "/live-raffles" },
   { label: "Instant Wins", href: "/#instant-wins" },
-  { label: "How It Works", href: "/#how-it-works" },
-  { label: "Recent Winners", href: "/#recent-winners" },
+  { label: "How It Works", href: "/how-it-works" },
+  { label: "Winners", href: "/winners" },
   { label: "FAQ", href: "/#faq" },
   { label: "Host Competitions", href: "/#host-info" },
 ];
