@@ -4,11 +4,10 @@ export const BRAND_NAME = "Airsoft Draws";
 
 export const NAV_LINKS: NavLink[] = [
   { label: "Live Raffles", href: "/live-raffles" },
-  { label: "Instant Wins", href: "/#instant-wins" },
-  { label: "How It Works", href: "/how-it-works" },
   { label: "Winners", href: "/winners" },
-  { label: "FAQ", href: "/#faq" },
-  { label: "Host Competitions", href: "/#host-info" },
+  { label: "How It Works", href: "/how-it-works" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export const SOCIAL_LINKS: SocialLink[] = [
@@ -33,7 +32,7 @@ export const FOOTER_SECTIONS = [
     title: "For Hosts",
     links: [
       { label: "Start Hosting", href: "/#host-info" },
-      { label: "Pricing & Fees", href: "/#host-info" },
+      { label: "Pricing & Fees", href: "/pricing" },
       { label: "Host Guidelines", href: "/#host-info" },
       { label: "Escrow Protection", href: "/#host-info" },
       { label: "Payout Calculator", href: "/#host-info" },
@@ -42,8 +41,8 @@ export const FOOTER_SECTIONS = [
   {
     title: "Support & Legal",
     links: [
-      { label: "Help & FAQ", href: "/#faq" },
-      { label: "Contact Support", href: "/#faq" },
+      { label: "Help & FAQ", href: "/pricing#faq" },
+      { label: "Contact Support", href: "/contact" },
       { label: "Terms of Service", href: "#" },
       { label: "Privacy Policy", href: "#" },
       { label: "Responsible Play", href: "#" },
