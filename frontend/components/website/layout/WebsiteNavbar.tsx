@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { NAV_LINKS, BRAND_NAME } from "../../../lib/constants";
+import Image from "next/image";
+import { NAV_LINKS } from "../../../lib/constants";
 import PrimaryButton from "../shared/PrimaryButton";
 import { cn } from "../../../lib/utils";
+import logo from '../../../public/logo.png';
 
 /**
  * Global website navigation navbar with sticky backdrop blur and responsive mobile slide-out sidebar.
@@ -42,13 +44,15 @@ export default function WebsiteNavbar() {
       >
         <div className="container-custom flex items-center justify-between">
           {/* Branding Logo */}
-          <Link href="/" className="flex items-center gap-2.5 select-none group">
-            <div className="flex items-center justify-center w-8 h-8 rounded bg-accent-bg border border-primary group-hover:border-primary-hover transition-colors duration-200">
-              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-            </div>
-            <span className="font-heading font-bold text-lg md:text-xl text-text-primary uppercase tracking-wide group-hover:text-text-brand transition-colors duration-200">
-              {BRAND_NAME}
-            </span>
+          <Link href="/" className="flex items-center select-none group py-0.5">
+            <Image
+              alt="Airsoft Draws Logo"
+              src={logo}
+              height={66}
+              width={66}
+              priority
+              className="object-contain transition-transform duration-200 group-hover:scale-105"
+            />
           </Link>
 
           {/* Desktop Navigation Links */}
