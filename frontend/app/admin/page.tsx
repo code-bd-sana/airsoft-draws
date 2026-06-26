@@ -49,6 +49,7 @@ export default async function AdminPage() {
         id: lead.id,
         fullName: lead.fullName,
         email: lead.email,
+        role: lead.role,
         createdAt: lead.createdAt.toISOString(),
       }));
     } catch (err) {
