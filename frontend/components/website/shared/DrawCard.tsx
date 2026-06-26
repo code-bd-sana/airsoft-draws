@@ -128,7 +128,7 @@ export default function DrawCard({ draw, variant = "grid" }: DrawCardProps) {
               </span>
             </div>
             <PrimaryButton
-              href="#live-draws"
+              href={`/live-raffles/${draw.slug || draw.id}`}
               icon={arrowIcon}
               className="px-8 py-3.5 text-sm"
             >
@@ -270,7 +270,7 @@ export default function DrawCard({ draw, variant = "grid" }: DrawCardProps) {
           </div>
           
           <PrimaryButton
-            href="#live-draws"
+            href={`/live-raffles/${draw.slug || draw.id}`}
             className="px-4 py-2 text-xs"
             icon={arrowIcon}
           >

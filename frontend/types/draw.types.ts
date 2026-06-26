@@ -17,6 +17,8 @@ export interface Draw {
   isFeatured?: boolean;
   category: string; // e.g. "rifles", "pistols", "accessories", "cash", "bundles", "gaming", "tech", "travel", "luxury"
   worthPrice?: number; // Valuation of the prize (e.g. 1200)
+  slug?: string; // Optional SEO-friendly URL slug (e.g. 'novritsch-ssg10-a3-sniper')
   instantWinsCount?: number; // For Instant Win draws (e.g. 3)
   isInstantWin?: boolean; // Flag to separate standard draws from instant win draws
+  badgeText?: string; // Optional label badge on the card (e.g., "ALMOST GONE", "NEW")
 }
