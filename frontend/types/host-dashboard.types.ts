@@ -111,3 +111,11 @@ export interface PerformanceDemographic {
   region: string;
   percentage: number;
 }
+
+export interface BillingHistoryItem {
+  id: string;
+  date: string;
+  description: string;
+  amount: number;
+  status: "Paid" | "Pending" | "Failed";
+}

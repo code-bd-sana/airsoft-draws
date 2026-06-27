@@ -1,4 +1,4 @@
-import { HostDashboardStat, HostCompetitionSummary, HostChartDataPoint, HostUpcomingDraw, HostRecentActivity, HostRaffleDetail, HostSalesChartDataPoint, HostDrawItem, PayoutMetrics, PayoutHistoryItem, PerformanceRevenueDataPoint, PerformanceCategorySales, PerformanceTopRaffle, PerformanceDemographic } from "../../types/host-dashboard.types";
+import { HostDashboardStat, HostCompetitionSummary, HostChartDataPoint, HostUpcomingDraw, HostRecentActivity, HostRaffleDetail, HostSalesChartDataPoint, HostDrawItem, PayoutMetrics, PayoutHistoryItem, PerformanceRevenueDataPoint, PerformanceCategorySales, PerformanceTopRaffle, PerformanceDemographic, BillingHistoryItem } from "../../types/host-dashboard.types";
 
 export const hostKpiStats: HostDashboardStat[] = [
   {
@@ -293,4 +293,11 @@ export const mockPerformanceDemographics: PerformanceDemographic[] = [
   { region: "Wales", percentage: 13 },
   { region: "N. Ireland", percentage: 7 },
   { region: "International", percentage: 3 },
+];
+
+export const mockBillingHistory: BillingHistoryItem[] = [
+  { id: "inv-1", date: "14 Jun 2025", description: "Premium Host Plan — Monthly", amount: 8.00, status: "Paid" },
+  { id: "inv-2", date: "14 May 2025", description: "Premium Host Plan — Monthly", amount: 8.00, status: "Paid" },
+  { id: "inv-3", date: "14 Apr 2025", description: "Premium Host Plan — Monthly", amount: 8.00, status: "Paid" },
+  { id: "inv-4", date: "14 Mar 2025", description: "Premium Host Plan — Monthly", amount: 8.00, status: "Paid" },
 ];
