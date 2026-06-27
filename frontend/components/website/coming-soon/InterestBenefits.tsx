@@ -2,8 +2,8 @@ import React from "react";
 
 const BENEFITS = [
   {
-    title: "Launch Giveaway Tokens",
-    description: "First 500 waitlist registrations receive free entry tokens for our inaugural high-end AEG rifle draw.",
+    title: "Launch Competitions",
+    description: "Be the first to know about our launch competitions with some of the biggest Airsoft companies in the UK.",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-text-brand">
         <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.75 7.5h4.5A2.625 2.625 0 1 0 12 4.875Z" />
