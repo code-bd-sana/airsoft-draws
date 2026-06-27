@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { mockHostRafflesList } from "../../../data/dashboard/host-dashboard.data";
 import { cn } from "../../../lib/utils";
 
@@ -34,11 +35,14 @@ export default function HostRafflesTable() {
             </button>
           ))}
         </div>
-        <button className="h-[40px] px-[20px] bg-[#8cb34a] hover:bg-[#72943a] transition-colors rounded-[8px] flex items-center justify-center shrink-0">
+        <Link 
+          href="/dashboard/host/create"
+          className="h-[40px] px-[20px] bg-[#8cb34a] hover:bg-[#72943a] transition-colors rounded-[8px] flex items-center justify-center shrink-0"
+        >
           <span className="font-heading font-medium text-[14px] text-[#0d0d0b]">
             + Create Raffle
           </span>
-        </button>
+        </Link>
       </div>
 
       {/* Table Container */}

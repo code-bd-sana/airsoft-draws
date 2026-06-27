@@ -24,6 +24,12 @@ export interface HostChartDataPoint {
   revenue: number;
 }
 
+export interface HostSalesChartDataPoint {
+  date: string;
+  sales: number;
+  revenue: number;
+}
+
 export interface HostUpcomingDraw {
   id: string;
   dateStr: string;

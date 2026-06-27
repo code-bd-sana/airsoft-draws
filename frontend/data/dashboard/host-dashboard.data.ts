@@ -1,4 +1,4 @@
-import { HostDashboardStat, HostCompetitionSummary, HostChartDataPoint, HostUpcomingDraw, HostRecentActivity, HostRaffleDetail } from "../../types/host-dashboard.types";
+import { HostDashboardStat, HostCompetitionSummary, HostChartDataPoint, HostUpcomingDraw, HostRecentActivity, HostRaffleDetail, HostSalesChartDataPoint } from "../../types/host-dashboard.types";
 
 export const hostKpiStats: HostDashboardStat[] = [
   {
@@ -173,4 +173,45 @@ export const mockHostRafflesList: HostRaffleDetail[] = [
     platformPlan: "Premium Plan",
     netEarnings: 180.00
   }
+];
+
+export const mockSalesMetrics: HostDashboardStat[] = [
+  {
+    id: "total_revenue",
+    label: "Total Revenue",
+    value: "£8,450",
+    change: "▲ 12%",
+    trend: "up"
+  },
+  {
+    id: "total_tickets_sold",
+    label: "Tickets Sold",
+    value: "1,245",
+    change: "▲ 8%",
+    trend: "up"
+  },
+  {
+    id: "avg_order_value",
+    label: "Avg. Order Value",
+    value: "£6.78",
+    change: "▼ 0.4%",
+    trend: "down"
+  },
+  {
+    id: "conversion_rate",
+    label: "Conversion Rate",
+    value: "4.2%",
+    change: "▲ 0.3%",
+    trend: "up"
+  }
+];
+
+export const mockSalesChartData: HostSalesChartDataPoint[] = [
+  { date: "Mon", sales: 120, revenue: 600 },
+  { date: "Tue", sales: 150, revenue: 750 },
+  { date: "Wed", sales: 180, revenue: 900 },
+  { date: "Thu", sales: 140, revenue: 700 },
+  { date: "Fri", sales: 220, revenue: 1100 },
+  { date: "Sat", sales: 280, revenue: 1400 },
+  { date: "Sun", sales: 310, revenue: 1550 },
 ];
