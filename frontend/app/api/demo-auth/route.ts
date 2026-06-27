@@ -15,8 +15,8 @@ export async function POST(request: Request) {
       // Set the demo_role cookie
       cookieStore.set("demo_role", role, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        secure: false, // Set to false to support both HTTP and HTTPS on VPS
+        sameSite: "lax",
         path: "/",
         maxAge: 60 * 60 * 24 * 7, // 1 week
       });
