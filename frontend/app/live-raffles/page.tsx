@@ -6,7 +6,7 @@ import LiveRafflesHero from "../../components/website/live-raffles/LiveRafflesHe
 import LiveRaffleGrid from "../../components/website/live-raffles/LiveRaffleGrid";
 
 export const metadata: Metadata = {
-  title: "Live Raffles | Airsoft Draws",
+  title: "Live Competitions | Airsoft Draws",
   description:
     "Browse and enter active premium airsoft drawings, AEGs, GBBs, sidearms, tactical gear, and cash prize draws. Tickets from £1.",
 };

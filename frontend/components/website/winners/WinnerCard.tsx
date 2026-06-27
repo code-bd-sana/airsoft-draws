@@ -10,7 +10,8 @@ interface WinnerCardProps {
  * Renders a completed raffle winner record card with ticket and avatar details.
  */
 export default function WinnerCard({ winner }: WinnerCardProps) {
-  const { name, location, avatar, initials, prizeTitle, drawDate, ticketNumber } = winner;
+  const { name, location, avatar, competitionImage, initials, prizeTitle, drawDate, ticketNumber } = winner;
+  const displayImage = competitionImage || avatar;
 
   return (
     <div className="relative bg-[#161810] border border-border rounded-[14px] p-5 hover:border-border-medium hover:shadow-glow transition-all duration-300 w-full min-h-[185px]">
@@ -66,12 +67,12 @@ export default function WinnerCard({ winner }: WinnerCardProps) {
         </span>
       </div>
 
-      {/* User verified photo (Absolute positioning on the top-right corner) */}
-      {avatar && (
+      {/* Competition/Prize photo (Absolute positioning on the top-right corner) */}
+      {displayImage && (
         <div className="absolute right-5 top-5 w-20 h-20 rounded-[10px] border border-border overflow-hidden bg-surface shrink-0 shadow-sm select-none">
           <Image
-            src={avatar}
-            alt={`${name} winning photo`}
+            src={displayImage}
+            alt={`${prizeTitle} prize image`}
             fill
             sizes="80px"
             className="object-cover opacity-85 hover:opacity-100 transition-opacity duration-200"

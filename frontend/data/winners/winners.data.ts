@@ -16,6 +16,7 @@ export const winnersData: Winner[] = [
     dateString: "2026-06-24",
     ticketNumber: "AD-9082-12",
     status: "delivered",
+    winnerType: "instant",
     category: "rifles",
   },
   {
@@ -29,6 +30,7 @@ export const winnersData: Winner[] = [
     dateString: "2026-06-22",
     ticketNumber: "AD-8843-05",
     status: "delivered",
+    winnerType: "main_draw",
     category: "cash",
   },
   {
@@ -42,6 +44,7 @@ export const winnersData: Winner[] = [
     dateString: "2026-06-18",
     ticketNumber: "AD-7762-91",
     status: "delivered",
+    winnerType: "instant",
     category: "snipers",
   },
   {
@@ -55,6 +58,7 @@ export const winnersData: Winner[] = [
     dateString: "2026-06-15",
     ticketNumber: "AD-5310-44",
     status: "delivered",
+    winnerType: "main_draw",
     category: "bundles",
   },
   {
@@ -68,6 +72,7 @@ export const winnersData: Winner[] = [
     dateString: "2026-06-10",
     ticketNumber: "AD-3211-18",
     status: "delivered",
+    winnerType: "main_draw",
     category: "rifles",
   },
   {
@@ -81,6 +86,7 @@ export const winnersData: Winner[] = [
     dateString: "2026-06-05",
     ticketNumber: "AD-2041-09",
     status: "delivered",
+    winnerType: "main_draw",
     category: "accessories",
   },
   {
@@ -94,6 +100,7 @@ export const winnersData: Winner[] = [
     dateString: "2026-05-28",
     ticketNumber: "AD-1092-23",
     status: "delivered",
+    winnerType: "main_draw",
     category: "cash",
   },
   {
@@ -107,6 +114,7 @@ export const winnersData: Winner[] = [
     dateString: "2026-05-20",
     ticketNumber: "AD-0992-81",
     status: "delivered",
+    winnerType: "main_draw",
     category: "rifles",
   },
   {
@@ -120,6 +128,7 @@ export const winnersData: Winner[] = [
     dateString: "2026-05-10",
     ticketNumber: "AD-0881-54",
     status: "delivered",
+    winnerType: "main_draw",
     category: "pistols",
   },
   {
@@ -133,6 +142,7 @@ export const winnersData: Winner[] = [
     dateString: "2026-04-25",
     ticketNumber: "AD-0654-72",
     status: "delivered",
+    winnerType: "main_draw",
     category: "pistols",
   },
   {
@@ -146,6 +156,7 @@ export const winnersData: Winner[] = [
     dateString: "2026-04-18",
     ticketNumber: "AD-0541-10",
     status: "delivered",
+    winnerType: "main_draw",
     category: "apparel",
   },
   {
@@ -159,6 +170,7 @@ export const winnersData: Winner[] = [
     dateString: "2026-04-05",
     ticketNumber: "AD-0421-99",
     status: "delivered",
+    winnerType: "main_draw",
     category: "cash",
   },
   {
@@ -172,6 +184,7 @@ export const winnersData: Winner[] = [
     dateString: "2026-03-20",
     ticketNumber: "AD-0311-66",
     status: "delivered",
+    winnerType: "main_draw",
     category: "accessories",
   },
   {
@@ -185,6 +198,7 @@ export const winnersData: Winner[] = [
     dateString: "2026-03-15",
     ticketNumber: "AD-0255-03",
     status: "delivered",
+    winnerType: "main_draw",
     category: "rifles",
   },
   {
@@ -198,6 +212,7 @@ export const winnersData: Winner[] = [
     dateString: "2026-02-28",
     ticketNumber: "AD-0199-01",
     status: "delivered",
+    winnerType: "main_draw",
     category: "cash",
   },
   {
@@ -211,6 +226,7 @@ export const winnersData: Winner[] = [
     dateString: "2026-01-10",
     ticketNumber: "AD-0051-78",
     status: "delivered",
+    winnerType: "main_draw",
     category: "rifles",
   },
 ];

@@ -1,0 +1,52 @@
+import { VerifiedHost } from "../../types/host.types";
+
+export const verifiedHostsData: VerifiedHost[] = [
+  {
+    id: "host-1",
+    slug: "airsoft-armoury",
+    name: "Airsoft Armoury",
+    logo: "A",
+    description: "Premium UK retailer hosting high-end rifle giveaways.",
+    category: "Retailer",
+    competitionCount: 45,
+    averageRating: 4.8,
+    totalReviews: 120,
+    isVerified: true,
+  },
+  {
+    id: "host-2",
+    slug: "tactical-gear-pro",
+    name: "Tactical Gear Pro",
+    logo: "T",
+    description: "Specializing in tactical loadouts and accessories.",
+    category: "Retailer",
+    competitionCount: 12,
+    averageRating: 4.9,
+    totalReviews: 85,
+    isVerified: true,
+  },
+  {
+    id: "host-3",
+    slug: "gbb-customs",
+    name: "GBB Customs",
+    logo: "G",
+    description: "Custom gas blowback pistols and upgrades.",
+    category: "Custom Builder",
+    competitionCount: 8,
+    averageRating: 4.7,
+    totalReviews: 42,
+    isVerified: true,
+  },
+  {
+    id: "host-4",
+    slug: "weekend-warriors",
+    name: "Weekend Warriors",
+    logo: "W",
+    description: "Community-driven competitions with mixed prizes.",
+    category: "Community",
+    competitionCount: 30,
+    averageRating: 4.6,
+    totalReviews: 95,
+    isVerified: true,
+  }
+];

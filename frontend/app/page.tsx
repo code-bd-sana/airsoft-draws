@@ -2,7 +2,7 @@ import React from "react";
 import WebsiteNavbar from "../components/website/layout/WebsiteNavbar";
 import WebsiteFooter from "../components/website/layout/WebsiteFooter";
 import HeroSection from "../components/website/home/HeroSection";
-import FeaturedDrawsSection from "../components/website/home/FeaturedDrawsSection";
+import FeaturedCompetitionsSection from "../components/website/home/FeaturedCompetitionsSection";
 import CategoriesSection from "../components/website/home/CategoriesSection";
 import HowItWorksSection from "../components/website/home/HowItWorksSection";
 import TrustBenefitsSection from "../components/website/home/TrustBenefitsSection";
@@ -27,7 +27,7 @@ export default function Home() {
       <main className="flex-grow">
         <HeroSection />
         
-        <FeaturedDrawsSection />
+        <FeaturedCompetitionsSection />
         
         <CategoriesSection />
         

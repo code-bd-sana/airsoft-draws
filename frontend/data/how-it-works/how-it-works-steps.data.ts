@@ -61,7 +61,7 @@ export const hostSteps: HowItWorksStep[] = [
   {
     id: "host-step-4",
     stepNumber: 4,
-    title: "Submit Raffle for Admin Review",
+    title: "Submit Competition for Admin Review",
     description: "Fill in the draw details: prize, ticket price, total tickets, closing date, and the skill question. Our team reviews within 24h.",
   },
   {

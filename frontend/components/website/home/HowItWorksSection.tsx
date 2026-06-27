@@ -134,7 +134,7 @@ export default function HowItWorksSection() {
 
         {/* View Details Button */}
         <div className="flex justify-center mt-6">
-          <SecondaryButton href="#how-it-works" icon={infoIcon} className="px-8 py-3.5">
+          <SecondaryButton href="/host-rules" icon={infoIcon} className="px-8 py-3.5">
             Read Host Rules
           </SecondaryButton>
         </div>

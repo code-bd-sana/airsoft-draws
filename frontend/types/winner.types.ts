@@ -1,4 +1,5 @@
 export type WinnerStatus = "delivered" | "shipped" | "pending";
+export type WinnerType = "instant" | "main_draw";
 
 /**
  * Interface representing a completed competition winner record.
@@ -8,7 +9,9 @@ export interface Winner {
   id: string;
   name: string;
   location: string;
-  avatar?: string;
+  avatar?: string; // deprecated, use competitionImage
+  competitionImage?: string;
+  winnerType?: WinnerType; // Optional initially to avoid breaking changes if data is slow to update
   initials: string;
   prizeTitle: string;
   drawDate: string; // Formatting for UI (e.g., "12 Jun 2024")

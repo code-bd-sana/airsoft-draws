@@ -8,6 +8,7 @@ export interface InstantWinPrize {
   value: number;
   totalQuantity: number;
   wonQuantity: number;
+  ticketNumbers?: string[];
 }
 
 export interface RaffleDetail {
