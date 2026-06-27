@@ -7,6 +7,7 @@ import { UserLoginFormValues, UserAuthFormState } from "../../types/user-auth.ty
 import { validateLoginForm } from "../../lib/validations/user-auth.validation";
 import PrimaryButton from "../website/shared/PrimaryButton";
 import AuthSuccessState from "../host-auth/AuthSuccessState";
+import DemoLoginOptions from "./DemoLoginOptions";
 import { cn } from "../../lib/utils";
 
 export default function UserLoginForm() {
@@ -299,6 +300,9 @@ export default function UserLoginForm() {
           Go to Host Login &rarr;
         </Link>
       </div>
+
+      {/* Demo Dashboard Section */}
+      <DemoLoginOptions />
     </div>
   );
 }
