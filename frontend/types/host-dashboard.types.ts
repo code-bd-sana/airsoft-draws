@@ -38,3 +38,19 @@ export interface HostRecentActivity {
   description: string;
   timeAgo: string;
 }
+
+export interface HostRaffleDetail {
+  id: string;
+  name: string;
+  ticketsSold: number;
+  totalTickets: number;
+  raised: number;
+  status: "Live" | "Completed" | "Draft" | "Pending Review" | "Ended";
+  endsAt: string;
+  grossRevenue: number;
+  ticketPrice: number;
+  platformFee: number;
+  platformFeePercent: number;
+  platformPlan: string;
+  netEarnings: number;
+}

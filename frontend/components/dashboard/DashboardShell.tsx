@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+import { usePathname } from "next/navigation";
 import { DemoAccount } from "../../types/demo-auth.types";
+import { dashboardNavigation } from "../../config/dashboard-navigation.config";
 import DashboardSidebar from "./DashboardSidebar";
 import DashboardTopbar from "./DashboardTopbar";
 import MobileDashboardMenu from "./MobileDashboardMenu";
@@ -13,6 +15,19 @@ interface DashboardShellProps {
 
 export default function DashboardShell({ account, children }: DashboardShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Find the matching nav item for the current route
+  const currentNav = dashboardNavigation.find(item => 
+    pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href) && item.href !== "/dashboard/host")
+  );
+  
+  // Custom override for My Competitions to show as My Raffles as per Figma
+  let title = currentNav ? currentNav.label : "Dashboard Overview";
+  if (pathname.includes("/dashboard/host/competitions")) {
+    title = "My Raffles";
+  }
+  const subtitle = `Host Portal / ${title}`;
 
   return (
     <div className="min-h-screen bg-[#0D0D0B] text-text-primary flex flex-col lg:flex-row w-full overflow-hidden">
@@ -33,7 +48,9 @@ export default function DashboardShell({ account, children }: DashboardShellProp
         {/* Shared Topbar */}
         <DashboardTopbar 
           account={account} 
-          onMenuClick={() => setMobileMenuOpen(true)} 
+          onMenuClick={() => setMobileMenuOpen(true)}
+          title={title}
+          subtitle={subtitle}
         />
 
         {/* Page Content */}

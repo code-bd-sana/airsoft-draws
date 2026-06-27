@@ -1,4 +1,4 @@
-import { HostDashboardStat, HostCompetitionSummary, HostChartDataPoint, HostUpcomingDraw, HostRecentActivity } from "../../types/host-dashboard.types";
+import { HostDashboardStat, HostCompetitionSummary, HostChartDataPoint, HostUpcomingDraw, HostRecentActivity, HostRaffleDetail } from "../../types/host-dashboard.types";
 
 export const hostKpiStats: HostDashboardStat[] = [
   {
@@ -109,5 +109,68 @@ export const hostRecentCompetitions: HostCompetitionSummary[] = [
     totalTickets: 1000,
     revenue: 375,
     ticketPrice: 1.50
+  }
+];
+
+export const mockHostRafflesList: HostRaffleDetail[] = [
+  {
+    id: "r-1",
+    name: "Summer Car Raffle 2024",
+    ticketsSold: 342,
+    totalTickets: 500,
+    raised: 855.00,
+    status: "Live",
+    endsAt: "14 Jul 2024",
+    grossRevenue: 1250.00,
+    ticketPrice: 2.50,
+    platformFee: 125.00,
+    platformFeePercent: 10,
+    platformPlan: "Premium Plan",
+    netEarnings: 1125.00
+  },
+  {
+    id: "r-2",
+    name: "Charity Football Night",
+    ticketsSold: 120,
+    totalTickets: 200,
+    raised: 300.00,
+    status: "Live",
+    endsAt: "20 Jul 2024",
+    grossRevenue: 500.00,
+    ticketPrice: 2.50,
+    platformFee: 50.00,
+    platformFeePercent: 10,
+    platformPlan: "Premium Plan",
+    netEarnings: 450.00
+  },
+  {
+    id: "r-3",
+    name: "Holiday Hamper Draw",
+    ticketsSold: 500,
+    totalTickets: 500,
+    raised: 1250.00,
+    status: "Completed",
+    endsAt: "01 Jun 2024",
+    grossRevenue: 1250.00,
+    ticketPrice: 2.50,
+    platformFee: 125.00,
+    platformFeePercent: 10,
+    platformPlan: "Premium Plan",
+    netEarnings: 1125.00
+  },
+  {
+    id: "r-4",
+    name: "Tech Bundle Giveaway",
+    ticketsSold: 80,
+    totalTickets: 300,
+    raised: 200.00,
+    status: "Draft",
+    endsAt: "—",
+    grossRevenue: 200.00,
+    ticketPrice: 2.50,
+    platformFee: 20.00,
+    platformFeePercent: 10,
+    platformPlan: "Premium Plan",
+    netEarnings: 180.00
   }
 ];
