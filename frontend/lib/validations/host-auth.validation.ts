@@ -197,3 +197,32 @@ export function validateRegisterStep4(values: Pick<HostRegistrationFormValues, "
 
   return errors;
 }
+
+/**
+ * Validates Host Registration Step 5 (Payout Details).
+ */
+export function validateRegisterStep5(values: Pick<HostRegistrationFormValues, "bankAccountName" | "sortCode" | "accountNumber">): {
+  bankAccountName?: string;
+  sortCode?: string;
+  accountNumber?: string;
+} {
+  const errors: { bankAccountName?: string; sortCode?: string; accountNumber?: string } = {};
+
+  if (!values.bankAccountName.trim()) {
+    errors.bankAccountName = "Bank account name is required";
+  }
+
+  if (!values.sortCode.trim()) {
+    errors.sortCode = "Sort code is required";
+  } else if (!/^\d{2}-?\d{2}-?\d{2}$/.test(values.sortCode)) {
+    errors.sortCode = "Please enter a valid UK sort code (e.g., 12-34-56)";
+  }
+
+  if (!values.accountNumber.trim()) {
+    errors.accountNumber = "Account number is required";
+  } else if (!/^\d{8}$/.test(values.accountNumber.trim())) {
+    errors.accountNumber = "Please enter a valid 8-digit UK account number";
+  }
+
+  return errors;
+}
