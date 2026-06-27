@@ -12,7 +12,7 @@ const BENEFITS = [
     ),
   },
 
-  },
+  
   {
     title: "Premium Verified Gear",
     description: "Get access to 100% legal, compliance-verified raffles featuring top-tier airsoft rifles, pistols, and accessories.",
