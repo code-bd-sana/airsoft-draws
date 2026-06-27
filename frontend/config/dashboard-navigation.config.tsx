@@ -94,8 +94,8 @@ export const dashboardNavigation: DashboardNavItem[] = [
     roles: ["user"],
   },
   {
-    label: "Raffles",
-    href: "/dashboard/user/raffles",
+    label: "Competitions",
+    href: "/dashboard/user/competitions",
     icon: Icons.Competitions, // Using standard competition icon
     roles: ["user"],
   },

@@ -22,10 +22,10 @@ export default function DashboardShell({ account, children }: DashboardShellProp
     pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href) && item.href !== "/dashboard/host")
   );
   
-  // Custom override for My Competitions to show as My Raffles as per Figma
+  // Custom override for My Competitions to show as My Competitions
   let title = currentNav ? currentNav.label : "Dashboard Overview";
   if (pathname.includes("/dashboard/host/competitions")) {
-    title = "My Raffles";
+    title = "My Competitions";
   } else if (pathname === "/dashboard/user" || pathname === "/dashboard/host") {
     title = "Dashboard Overview";
   }

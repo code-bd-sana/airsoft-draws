@@ -45,10 +45,10 @@ export default async function UserDashboardPage() {
           </div>
         </div>
 
-        {/* Won Raffles */}
+        {/* Won Competitions */}
         <div className="bg-[#161810] border border-[#2D3C13] rounded-[14px] p-5 flex flex-col gap-3">
           <p className="font-sans text-[11px] font-normal uppercase tracking-[1.1px] text-[#5A752A]">
-            Won Raffles
+            Won Competitions
           </p>
           <p className="font-heading font-bold text-[28px] leading-tight text-[#E8EDD4]">
             3
