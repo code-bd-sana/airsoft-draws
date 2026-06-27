@@ -39,6 +39,25 @@ export interface HostDrawItem {
   verifiedEntries: number;
 }
 
+export interface PayoutMetrics {
+  availableBalance: number;
+  pendingClearance: number;
+  totalLifetimeEarnings: number;
+  totalFeesPaid: number;
+}
+
+export interface PayoutHistoryItem {
+  id: string;
+  date: string;
+  grossAmount: number;
+  feeDeducted: number;
+  feePercent: number;
+  netAmount: number;
+  method: string;
+  status: "Paid" | "Processing";
+  referenceId: string;
+}
+
 export interface HostUpcomingDraw {
   id: string;
   dateStr: string;
@@ -68,4 +87,27 @@ export interface HostRaffleDetail {
   platformFeePercent: number;
   platformPlan: string;
   netEarnings: number;
+}
+
+export interface PerformanceRevenueDataPoint {
+  month: string;
+  revenue: number;
+}
+
+export interface PerformanceCategorySales {
+  name: string;
+  value: number;
+  percentage: number;
+  color: string;
+}
+
+export interface PerformanceTopRaffle {
+  id: string;
+  name: string;
+  percentage: number;
+}
+
+export interface PerformanceDemographic {
+  region: string;
+  percentage: number;
 }

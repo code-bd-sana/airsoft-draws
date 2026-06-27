@@ -1,4 +1,4 @@
-import { HostDashboardStat, HostCompetitionSummary, HostChartDataPoint, HostUpcomingDraw, HostRecentActivity, HostRaffleDetail, HostSalesChartDataPoint, HostDrawItem } from "../../types/host-dashboard.types";
+import { HostDashboardStat, HostCompetitionSummary, HostChartDataPoint, HostUpcomingDraw, HostRecentActivity, HostRaffleDetail, HostSalesChartDataPoint, HostDrawItem, PayoutMetrics, PayoutHistoryItem, PerformanceRevenueDataPoint, PerformanceCategorySales, PerformanceTopRaffle, PerformanceDemographic } from "../../types/host-dashboard.types";
 
 export const hostKpiStats: HostDashboardStat[] = [
   {
@@ -247,4 +247,50 @@ export const mockDrawsList: HostDrawItem[] = [
     winner: "Sarah T.",
     verifiedEntries: 420
   }
+];
+
+export const mockPayoutMetrics: PayoutMetrics = {
+  availableBalance: 1125.00,
+  pendingClearance: 512.50,
+  totalLifetimeEarnings: 2808.00,
+  totalFeesPaid: 347.00
+};
+
+export const mockPayoutHistory: PayoutHistoryItem[] = [
+  { id: "p-1", date: "14 Jun 2026", grossAmount: 855.00, feeDeducted: 85.50, feePercent: 10, netAmount: 769.50, method: "Bank Transfer", status: "Paid", referenceId: "TXN-00421" },
+  { id: "p-2", date: "6 Jun 2026", grossAmount: 630.00, feeDeducted: 94.50, feePercent: 15, netAmount: 535.50, method: "Bank Transfer", status: "Paid", referenceId: "TXN-00389" },
+  { id: "p-3", date: "22 May 2026", grossAmount: 1250.00, feeDeducted: 125.00, feePercent: 10, netAmount: 1125.00, method: "Stripe", status: "Paid", referenceId: "TXN-00312" },
+  { id: "p-4", date: "1 May 2026", grossAmount: 420.00, feeDeducted: 42.00, feePercent: 10, netAmount: 378.00, method: "Bank Transfer", status: "Paid", referenceId: "TXN-00278" },
+];
+
+export const mockPerformanceRevenue: PerformanceRevenueDataPoint[] = [
+  { month: "Jan", revenue: 7000 },
+  { month: "Feb", revenue: 14000 },
+  { month: "Mar", revenue: 11000 },
+  { month: "Apr", revenue: 20000 },
+  { month: "May", revenue: 18000 },
+  { month: "Jun", revenue: 28000 },
+];
+
+export const mockPerformanceCategories: PerformanceCategorySales[] = [
+  { name: "Rifles", value: 42, percentage: 42, color: "#8cb34a" },
+  { name: "Pistols", value: 28, percentage: 28, color: "#5a752a" },
+  { name: "Accessories", value: 18, percentage: 18, color: "#2d3c13" },
+  { name: "Bundles", value: 12, percentage: 12, color: "#e8edd4" },
+];
+
+export const mockPerformanceTopRaffles: PerformanceTopRaffle[] = [
+  { id: "r1", name: "VFC HK416 Bundle", percentage: 94 },
+  { id: "r2", name: "Tokyo Marui MWS", percentage: 81 },
+  { id: "r3", name: "Sniper Rifle Set", percentage: 67 },
+  { id: "r4", name: "Pistol & Holster", percentage: 53 },
+  { id: "r5", name: "Accessories Pack", percentage: 39 },
+];
+
+export const mockPerformanceDemographics: PerformanceDemographic[] = [
+  { region: "England", percentage: 58 },
+  { region: "Scotland", percentage: 19 },
+  { region: "Wales", percentage: 13 },
+  { region: "N. Ireland", percentage: 7 },
+  { region: "International", percentage: 3 },
 ];

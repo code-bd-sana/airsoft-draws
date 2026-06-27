@@ -88,7 +88,7 @@ export const dashboardNavigation: DashboardNavItem[] = [
     icon: Icons.Competitions,
     roles: ["user"],
   },
-  
+
   // Host Routes
   {
     label: "Dashboard",
@@ -128,7 +128,7 @@ export const dashboardNavigation: DashboardNavItem[] = [
   },
   {
     label: "Performance & Stats",
-    href: "/dashboard/host/analytics",
+    href: "/dashboard/host/performance",
     icon: Icons.Chart,
     roles: ["host"],
   },
@@ -144,7 +144,7 @@ export const dashboardNavigation: DashboardNavItem[] = [
     icon: Icons.CreditCard,
     roles: ["host"],
   },
-  
+
   // Admin Routes
   {
     label: "Platform Overview",
@@ -171,7 +171,7 @@ export const dashboardNavigation: DashboardNavItem[] = [
     roles: ["admin"],
     badge: 12,
   },
-  
+
   // Shared
   {
     label: "Settings",
