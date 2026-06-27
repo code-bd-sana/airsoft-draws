@@ -48,10 +48,10 @@ export default function WebsiteNavbar() {
             <Image
               alt="Airsoft Draws Logo"
               src={logo}
-              height={66}
-              width={66}
+              height={84}
+              width={84}
               priority
-              className="object-contain transition-transform duration-200 group-hover:scale-105"
+              className="object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-md brightness-110 contrast-125"
             />
           </Link>
 

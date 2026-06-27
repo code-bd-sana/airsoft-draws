@@ -79,7 +79,7 @@ export default function UserLoginForm() {
       <AuthSuccessState
         title="Welcome Back!"
         description="Your Player session has been successfully simulated. Directing you to the draws homepage..."
-        buttonText="Explore Raffles"
+        buttonText="Explore Competitions"
         buttonHref="/"
       />
     );
