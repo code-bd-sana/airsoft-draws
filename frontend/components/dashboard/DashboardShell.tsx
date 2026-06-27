@@ -37,9 +37,8 @@ export default function DashboardShell({ account, children }: DashboardShellProp
         />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8">
-          {/* Constrain width slightly for ultra-wide monitors, but mostly let it fill */}
-          <div className="max-w-7xl mx-auto w-full">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col items-center">
+          <div className="w-full flex-1">
             {children}
           </div>
         </main>

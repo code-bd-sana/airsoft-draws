@@ -1,31 +1,40 @@
 import React from "react";
 import HostStatCard from "./HostStatCard";
 import HostRevenueChart from "./HostRevenueChart";
-import HostCompetitionsTable from "./HostCompetitionsTable";
+import HostActiveRaffles from "./HostActiveRaffles";
+import RaffleProfitCalculator from "./RaffleProfitCalculator";
+import HostUpcomingDraws from "./HostUpcomingDraws";
+import HostRecentActivity from "./HostRecentActivity";
 import { hostKpiStats } from "../../../data/dashboard/host-dashboard.data";
 
 export default function HostDashboardOverview() {
   return (
-    <div className="flex flex-col gap-[20px] w-full max-w-[1660px] mx-auto py-8">
+    <div className="flex flex-col gap-[20px] w-full max-w-[1660px] mx-auto">
       {/* KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px] w-full">
         {hostKpiStats.map((stat) => (
           <HostStatCard key={stat.id} stat={stat} />
         ))}
       </div>
 
-      {/* Main Content Area */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-[20px]">
-        {/* Revenue Chart (Spans 2 columns on extra large screens) */}
-        <div className="xl:col-span-2 flex w-full">
+      {/* Main Content Area - Split into two logical columns on large screens */}
+      <div className="flex flex-col xl:flex-row gap-[20px] w-full items-start">
+        
+        {/* Left Column (Earnings + Active Raffles) */}
+        <div className="flex flex-col gap-[20px] w-full xl:w-[924px] shrink-0">
           <HostRevenueChart />
+          <HostActiveRaffles />
         </div>
         
-        {/* Competitions Table */}
-        <div className="xl:col-span-1 flex w-full">
-          <HostCompetitionsTable />
+        {/* Right Column (Profit Calculator + Upcoming Draws) */}
+        <div className="flex flex-col gap-[20px] w-full xl:w-[635px] shrink-0">
+          <RaffleProfitCalculator />
+          <HostUpcomingDraws />
         </div>
       </div>
+
+      {/* Bottom Row (Recent Activity) */}
+      <HostRecentActivity />
     </div>
   );
 }
