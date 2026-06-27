@@ -77,12 +77,16 @@ export default function DashboardSidebar({ account }: DashboardSidebarProps) {
               </span>
               
               {item.badge && (
-                <span className={cn(
-                  "ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-badge min-w-[20px] text-center",
-                  isActive ? "bg-primary text-[#0D0D0B]" : "bg-[#2D3C13] text-[#A0D056]"
-                )}>
-                  {item.badge}
-                </span>
+                item.badge === true ? (
+                  <span className="ml-auto w-2 h-2 rounded-full bg-[#f76b6b]" />
+                ) : (
+                  <span className={cn(
+                    "ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-badge min-w-[20px] text-center",
+                    isActive ? "bg-primary text-[#0D0D0B]" : "bg-[#2D3C13] text-[#A0D056]"
+                  )}>
+                    {item.badge}
+                  </span>
+                )
               )}
             </Link>
           );

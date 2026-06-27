@@ -124,6 +124,87 @@ export const dashboardNavigation: DashboardNavItem[] = [
     roles: ["user"],
   },
 
+  // Admin Routes
+  {
+    label: "Dashboard",
+    href: "/dashboard/admin",
+    icon: Icons.Dashboard,
+    roles: ["admin"],
+  },
+  {
+    label: "Users Management",
+    href: "/dashboard/admin/users",
+    icon: Icons.Users,
+    roles: ["admin"],
+  },
+  {
+    label: "Hosts Management",
+    href: "/dashboard/admin/hosts",
+    icon: Icons.Competitions, // Re-using for now
+    roles: ["admin"],
+  },
+  {
+    label: "Subscription Management",
+    href: "/dashboard/admin/subscriptions",
+    icon: Icons.Wallet,
+    roles: ["admin"],
+  },
+  {
+    label: "Raffle Management",
+    href: "/dashboard/admin/raffles",
+    icon: Icons.Competitions,
+    roles: ["admin"],
+  },
+  {
+    label: "Raffle Approval",
+    href: "/dashboard/admin/approvals",
+    icon: Icons.Support,
+    roles: ["admin"],
+    badge: true, // Red dot badge
+  },
+  {
+    label: "Ticket / Order Overview",
+    href: "/dashboard/admin/orders",
+    icon: Icons.Sales,
+    roles: ["admin"],
+  },
+  {
+    label: "Draw Management",
+    href: "/dashboard/admin/draws",
+    icon: Icons.Trophy,
+    roles: ["admin"],
+  },
+  {
+    label: "Winners",
+    href: "/dashboard/admin/winners",
+    icon: Icons.Trophy,
+    roles: ["admin"],
+  },
+  {
+    label: "Reports & Analytics",
+    href: "/dashboard/admin/reports",
+    icon: Icons.Chart,
+    roles: ["admin"],
+  },
+  {
+    label: "Withdraw Requests",
+    href: "/dashboard/admin/withdrawals",
+    icon: Icons.Wallet,
+    roles: ["admin"],
+  },
+  {
+    label: "System Settings",
+    href: "/dashboard/admin/settings",
+    icon: Icons.Settings,
+    roles: ["admin"],
+  },
+  {
+    label: "Logs & Activity",
+    href: "/dashboard/admin/logs",
+    icon: Icons.Support, // Using existing icon
+    roles: ["admin"],
+  },
+
   // Host Routes
   {
     label: "Dashboard",
