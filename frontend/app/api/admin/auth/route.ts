@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     const cookieStore = await cookies();
     cookieStore.set("admin_session", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Set to false to support both HTTP and HTTPS on VPS
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 7, // 7 days
@@ -53,7 +53,7 @@ export async function DELETE() {
   const cookieStore = await cookies();
   cookieStore.set("admin_session", "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: false, // Set to false to support both HTTP and HTTPS on VPS
     sameSite: "lax",
     path: "/",
     maxAge: 0,
