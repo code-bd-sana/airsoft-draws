@@ -1,4 +1,4 @@
-import { HostDashboardStat, HostCompetitionSummary, HostChartDataPoint, HostUpcomingDraw, HostRecentActivity, HostRaffleDetail, HostSalesChartDataPoint } from "../../types/host-dashboard.types";
+import { HostDashboardStat, HostCompetitionSummary, HostChartDataPoint, HostUpcomingDraw, HostRecentActivity, HostRaffleDetail, HostSalesChartDataPoint, HostDrawItem } from "../../types/host-dashboard.types";
 
 export const hostKpiStats: HostDashboardStat[] = [
   {
@@ -214,4 +214,37 @@ export const mockSalesChartData: HostSalesChartDataPoint[] = [
   { date: "Fri", sales: 220, revenue: 1100 },
   { date: "Sat", sales: 280, revenue: 1400 },
   { date: "Sun", sales: 310, revenue: 1550 },
+];
+
+export const mockDrawsList: HostDrawItem[] = [
+  {
+    id: "draw-1",
+    name: "Tokyo Marui Next Gen HK416 Delta Custom",
+    drawDate: "Draws 22 Jun 2025",
+    status: "Awaiting Draw",
+    verifiedEntries: 500
+  },
+  {
+    id: "draw-2",
+    name: "Sniper Rifle Set",
+    drawDate: "Drawn 15 May 2024",
+    status: "Drawn",
+    winner: "Alex B.",
+    verifiedEntries: 350
+  },
+  {
+    id: "draw-3",
+    name: "Pistol & Holster Kit",
+    drawDate: "Draws 10 Jul 2024",
+    status: "Awaiting Draw",
+    verifiedEntries: 120
+  },
+  {
+    id: "draw-4",
+    name: "VFC BCM MCMR 11.5 GBBR",
+    drawDate: "Drawn 01 Jun 2024",
+    status: "Drawn",
+    winner: "Sarah T.",
+    verifiedEntries: 420
+  }
 ];

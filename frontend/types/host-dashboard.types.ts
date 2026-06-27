@@ -30,6 +30,15 @@ export interface HostSalesChartDataPoint {
   revenue: number;
 }
 
+export interface HostDrawItem {
+  id: string;
+  name: string;
+  drawDate: string;
+  status: "Awaiting Draw" | "Drawn";
+  winner?: string;
+  verifiedEntries: number;
+}
+
 export interface HostUpcomingDraw {
   id: string;
   dateStr: string;
