@@ -1,6 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import { FOOTER_SECTIONS, BRAND_NAME } from "../../../lib/constants";
+import Image from 'next/image';
+import logo from '../../../public/logo3.png';
 
 /**
  * Global website footer matching the Figma Frame 46 design specification.
@@ -45,14 +47,18 @@ export default function WebsiteFooter() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
           {/* Logo & Intro Column */}
           <div className="lg:col-span-2 flex flex-col gap-5">
-            <Link href="/" className="flex items-center gap-2.5 w-fit">
-              <div className="flex items-center justify-center w-8 h-8 rounded bg-accent-bg border border-primary">
-                <span className="w-2.5 h-2.5 rounded-full bg-primary" />
-              </div>
-              <span className="font-heading font-bold text-lg text-text-primary uppercase tracking-wide">
-                {BRAND_NAME}
-              </span>
-            </Link>
+
+  <Link href="/" className="flex items-center select-none group py-0.5">
+
+            <Image
+              alt="Airsoft Draws Logo"
+              src={logo}
+              height={150}
+              width={150}
+              priority
+              className="object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-md brightness-110 contrast-125"
+            />
+          </Link>
 
             <p className="font-sans text-xs text-text-muted leading-relaxed max-w-sm">
               The premier marketplace for airsoft gear prize competitions. Win top-tier replicas, tactical loadouts, and cash prizes from just £1. Transparent escrow payouts for secure hosting.
@@ -107,7 +113,7 @@ export default function WebsiteFooter() {
               Prize draws are operated in accordance with the UK Gambling Act 2005 as compliant prize competitions. Participation is limited to individuals aged 18 or older resident in eligible jurisdictions. Ticket purchases are final and escrowed securely.
             </p>
           </div>
-          
+
           <div className="flex items-center gap-4 self-start lg:self-center bg-accent-bg border border-divider px-4 py-2.5 rounded-button text-[10px] text-text-brand font-semibold whitespace-nowrap">
             <span className="w-1.5 h-1.5 rounded-full bg-primary" />
             100% Secure SSL Escrow Payments

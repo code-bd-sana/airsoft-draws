@@ -2,9 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { NAV_LINKS, BRAND_NAME } from "../../../lib/constants";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { NAV_LINKS } from "../../../lib/constants";
 import PrimaryButton from "../shared/PrimaryButton";
 import { cn } from "../../../lib/utils";
+import logo from '../../../public/logo3.png';
 
 /**
  * Global website navigation navbar with sticky backdrop blur and responsive mobile slide-out sidebar.
@@ -12,6 +15,7 @@ import { cn } from "../../../lib/utils";
 export default function WebsiteNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
 
   // Monitor scrolling to add backdrop background
   useEffect(() => {
@@ -42,37 +46,45 @@ export default function WebsiteNavbar() {
       >
         <div className="container-custom flex items-center justify-between">
           {/* Branding Logo */}
-          <Link href="/" className="flex items-center gap-2.5 select-none group">
-            <div className="flex items-center justify-center w-8 h-8 rounded bg-accent-bg border border-primary group-hover:border-primary-hover transition-colors duration-200">
-              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-            </div>
-            <span className="font-heading font-bold text-lg md:text-xl text-text-primary uppercase tracking-wide group-hover:text-text-brand transition-colors duration-200">
-              {BRAND_NAME}
-            </span>
+          <Link href="/" className="flex items-center select-none group py-0.5">
+            <Image
+              alt="Airsoft Draws Logo"
+              src={logo}
+              height={150}
+              width={150}
+              priority
+              className="object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-md brightness-110 contrast-125"
+            />
           </Link>
-
-          {/* Desktop Navigation Links */}
+{/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center gap-8">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="font-sans text-xs font-semibold text-text-muted hover:text-text-brand uppercase tracking-wider transition-colors duration-200"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {NAV_LINKS.map((link) => {
+              const isActive = pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href));
+
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "font-sans text-xs font-semibold uppercase tracking-wider transition-colors duration-200",
+                    isActive ? "text-text-brand" : "text-text-muted hover:text-text-brand"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Auth Buttons */}
           <div className="hidden lg:flex items-center gap-4">
             <Link
-              href="#"
+              href="/login"
               className="font-sans text-xs font-semibold text-text-primary hover:text-text-brand uppercase tracking-wider transition-colors duration-200 px-3 py-2"
             >
               Log In
             </Link>
-            <PrimaryButton href="#" className="px-5 py-2 text-xs">
+            <PrimaryButton href="/host/register" className="px-5 py-2 text-xs">
               Start Hosting
             </PrimaryButton>
           </div>
@@ -138,30 +150,37 @@ export default function WebsiteNavbar() {
 
           {/* Links list */}
           <nav className="flex flex-col gap-4">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="font-heading font-bold text-sm text-text-primary hover:text-text-brand uppercase tracking-wider transition-colors duration-200 py-1.5 border-b border-divider/20"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {NAV_LINKS.map((link) => {
+              const isActive = pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href));
+
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cn(
+                    "font-heading font-bold text-sm uppercase tracking-wider transition-colors duration-200 py-1.5 border-b border-divider/20",
+                    isActive ? "text-text-brand" : "text-text-primary hover:text-text-brand"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
 
         {/* Bottom Login and Host Buttons */}
         <div className="flex flex-col gap-3.5 pt-6 border-t border-divider mt-auto">
           <Link
-            href="#"
+            href="/login"
             onClick={() => setMobileMenuOpen(false)}
             className="flex items-center justify-center font-sans font-semibold text-xs text-text-primary hover:text-text-brand uppercase tracking-wider py-3 border border-border rounded-button transition-colors duration-200"
           >
             Log In
           </Link>
           <PrimaryButton
-            href="#"
+            href="/host/register"
             onClick={() => setMobileMenuOpen(false)}
             className="py-3 text-xs"
           >
