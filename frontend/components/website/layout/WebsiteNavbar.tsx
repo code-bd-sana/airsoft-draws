@@ -10,7 +10,7 @@ import { cn } from "../../../lib/utils";
 import logo from '../../../public/logo3.png';
 
 /**
- * Global website navigation navbar with sticky backdrop blur and responsive mobile slide-out sidebar.
+ * Global website navigation navbar with sticky backdrop blur and responsive mobile slide-out sidebar y.
  */
 export default function WebsiteNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
