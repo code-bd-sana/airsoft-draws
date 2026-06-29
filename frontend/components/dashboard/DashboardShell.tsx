@@ -22,12 +22,17 @@ export default function DashboardShell({ account, children }: DashboardShellProp
     pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href) && item.href !== "/dashboard/host")
   );
   
-  // Custom override for My Competitions to show as My Raffles as per Figma
+  // Custom override for My Competitions to show as My Competitions
   let title = currentNav ? currentNav.label : "Dashboard Overview";
   if (pathname.includes("/dashboard/host/competitions")) {
-    title = "My Raffles";
+    title = "My Competitions";
+  } else if (pathname === "/dashboard/user" || pathname === "/dashboard/host") {
+    title = "Dashboard Overview";
   }
-  const subtitle = `Host Portal / ${title}`;
+
+  const isUserRoute = pathname.startsWith("/dashboard/user");
+  const portalName = isUserRoute ? "User Portal" : account.role === "admin" ? "Admin Portal" : "Host Portal";
+  const subtitle = `${portalName} / ${title}`;
 
   return (
     <div className="min-h-screen bg-[#0D0D0B] text-text-primary flex flex-col lg:flex-row w-full overflow-hidden">

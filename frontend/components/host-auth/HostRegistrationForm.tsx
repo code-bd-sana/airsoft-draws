@@ -49,6 +49,9 @@ export default function HostRegistrationForm({
     vatNumber: "",
     businessLogo: null,
     businessBio: "",
+    bankAccountName: "",
+    sortCode: "",
+    accountNumber: "",
     acceptedTerms: false,
   });
 

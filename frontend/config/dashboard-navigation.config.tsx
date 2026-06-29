@@ -6,7 +6,7 @@ export interface DashboardNavItem {
   href: string;
   icon: (props: React.SVGProps<SVGSVGElement>) => React.JSX.Element;
   roles: DemoRole[];
-  badge?: string | number;
+  badge?: string | number | boolean;
 }
 
 // Icons aligned with Figma intents
@@ -66,6 +66,11 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
     </svg>
   ),
+  Support: (props: any) => (
+    <svg fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.712 4.33a9.027 9.027 0 0 1 1.652 1.306c.51.51.944 1.064 1.306 1.652M19.67 16.712a9.027 9.027 0 0 1-1.306 1.652c-.51.51-1.064.944-1.652 1.306M7.288 19.67a9.027 9.027 0 0 1-1.652-1.306 9.027 9.027 0 0 1-1.306-1.652M4.33 7.288a9.027 9.027 0 0 1 1.306-1.652c.51-.51 1.064-.944 1.652-1.306M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm0 0v6M15 12h6M12 9V3m-3 3H3" />
+    </svg>
+  ),
   Settings: (props: any) => (
     <svg fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" {...props}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
@@ -77,9 +82,21 @@ const Icons = {
 export const dashboardNavigation: DashboardNavItem[] = [
   // User Routes
   {
-    label: "Overview",
+    label: "Dashboard",
     href: "/dashboard/user",
     icon: Icons.Dashboard,
+    roles: ["user"],
+  },
+  {
+    label: "My Profile",
+    href: "/dashboard/user/profile",
+    icon: Icons.User,
+    roles: ["user"],
+  },
+  {
+    label: "Competitions",
+    href: "/dashboard/user/competitions",
+    icon: Icons.Competitions, // Using standard competition icon
     roles: ["user"],
   },
   {
@@ -87,6 +104,100 @@ export const dashboardNavigation: DashboardNavItem[] = [
     href: "/dashboard/user/tickets",
     icon: Icons.Competitions,
     roles: ["user"],
+  },
+  {
+    label: "Results / Winners",
+    href: "/dashboard/user/winners",
+    icon: Icons.Trophy,
+    roles: ["user"],
+  },
+  {
+    label: "Transactions",
+    href: "/dashboard/user/transactions",
+    icon: Icons.Wallet,
+    roles: ["user"],
+  },
+  {
+    label: "Support",
+    href: "/dashboard/user/support",
+    icon: Icons.Support,
+    roles: ["user"],
+  },
+
+  // Admin Routes
+  {
+    label: "Dashboard",
+    href: "/dashboard/admin",
+    icon: Icons.Dashboard,
+    roles: ["admin"],
+  },
+  {
+    label: "Users Management",
+    href: "/dashboard/admin/users",
+    icon: Icons.Users,
+    roles: ["admin"],
+  },
+  {
+    label: "Hosts Management",
+    href: "/dashboard/admin/hosts",
+    icon: Icons.Competitions, // Re-using for now
+    roles: ["admin"],
+  },
+  {
+    label: "Subscription Management",
+    href: "/dashboard/admin/subscriptions",
+    icon: Icons.Wallet,
+    roles: ["admin"],
+  },
+  {
+    label: "Raffle Management",
+    href: "/dashboard/admin/raffles",
+    icon: Icons.Competitions,
+    roles: ["admin"],
+  },
+  {
+    label: "Raffle Approval",
+    href: "/dashboard/admin/approvals",
+    icon: Icons.Support,
+    roles: ["admin"],
+    badge: true, // Red dot badge
+  },
+  {
+    label: "Ticket / Order Overview",
+    href: "/dashboard/admin/orders",
+    icon: Icons.Sales,
+    roles: ["admin"],
+  },
+  {
+    label: "Draw Management",
+    href: "/dashboard/admin/draws",
+    icon: Icons.Trophy,
+    roles: ["admin"],
+  },
+  {
+    label: "Winners",
+    href: "/dashboard/admin/winners",
+    icon: Icons.Trophy,
+    roles: ["admin"],
+  },
+  {
+    label: "Reports & Analytics",
+    href: "/dashboard/admin/reports",
+    icon: Icons.Chart,
+    roles: ["admin"],
+  },
+  {
+    label: "Withdraw Requests",
+    href: "/dashboard/admin/withdrawals",
+    icon: Icons.Wallet,
+    roles: ["admin"],
+  },
+
+  {
+    label: "Logs & Activity",
+    href: "/dashboard/admin/logs",
+    icon: Icons.Support, // Using existing icon
+    roles: ["admin"],
   },
 
   // Host Routes
@@ -144,39 +255,11 @@ export const dashboardNavigation: DashboardNavItem[] = [
     icon: Icons.CreditCard,
     roles: ["host"],
   },
-
-  // Admin Routes
-  {
-    label: "Platform Overview",
-    href: "/dashboard/admin",
-    icon: Icons.Dashboard,
-    roles: ["admin"],
-  },
-  {
-    label: "All Competitions",
-    href: "/dashboard/admin/competitions",
-    icon: Icons.Competitions,
-    roles: ["admin"],
-  },
-  {
-    label: "Users & Hosts",
-    href: "/dashboard/admin/users",
-    icon: Icons.Users,
-    roles: ["admin"],
-  },
-  {
-    label: "Verification",
-    href: "/dashboard/admin/verification",
-    icon: Icons.ShieldCheck,
-    roles: ["admin"],
-    badge: 12,
-  },
-
   // Shared
   {
     label: "Settings",
     href: "/dashboard/settings",
     icon: Icons.Settings,
-    roles: ["user", "admin"],
+    roles: ["user", "host", "admin"],
   },
 ];

@@ -7,7 +7,7 @@ import { DemoAccount } from "../../types/demo-auth.types";
 import { dashboardNavigation } from "../../config/dashboard-navigation.config";
 import { cn } from "../../lib/utils";
 import Image from "next/image";
-import logo from "../../public/logo.png";
+import logo from '../../public/logo2.png';
 
 interface MobileDashboardMenuProps {
   account: DemoAccount;
@@ -40,11 +40,11 @@ export default function MobileDashboardMenu({ account, isOpen, onClose }: Mobile
 
   return (
     <>
-      <div 
+      <div
         className="fixed inset-0 bg-black/60 z-50 lg:hidden animate-fadeIn backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       <div className={cn(
         "fixed inset-y-0 left-0 w-[280px] bg-[#111210] border-r border-[#2D3C13] z-50 flex flex-col transform transition-transform duration-300 ease-in-out lg:hidden shadow-card",
         isOpen ? "translate-x-0" : "-translate-x-full"
@@ -59,7 +59,7 @@ export default function MobileDashboardMenu({ account, isOpen, onClose }: Mobile
               priority
             />
           </Link>
-          <button 
+          <button
             onClick={onClose}
             className="p-1 text-[#B3B8AA] hover:text-[#E8EDD4] rounded-md transition-colors"
           >
@@ -79,8 +79,8 @@ export default function MobileDashboardMenu({ account, isOpen, onClose }: Mobile
                 onClick={onClose}
                 className={cn(
                   "flex items-center gap-[12px] h-[40px] pl-[19px] pr-[16px] rounded-[8px] transition-colors duration-200 group font-sans w-full",
-                  isActive 
-                    ? "bg-[#1A230A] border-l-3 border-[#8CB34A]" 
+                  isActive
+                    ? "bg-[#1A230A] border-l-3 border-[#8CB34A]"
                     : "bg-transparent border-l-3 border-transparent hover:bg-[#161810]"
                 )}
               >
@@ -91,7 +91,7 @@ export default function MobileDashboardMenu({ account, isOpen, onClose }: Mobile
                 )}>
                   {item.label}
                 </span>
-                
+
                 {item.badge && (
                   <span className={cn(
                     "ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-badge min-w-[20px] text-center",
@@ -103,11 +103,11 @@ export default function MobileDashboardMenu({ account, isOpen, onClose }: Mobile
               </Link>
             );
           })}
-          
+
           <div className="w-full px-2 pt-2">
             <div className="h-px bg-[#1A230A] w-full" />
           </div>
-          
+
           <button
             onClick={handleLogout}
             className="flex items-center gap-[12px] h-[40px] px-[16px] rounded-[8px] transition-colors duration-200 w-full hover:bg-[#161810] group"
