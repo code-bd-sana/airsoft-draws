@@ -148,26 +148,26 @@ export default async function LiveRaffleDetailPage({ params }: PageProps) {
         {/* Back Link Sub-header */}
         <div className="bg-[#0d0d0b] border-b border-[#2d3c13] h-14 flex items-center shrink-0">
           <div className="container-custom flex items-center">
-            <Link
+            {/* <Link
               href="/live-raffles"
               className="flex items-center gap-2 group text-xs font-semibold text-[#72943a] hover:text-text-brand select-none transition-colors duration-200"
             >
               {backArrowIcon}
               <span>Back to Live Draws</span>
-            </Link>
+            </Link> */}
           </div>
         </div>
 
         {/* Main Details Section */}
         <section className="py-12 md:py-16 flex-grow">
           <div className="container-custom">
-            
+
             {/* Grid Layout: two-column desktop, single-column stacked mobile */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start">
-              
+
               {/* LEFT COLUMN: Image, Title, Tabs, Instant Wins, Host Info */}
               <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-6 w-full">
-                
+
                 {/* Main product Image Gallery */}
                 <RaffleImageGallery
                   images={raffle.images}
@@ -180,7 +180,7 @@ export default async function LiveRaffleDetailPage({ params }: PageProps) {
                   <h1 className="font-heading font-bold text-3xl md:text-4xl text-text-primary tracking-tight">
                     {raffle.title}
                   </h1>
-                  
+
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="bg-[#1A230A] border border-[#8CB34A] px-2.5 py-1 rounded-[6px] text-[11px] font-semibold text-[#8CB34A] tracking-wide select-none font-sans uppercase">
                       {raffle.status === 'live' ? 'LIVE' : 'ENDING SOON'}
@@ -198,11 +198,11 @@ export default async function LiveRaffleDetailPage({ params }: PageProps) {
 
                 {/* Interactive Details, How-to, and T&Cs Tabs */}
                 <RaffleDetailsTabs raffle={raffle} />
-                
+
                 {/* New Host Profile Banner */}
                 {/* Host banner goes here later */}
                 <div id="host-banner-placeholder" className="mt-6" />
-                
+
               </div>
 
               {/* RIGHT COLUMN: Entry Card (Sticky on desktop viewports) */}
