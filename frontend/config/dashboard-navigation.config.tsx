@@ -6,7 +6,7 @@ export interface DashboardNavItem {
   href: string;
   icon: (props: React.SVGProps<SVGSVGElement>) => React.JSX.Element;
   roles: DemoRole[];
-  badge?: string | number;
+  badge?: string | number | boolean;
 }
 
 // Icons aligned with Figma intents

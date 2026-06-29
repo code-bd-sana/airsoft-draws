@@ -58,7 +58,7 @@ export default function HostProfileTabs() {
         {activeTab === "active" && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-in fade-in duration-300">
             {liveRafflesData.slice(0, 4).map((draw) => (
-              <DrawCard key={draw.id} draw={draw} viewMode="grid" />
+              <DrawCard key={draw.id} draw={draw} />
             ))}
           </div>
         )}
