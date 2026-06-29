@@ -26,25 +26,25 @@ export default function Home() {
       {/* Main Page Content */}
       <main className="flex-grow">
         <HeroSection />
-        
+
         <FeaturedCompetitionsSection />
-        
+
         <CategoriesSection />
-        
+
         <HowItWorksSection />
-        
+
         <TrustBenefitsSection />
-        
+
         <WinnersSection />
-        
+
         <InstantWinsSection />
-        
+
         <FinalCtaSection />
-        
+
         <TestimonialsSection />
-        
+
         <FaqSection />
-        
+
         <NewsletterSection />
       </main>
 

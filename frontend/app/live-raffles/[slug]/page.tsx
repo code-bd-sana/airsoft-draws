@@ -165,26 +165,9 @@ export default async function LiveRaffleDetailPage({ params }: PageProps) {
             {/* Grid Layout: two-column desktop, single-column stacked mobile */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start">
               
-              {/* LEFT COLUMN: Title Info, Gallery, and Detailed Tabs */}
+              {/* LEFT COLUMN: Image, Title, Tabs, Instant Wins, Host Info */}
               <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-6 w-full">
                 
-                {/* Raffle Info Header */}
-                <div className="flex flex-col gap-2 pt-1">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="bg-[#1a230a] border border-[#2d3c13] px-3 py-1 rounded-badge text-[11px] font-semibold text-[#72943a] tracking-wide select-none font-sans uppercase">
-                      {raffle.category}
-                    </span>
-                    <span className="text-[11px] font-medium text-text-muted/60 select-none font-sans">
-                      Hosted by <strong className="text-text-primary font-semibold">{raffle.hostName}</strong>
-                      {raffle.hostDrawsCount ? ` · ${raffle.hostDrawsCount} draws` : ""}
-                    </span>
-                  </div>
-
-                  <h1 className="font-heading font-bold text-3xl md:text-4xl text-text-primary tracking-tight mt-1">
-                    {raffle.title}
-                  </h1>
-                </div>
-
                 {/* Main product Image Gallery */}
                 <RaffleImageGallery
                   images={raffle.images}
@@ -192,8 +175,34 @@ export default async function LiveRaffleDetailPage({ params }: PageProps) {
                   instantWinCount={raffle.instantWinPrizes.length}
                 />
 
+                {/* Title & Badges */}
+                <div className="flex flex-col gap-3 mt-2">
+                  <h1 className="font-heading font-bold text-3xl md:text-4xl text-text-primary tracking-tight">
+                    {raffle.title}
+                  </h1>
+                  
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="bg-[#1A230A] border border-[#8CB34A] px-2.5 py-1 rounded-[6px] text-[11px] font-semibold text-[#8CB34A] tracking-wide select-none font-sans uppercase">
+                      {raffle.status === 'live' ? 'LIVE' : 'ENDING SOON'}
+                    </span>
+                    <span className="text-[12px] font-sans text-[#72943A] select-none">
+                      Hosted by <strong className="text-[#E8EDD4] font-medium">{raffle.hostName}</strong>
+                    </span>
+                    {raffle.instantWinPrizes.length > 0 && (
+                      <span className="text-[12px] font-sans text-[#72943A] select-none">
+                        • {raffle.instantWinPrizes.length} instant wins
+                      </span>
+                    )}
+                  </div>
+                </div>
+
                 {/* Interactive Details, How-to, and T&Cs Tabs */}
                 <RaffleDetailsTabs raffle={raffle} />
+                
+                {/* New Host Profile Banner */}
+                {/* Host banner goes here later */}
+                <div id="host-banner-placeholder" className="mt-6" />
+                
               </div>
 
               {/* RIGHT COLUMN: Entry Card (Sticky on desktop viewports) */}

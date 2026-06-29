@@ -38,6 +38,11 @@ export interface HostRegistrationFormValues {
   businessLogo: string | null; // Data URL or filename placeholder
   businessBio: string;
 
+  // Step 5: Payout Details
+  bankAccountName: string;
+  sortCode: string;
+  accountNumber: string;
+
   // Step 8: Ready to Go Live
   acceptedTerms: boolean;
 }
@@ -45,7 +50,7 @@ export interface HostRegistrationFormValues {
 /**
  * Status of Host Registration onboarding steps.
  */
-export type HostRegistrationStep = 1 | 2 | 3 | 4 | 8;
+export type HostRegistrationStep = 1 | 2 | 3 | 4 | 5 | 8;
 
 /**
  * Interface representing overall Host Authentication form state.

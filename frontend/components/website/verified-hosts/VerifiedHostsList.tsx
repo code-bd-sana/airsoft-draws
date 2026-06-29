@@ -19,16 +19,16 @@ export default function VerifiedHostsList({ hosts }: VerifiedHostsListProps) {
     : hosts.filter(host => host.name.toUpperCase().startsWith(activeLetter));
 
   return (
-    <div>
+    <div className="flex flex-col w-full">
       {/* A-Z Filter */}
-      <div className="flex flex-wrap items-center gap-2 mb-10">
+      <div className="flex flex-wrap items-center gap-2 mb-10 pb-6 border-b border-[#2D3C13]">
         <button
           onClick={() => setActiveLetter("ALL")}
           className={cn(
-            "w-9 h-9 rounded-button flex items-center justify-center font-sans text-xs font-semibold transition-all duration-200 cursor-pointer select-none",
+            "h-[36px] px-4 rounded-[8px] font-sans text-[13px] font-medium transition-colors duration-200 cursor-pointer select-none",
             activeLetter === "ALL"
-              ? "bg-primary text-primary-text"
-              : "bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-border-medium"
+              ? "bg-[#8CB34A] text-[#0D0D0B] shadow-[0_0_15px_rgba(140,179,74,0.15)]"
+              : "bg-transparent border border-[#2D3C13] text-[#72943A] hover:text-[#E8EDD4] hover:border-[#43581E]"
           )}
         >
           All
@@ -38,10 +38,10 @@ export default function VerifiedHostsList({ hosts }: VerifiedHostsListProps) {
             key={letter}
             onClick={() => setActiveLetter(letter)}
             className={cn(
-              "w-9 h-9 rounded-button flex items-center justify-center font-sans text-xs font-semibold transition-all duration-200 cursor-pointer select-none",
+              "w-[36px] h-[36px] rounded-[8px] flex items-center justify-center font-sans text-[13px] font-medium transition-colors duration-200 cursor-pointer select-none",
               activeLetter === letter
-                ? "bg-primary text-primary-text"
-                : "bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-border-medium"
+                ? "bg-[#8CB34A] text-[#0D0D0B] shadow-[0_0_15px_rgba(140,179,74,0.15)]"
+                : "bg-transparent border border-[#2D3C13] text-[#72943A] hover:text-[#E8EDD4] hover:border-[#43581E]"
             )}
           >
             {letter}
@@ -57,12 +57,11 @@ export default function VerifiedHostsList({ hosts }: VerifiedHostsListProps) {
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 bg-surface border border-border border-dashed rounded-card max-w-md mx-auto">
-          <h3 className="font-heading font-bold text-base text-text-primary mb-1">
-            No Hosts Found
-          </h3>
-          <p className="font-sans text-xs text-text-muted">
-            There are no verified hosts starting with the letter {activeLetter}.
+        <div className="flex flex-col items-center justify-center py-20 text-center gap-3 bg-[#111210] border border-[#2D3C13] rounded-[16px] w-full max-w-[600px] mx-auto">
+          <span className="text-[32px]">🔍</span>
+          <h3 className="font-heading font-medium text-[18px] text-[#E8EDD4]">No Hosts Found</h3>
+          <p className="font-sans text-[13px] text-[#72943A] max-w-[300px]">
+            We couldn&apos;t find any verified hosts starting with the letter &quot;{activeLetter}&quot;. Try selecting &quot;All&quot; to see the full directory.
           </p>
         </div>
       )}

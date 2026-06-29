@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DemoAccount } from "../../types/demo-auth.types";
 import { cn } from "../../lib/utils";
+import NotificationsDropdown from "./NotificationsDropdown";
 
 interface DashboardTopbarProps {
   account: DemoAccount;
@@ -15,6 +16,7 @@ interface DashboardTopbarProps {
 export default function DashboardTopbar({ account, onMenuClick, title = "Dashboard Overview", subtitle = "Host Portal / Dashboard Overview" }: DashboardTopbarProps) {
   const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -70,13 +72,23 @@ export default function DashboardTopbar({ account, onMenuClick, title = "Dashboa
         </div>
 
         {/* Notifications */}
-        <button className="relative w-[40px] h-[40px] bg-[#161810] border border-[#2D3C13] rounded-[8px] flex items-center justify-center shrink-0 hover:bg-[#1A230A] transition-colors">
-          <svg className="w-[18px] h-[18px] text-[#B3B8AA]" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
-          </svg>
-          {/* Notification Dot */}
-          <span className="absolute top-[8px] right-[8px] w-[6px] h-[6px] bg-[#f76b6b] rounded-[3px]" />
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+            className="relative w-[40px] h-[40px] bg-[#161810] border border-[#2D3C13] rounded-[8px] flex items-center justify-center shrink-0 hover:bg-[#1A230A] transition-colors"
+          >
+            <svg className="w-[18px] h-[18px] text-[#B3B8AA]" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+            </svg>
+            {/* Notification Dot */}
+            <span className="absolute top-[8px] right-[8px] w-[6px] h-[6px] bg-[#f76b6b] rounded-[3px]" />
+          </button>
+          
+          <NotificationsDropdown 
+            isOpen={isNotificationsOpen} 
+            onClose={() => setIsNotificationsOpen(false)} 
+          />
+        </div>
 
         {/* Divider */}
         <div className="w-[1px] h-[32px] bg-[#2D3C13] shrink-0" />
