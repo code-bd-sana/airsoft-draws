@@ -69,15 +69,15 @@ export default function RaffleImageGallery({
           </div>
         )}
 
-        {/* Floating Instant Win Badge (Bottom Left) */}
-        {instantWinCount > 0 && (
-          <div className="absolute left-4 bottom-4 bg-[#0a0b07]/90 backdrop-blur-sm border border-border-medium flex items-center gap-1.5 px-3 py-1.5 rounded-[20px] select-none shadow-md pointer-events-none">
-            {giftIcon}
-            <span className="text-[11px] font-semibold text-[#8cb34a] tracking-wide uppercase">
-              {instantWinCount} Instant Win Prizes
-            </span>
-          </div>
-        )}
+        {/* Floating Ends In Badge (Bottom Left) */}
+        <div className="absolute left-4 bottom-4 bg-[#1A230A]/90 backdrop-blur-sm border border-[#43581E] flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] select-none shadow-md pointer-events-none">
+          <svg className="w-3.5 h-3.5 text-[#8CB34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <span className="text-[11px] font-semibold text-[#8CB34A] tracking-wide">
+            Ends in 22h 15m
+          </span>
+        </div>
       </div>
 
       {/* Thumbnails Row */}
