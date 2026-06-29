@@ -55,7 +55,10 @@ export default function DashboardSidebar({ account }: DashboardSidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1 scrollbar-hide flex flex-col gap-1 w-full">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href) && item.href !== "/dashboard/host");
+          const isDashboardRoot = item.href === "/dashboard" || item.href === "/dashboard/admin" || item.href === "/dashboard/host" || item.href === "/dashboard/user";
+          const isActive = isDashboardRoot 
+            ? pathname === item.href 
+            : pathname.startsWith(item.href);
           
           return (
             <Link

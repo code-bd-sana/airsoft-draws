@@ -192,12 +192,7 @@ export const dashboardNavigation: DashboardNavItem[] = [
     icon: Icons.Wallet,
     roles: ["admin"],
   },
-  {
-    label: "System Settings",
-    href: "/dashboard/admin/settings",
-    icon: Icons.Settings,
-    roles: ["admin"],
-  },
+
   {
     label: "Logs & Activity",
     href: "/dashboard/admin/logs",
@@ -260,39 +255,11 @@ export const dashboardNavigation: DashboardNavItem[] = [
     icon: Icons.CreditCard,
     roles: ["host"],
   },
-
-  // Admin Routes
-  {
-    label: "Platform Overview",
-    href: "/dashboard/admin",
-    icon: Icons.Dashboard,
-    roles: ["admin"],
-  },
-  {
-    label: "All Competitions",
-    href: "/dashboard/admin/competitions",
-    icon: Icons.Competitions,
-    roles: ["admin"],
-  },
-  {
-    label: "Users & Hosts",
-    href: "/dashboard/admin/users",
-    icon: Icons.Users,
-    roles: ["admin"],
-  },
-  {
-    label: "Verification",
-    href: "/dashboard/admin/verification",
-    icon: Icons.ShieldCheck,
-    roles: ["admin"],
-    badge: 12,
-  },
-
   // Shared
   {
     label: "Settings",
     href: "/dashboard/settings",
     icon: Icons.Settings,
-    roles: ["user", "admin"],
+    roles: ["user", "host", "admin"],
   },
 ];
