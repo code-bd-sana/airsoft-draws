@@ -107,7 +107,7 @@ export default function WebsiteFooter() {
               Prize draws are operated in accordance with the UK Gambling Act 2005 as compliant prize competitions. Participation is limited to individuals aged 18 or older resident in eligible jurisdictions. Ticket purchases are final and escrowed securely.
             </p>
           </div>
-          
+
           <div className="flex items-center gap-4 self-start lg:self-center bg-accent-bg border border-divider px-4 py-2.5 rounded-button text-[10px] text-text-brand font-semibold whitespace-nowrap">
             <span className="w-1.5 h-1.5 rounded-full bg-primary" />
             100% Secure SSL Escrow Payments
@@ -117,3 +117,6 @@ export default function WebsiteFooter() {
     </footer>
   );
 }
+
+
+// dev
