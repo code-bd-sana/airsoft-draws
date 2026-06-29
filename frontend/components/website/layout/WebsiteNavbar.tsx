@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { NAV_LINKS } from "../../../lib/constants";
 import PrimaryButton from "../shared/PrimaryButton";
 import { cn } from "../../../lib/utils";
-import logo from '../../../public/logo.png';
+import logo from '../../../public/logo2.png';
 
 /**
  * Global website navigation navbar with sticky backdrop blur and responsive mobile slide-out sidebar.
@@ -61,7 +61,7 @@ export default function WebsiteNavbar() {
           <nav className="hidden lg:flex items-center gap-8">
             {NAV_LINKS.map((link) => {
               const isActive = pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href));
-              
+
               return (
                 <Link
                   key={link.href}

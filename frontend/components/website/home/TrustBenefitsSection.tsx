@@ -36,11 +36,19 @@ export default function TrustBenefitsSection() {
   return (
     <section className="py-20 bg-surface border-t border-divider">
       <div className="container-custom">
-        {/* Horizontal Stats Row */}
-        <div className="bg-bg border border-border rounded-card grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-divider shadow-card mb-20 overflow-hidden">
-          {trustStatsData.map((stat) => (
-            <StatCard key={stat.id} stat={stat} />
-          ))}
+        {/* Horizontal Stats Marquee */}
+        <div className="relative w-full overflow-hidden bg-bg border border-border rounded-card shadow-card mb-20 py-4 md:py-6">
+          {/* Fading Edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-bg to-transparent z-10 pointer-events-none rounded-l-card" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-bg to-transparent z-10 pointer-events-none rounded-r-card" />
+
+          <div className="flex w-max animate-marquee gap-16 md:gap-32">
+            {[...trustStatsData, ...trustStatsData, ...trustStatsData, ...trustStatsData].map((stat, index) => (
+              <div key={`${stat.id}-${index}`} className="shrink-0 min-w-[180px] md:min-w-[220px]">
+                <StatCard stat={stat} />
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Benefits Grid */}

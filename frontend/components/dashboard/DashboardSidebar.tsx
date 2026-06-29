@@ -7,7 +7,7 @@ import { DemoAccount } from "../../types/demo-auth.types";
 import { dashboardNavigation } from "../../config/dashboard-navigation.config";
 import { cn } from "../../lib/utils";
 import Image from "next/image";
-import logo from "../../public/logo.png";
+import logo from '../../../public/logo2.png';
 
 interface DashboardSidebarProps {
   account: DemoAccount;
@@ -38,7 +38,7 @@ export default function DashboardSidebar({ account }: DashboardSidebarProps) {
 
   return (
     <aside className="hidden lg:flex flex-col w-[260px] h-screen bg-[#111210] border-r border-[#2D3C13] fixed left-0 top-0 z-40">
-      
+
       {/* Brand / Logo Area */}
       <div className="h-[88px] flex items-center justify-center border-b border-[#2D3C13] shrink-0 w-full px-5">
         <Link href="/" className="relative h-[48px] w-auto aspect-[3/1] shrink-0 select-none block flex-none">
@@ -56,18 +56,18 @@ export default function DashboardSidebar({ account }: DashboardSidebarProps) {
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1 scrollbar-hide flex flex-col gap-1 w-full">
         {navItems.map((item) => {
           const isDashboardRoot = item.href === "/dashboard" || item.href === "/dashboard/admin" || item.href === "/dashboard/host" || item.href === "/dashboard/user";
-          const isActive = isDashboardRoot 
-            ? pathname === item.href 
+          const isActive = isDashboardRoot
+            ? pathname === item.href
             : pathname.startsWith(item.href);
-          
+
           return (
             <Link
               key={item.label}
               href={item.href}
               className={cn(
                 "flex items-center gap-[12px] h-[40px] pl-[19px] pr-[16px] rounded-[8px] transition-colors duration-200 group font-sans w-full",
-                isActive 
-                  ? "bg-[#1A230A] border-l-3 border-[#8CB34A]" 
+                isActive
+                  ? "bg-[#1A230A] border-l-3 border-[#8CB34A]"
                   : "bg-transparent border-l-3 border-transparent hover:bg-[#161810]"
               )}
             >
@@ -78,7 +78,7 @@ export default function DashboardSidebar({ account }: DashboardSidebarProps) {
               )}>
                 {item.label}
               </span>
-              
+
               {item.badge && (
                 item.badge === true ? (
                   <span className="ml-auto w-2 h-2 rounded-full bg-[#f76b6b]" />
@@ -94,12 +94,12 @@ export default function DashboardSidebar({ account }: DashboardSidebarProps) {
             </Link>
           );
         })}
-        
+
         {/* Divider & Log out block as defined in Figma */}
         <div className="w-full px-2 pt-2">
           <div className="h-px bg-[#1A230A] w-full" />
         </div>
-        
+
         <button
           onClick={handleLogout}
           className="flex items-center gap-[12px] h-[40px] px-[16px] rounded-[8px] transition-colors duration-200 w-full hover:bg-[#161810] group"
