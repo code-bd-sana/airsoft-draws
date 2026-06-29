@@ -7,7 +7,7 @@ import { DemoAccount } from "../../types/demo-auth.types";
 import { dashboardNavigation } from "../../config/dashboard-navigation.config";
 import { cn } from "../../lib/utils";
 import Image from "next/image";
-import logo from '../../public/logo2.png';
+import logo from '../../../public/logo3.png';
 
 interface MobileDashboardMenuProps {
   account: DemoAccount;

@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { NAV_LINKS } from "../../../lib/constants";
 import PrimaryButton from "../shared/PrimaryButton";
 import { cn } from "../../../lib/utils";
-import logo from '../../../public/logo2.png';
+import logo from '../../../public/logo3.png';
 
 /**
  * Global website navigation navbar with sticky backdrop blur and responsive mobile slide-out sidebar.
@@ -50,8 +50,8 @@ export default function WebsiteNavbar() {
             <Image
               alt="Airsoft Draws Logo"
               src={logo}
-              height={84}
-              width={84}
+              height={150}
+              width={150}
               priority
               className="object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-md brightness-110 contrast-125"
             />

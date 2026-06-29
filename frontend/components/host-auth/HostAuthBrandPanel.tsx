@@ -3,7 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import logo from '../../public/logo2.png';
+import logo from '../../../public/logo3.png';
 import { cn } from "../../lib/utils";
 
 interface HostAuthBrandPanelProps {
