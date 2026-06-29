@@ -56,8 +56,7 @@ export default function WebsiteNavbar() {
               className="object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-md brightness-110 contrast-125"
             />
           </Link>
-
-          {/* Desktop Navigation Links */}
+{/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center gap-8">
             {NAV_LINKS.map((link) => {
               const isActive = pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href));
