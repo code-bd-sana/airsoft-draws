@@ -1,7 +1,9 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -9,11 +11,28 @@ async function bootstrap() {
   // Enable CORS for Next.js frontend
   app.enableCors();
 
+  // Global Exception Filter
+  app.useGlobalFilters(new AllExceptionsFilter());
+
+  // Global Response Interceptor
+  app.useGlobalInterceptors(new TransformInterceptor());
+
   // Global Validation Pipe for class-validator
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       transform: true,
+      // Format validation errors to be industry standard
+      exceptionFactory: (errors) => {
+        const formattedErrors = errors.map((error) => ({
+          field: error.property,
+          errors: Object.values(error.constraints || {}),
+        }));
+        return new BadRequestException({
+          message: 'Validation failed',
+          error: formattedErrors,
+        });
+      },
     }),
   );
 
