@@ -7,6 +7,7 @@ export interface User {
   lastName: string;
   role: string;
   avatarUrl: string | null;
+  location?: string | null;
 }
 
 export interface AuthResponse {
