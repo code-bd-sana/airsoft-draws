@@ -17,20 +17,10 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
     if (!isLoading) {
       if (!isAuthenticated) {
         // Not logged in, redirect to login page
-        // Determine whether to go to host or user login based on intended route
-        const currentPath = window.location.pathname;
-        if (currentPath.startsWith('/host')) {
-          router.push('/host/login');
-        } else {
-          router.push('/login');
-        }
+        router.push('/login');
       } else if (allowedRoles && user && !allowedRoles.includes(user.role)) {
         // Logged in but wrong role
-        if (user.role === 'HOST') {
-          router.push('/host/overview');
-        } else {
-          router.push('/dashboard');
-        }
+        router.push('/dashboard');
       }
     }
   }, [isAuthenticated, isLoading, user, router, allowedRoles]);

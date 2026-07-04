@@ -5,27 +5,32 @@ import { useRouter } from "next/navigation";
 import { DemoRole } from "../../types/demo-auth.types";
 import { demoAccounts } from "../../data/demo-accounts.data";
 import { cn } from "../../lib/utils";
+import { useLoginMutation } from "../../hooks/useAuthHooks";
 
 export default function DemoLoginOptions() {
   const router = useRouter();
   const [loadingRole, setLoadingRole] = useState<DemoRole | null>(null);
+  const { mutateAsync: login } = useLoginMutation();
 
   const handleDemoLogin = async (role: DemoRole) => {
     setLoadingRole(role);
     try {
-      const res = await fetch("/api/demo-auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "login", role }),
-      });
-      
-      const data = await res.json();
-      if (data.success && data.redirectUrl) {
-        router.push(data.redirectUrl);
+      let email = "";
+      let password = "";
+
+      if (role === "admin") {
+        email = "admin@gmail.com";
+        password = "admin@gmail.com";
+      } else if (role === "host") {
+        email = "host@airsoftdraw.demo";
+        password = "password123";
       } else {
-        console.error("Demo login failed:", data.error);
-        setLoadingRole(null);
+        email = "user@airsoftdraw.demo";
+        password = "password123";
       }
+
+      await login({ email, password });
+      // The mutation handles redirect on success
     } catch (err) {
       console.error("Demo login error:", err);
       setLoadingRole(null);

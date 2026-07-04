@@ -8,6 +8,7 @@ import { dashboardNavigation } from "../../config/dashboard-navigation.config";
 import { cn } from "../../lib/utils";
 import Image from "next/image";
 import logo from '../../public/logo2.png';
+import { useLogout } from "../../hooks/useAuthHooks";
 
 interface MobileDashboardMenuProps {
   account: DemoAccount;
@@ -20,20 +21,10 @@ export default function MobileDashboardMenu({ account, isOpen, onClose }: Mobile
   const router = useRouter();
   const navItems = dashboardNavigation.filter(item => item.roles.includes(account.role));
 
+  const logout = useLogout();
+
   const handleLogout = async () => {
-    try {
-      const res = await fetch("/api/demo-auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "logout" }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        router.push(data.redirectUrl || "/login");
-      }
-    } catch (err) {
-      console.error(err);
-    }
+    await logout();
   };
 
   if (!isOpen) return null;

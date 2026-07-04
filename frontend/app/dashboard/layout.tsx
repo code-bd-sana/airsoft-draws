@@ -12,12 +12,11 @@ export default function DashboardLayout({
 }) {
   const { user } = useAuth();
 
-  // Map the real user to the structure expected by DashboardShell
   const account = user ? {
     id: user.id,
     name: `${user.firstName} ${user.lastName}`.trim() || user.email,
     email: user.email,
-    role: user.role.toLowerCase() as "user" | "host" | "admin",
+    role: (user.role === 'CLIENT' ? 'user' : user.role.toLowerCase()) as "user" | "host" | "admin",
     avatar: user.avatarUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + user.id,
     joinDate: "2024-01-01",
     status: "active" as const,

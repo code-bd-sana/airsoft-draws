@@ -12,12 +12,8 @@ export const useLoginMutation = () => {
       if (data?.user) {
         queryClient.setQueryData(['user'], data.user);
         
-        // Redirect based on role
-        if (data.user.role === 'HOST') {
-          router.push('/host/dashboard'); // Use /host/dashboard consistently
-        } else {
-          router.push('/dashboard');
-        }
+        // Redirect to dashboard (dispatcher at /dashboard handles role-based routing)
+        router.push('/dashboard');
       }
     },
   });
