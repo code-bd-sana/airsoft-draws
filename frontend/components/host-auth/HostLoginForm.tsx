@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { HostLoginFormValues, HostAuthFormState } from "../../types/host-auth.types";
 import { validateLoginForm } from "../../lib/validations/host-auth.validation";
 import AuthSuccessState from "./AuthSuccessState";
-import { cn } from "../../lib/utils";
+import { cn, extractApiError } from "../../lib/utils";
+import { useLoginMutation } from "../../hooks/useAuthHooks";
 
 export default function HostLoginForm() {
   const router = useRouter();
@@ -45,7 +46,9 @@ export default function HostLoginForm() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const loginMutation = useLoginMutation();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // 1. Perform validation checks
@@ -56,21 +59,22 @@ export default function HostLoginForm() {
       return;
     }
 
-    // 2. Submit form (mock loading state)
-    setFormState((prev) => ({
-      ...prev,
-      isSubmitting: true,
-      submitStatus: "idle",
-    }));
-
-    setTimeout(() => {
-      // Mock successful login
-      setFormState((prev) => ({
-        ...prev,
-        isSubmitting: false,
-        submitStatus: "success",
-      }));
-    }, 1500);
+    try {
+      await loginMutation.mutateAsync({
+        email: formData.email,
+        password: formData.password,
+      });
+      // The mutation handles redirect to host overview on success
+    } catch (error: any) {
+      if (error.response?.data?.message === 'Please verify your email address before logging in') {
+        showToast("Please verify your email address before logging in. Redirecting...");
+        setTimeout(() => {
+          router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+        }, 1500);
+      } else {
+        showToast(extractApiError(error, "Login failed. Please check your credentials."));
+      }
+    }
   };
 
   if (formState.submitStatus === "success") {

@@ -36,3 +36,37 @@ export function formatCurrency(amount: number, minimumFractionDigits = 2): strin
     maximumFractionDigits: 2,
   }).format(amount);
 }
+
+/**
+ * Extracts a user-friendly error message from an API error response.
+ * Specifically handles NestJS class-validator arrays.
+ */
+export function extractApiError(error: any, defaultMessage: string = "An error occurred"): string {
+  const responseData = error?.response?.data;
+  
+  if (!responseData) return error?.message || defaultMessage;
+
+  // Handle NestJS validation array format: { error: [{ field: "email", errors: ["email must be valid"] }] }
+  if (Array.isArray(responseData.error)) {
+    const errorMessages = responseData.error
+      .map((err: any) => {
+        if (err.errors && Array.isArray(err.errors)) {
+          return `${err.field}: ${err.errors.join(", ")}`;
+        }
+        return err.field || JSON.stringify(err);
+      });
+    return `Validation Error - ${errorMessages.join(" | ")}`;
+  }
+
+  // Handle standard { message: "Error string" } format
+  if (typeof responseData.message === "string") {
+    return responseData.message;
+  }
+  
+  // Handle standard { error: "Error string" } format
+  if (typeof responseData.error === "string") {
+    return responseData.error;
+  }
+
+  return defaultMessage;
+}

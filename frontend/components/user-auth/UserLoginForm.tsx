@@ -8,7 +8,8 @@ import { validateLoginForm } from "../../lib/validations/user-auth.validation";
 import PrimaryButton from "../website/shared/PrimaryButton";
 import AuthSuccessState from "../host-auth/AuthSuccessState";
 import DemoLoginOptions from "./DemoLoginOptions";
-import { cn } from "../../lib/utils";
+import { cn, extractApiError } from "../../lib/utils";
+import { useLoginMutation } from "../../hooks/useAuthHooks";
 
 export default function UserLoginForm() {
   const router = useRouter();
@@ -47,7 +48,9 @@ export default function UserLoginForm() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const loginMutation = useLoginMutation();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // 1. Perform validation checks
@@ -58,21 +61,25 @@ export default function UserLoginForm() {
       return;
     }
 
-    // 2. Submit form (mock loading state)
-    setFormState((prev) => ({
-      ...prev,
-      isSubmitting: true,
-      submitStatus: "idle",
-    }));
+    setFormState((prev) => ({ ...prev, isSubmitting: true }));
 
-    setTimeout(() => {
-      // Mock successful login
-      setFormState((prev) => ({
-        ...prev,
-        isSubmitting: false,
-        submitStatus: "success",
-      }));
-    }, 1500);
+    try {
+      await loginMutation.mutateAsync({
+        email: formData.email,
+        password: formData.password,
+      });
+      // The mutation handles redirect on success
+    } catch (error: any) {
+      setFormState((prev) => ({ ...prev, isSubmitting: false }));
+      if (error.response?.data?.message === 'Please verify your email address before logging in') {
+        showToast("Please verify your email address before logging in. Redirecting...");
+        setTimeout(() => {
+          router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+        }, 1500);
+      } else {
+        showToast(extractApiError(error, "Login failed. Please check your credentials."));
+      }
+    }
   };
 
   if (formState.submitStatus === "success") {
@@ -95,28 +102,7 @@ export default function UserLoginForm() {
         </div>
       )}
 
-      {/* Nav Tabs Selector */}
-      <div className="flex items-center justify-start self-start bg-surface border border-divider p-1 rounded-badge">
-        <div className="bg-accent-bg border border-border-medium px-4 py-2 rounded-badge">
-          <span className="font-sans text-[11px] md:text-xs font-semibold text-text-brand uppercase tracking-wider">
-            User Login
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={() => router.push("/host/login")}
-          className="font-sans text-[11px] md:text-xs font-semibold text-text-muted hover:text-text-primary px-4 py-2 rounded-badge transition-colors duration-200 cursor-pointer select-none"
-        >
-          Host Login
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push("/admin")}
-          className="font-sans text-[11px] md:text-xs font-semibold text-text-muted hover:text-text-primary px-4 py-2 rounded-badge transition-colors duration-200 cursor-pointer select-none"
-        >
-          Admin Login
-        </button>
-      </div>
+
 
       {/* Main Login Card wrapper */}
       <div className="bg-surface border border-divider p-6 md:p-10 rounded-card shadow-card w-full">
@@ -290,16 +276,7 @@ export default function UserLoginForm() {
         </form>
       </div>
 
-      {/* Switch to Host link */}
-      <div className="text-center mt-2 text-xs md:text-sm">
-        <span className="text-text-secondary/70">Looking to host draws instead? </span>
-        <Link
-          href="/host/login"
-          className="text-text-brand hover:text-primary-hover font-semibold transition-colors inline-flex items-center gap-1 cursor-pointer select-none"
-        >
-          Go to Host Login &rarr;
-        </Link>
-      </div>
+
 
       {/* Demo Dashboard Section */}
       <DemoLoginOptions />

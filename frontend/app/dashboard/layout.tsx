@@ -1,27 +1,35 @@
-import React from "react";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import DashboardShell from "../../components/dashboard/DashboardShell";
-import { demoAccounts } from "../../data/demo-accounts.data";
-import { DemoRole } from "../../types/demo-auth.types";
+"use client";
 
-export default async function DashboardLayout({
+import React from "react";
+import DashboardShell from "../../components/dashboard/DashboardShell";
+import ProtectedRoute from "../../features/auth/ProtectedRoute";
+import { useAuth } from "../../features/auth/AuthContext";
+
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const demoRoleCookie = cookieStore.get("demo_role")?.value as DemoRole | undefined;
+  const { user } = useAuth();
 
-  if (!demoRoleCookie || !["user", "host", "admin"].includes(demoRoleCookie)) {
-    redirect("/login");
-  }
+  // Map the real user to the structure expected by DashboardShell
+  const account = user ? {
+    id: user.id,
+    name: `${user.firstName} ${user.lastName}`.trim() || user.email,
+    email: user.email,
+    role: user.role.toLowerCase() as "user" | "host" | "admin",
+    avatar: user.avatarUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + user.id,
+    joinDate: "2024-01-01",
+    status: "active" as const,
+  } : null;
 
-  const account = demoAccounts.find((acc) => acc.role === demoRoleCookie);
-
-  if (!account) {
-    redirect("/login");
-  }
-
-  return <DashboardShell account={account}>{children}</DashboardShell>;
+  return (
+    <ProtectedRoute allowedRoles={['CLIENT', 'HOST', 'ADMIN']}>
+      {account ? (
+        <DashboardShell account={account}>{children}</DashboardShell>
+      ) : (
+        <div className="min-h-screen bg-bg flex items-center justify-center">Loading...</div>
+      )}
+    </ProtectedRoute>
+  );
 }
