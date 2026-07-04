@@ -1,7 +1,5 @@
 import React from "react";
 import AdminCompetitionsTable from "../../../../components/dashboard/admin/AdminCompetitionsTable";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -9,14 +7,7 @@ export const metadata: Metadata = {
   description: "Manage all competitions across the platform.",
 };
 
-export default async function AdminCompetitionsPage() {
-  const cookieStore = await cookies();
-  const role = cookieStore.get("demo_role")?.value;
-
-  if (role !== "admin") {
-    redirect("/dashboard");
-  }
-
+export default function AdminCompetitionsPage() {
   return (
     <div className="flex flex-col gap-8 p-8 max-w-[1660px] mx-auto w-full animate-fadeIn">
       <div>

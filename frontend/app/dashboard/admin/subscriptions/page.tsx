@@ -2,17 +2,8 @@ import React from "react";
 import SubscriptionStatsCards from "../../../../components/dashboard/admin/SubscriptionStatsCards";
 import PlanDistributionChart from "../../../../components/dashboard/admin/PlanDistributionChart";
 import SubscriptionTable from "../../../../components/dashboard/admin/SubscriptionTable";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
-export default async function AdminSubscriptionsManagementPage() {
-  const cookieStore = await cookies();
-  const role = cookieStore.get("demo_role")?.value;
-
-  if (role !== "admin") {
-    redirect("/dashboard");
-  }
-
+export default function AdminSubscriptionsManagementPage() {
   return (
     <div className="flex flex-col gap-6 p-8 max-w-[1660px] mx-auto w-full animate-fadeIn">
       {/* Top Stats Cards */}

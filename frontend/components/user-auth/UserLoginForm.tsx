@@ -239,16 +239,16 @@ export default function UserLoginForm() {
           </PrimaryButton>
 
           {/* OR Divider */}
-          <div className="flex items-center gap-3 my-2 select-none">
+          {/* <div className="flex items-center gap-3 my-2 select-none">
             <div className="h-px bg-border flex-1" />
             <span className="font-sans text-xs text-border-medium uppercase tracking-wider font-semibold">
               OR
             </span>
             <div className="h-px bg-border flex-1" />
-          </div>
+          </div> */}
 
           {/* Social Logins */}
-          <div className="flex flex-col gap-3">
+          {/* <div className="flex flex-col gap-3">
             <button
               type="button"
               onClick={() => showToast("Google Login request simulated!")}
@@ -271,7 +271,7 @@ export default function UserLoginForm() {
               </svg>
               <span>Continue with Apple</span>
             </button>
-          </div>
+          </div> */}
         </form>
       </div>
 

@@ -1,6 +1,4 @@
 import React from "react";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 interface Entry {
   id: string;
@@ -57,14 +55,7 @@ const DUMMY_ENTRIES: Entry[] = [
   },
 ];
 
-export default async function UserWinnersPage() {
-  const cookieStore = await cookies();
-  const role = cookieStore.get("demo_role")?.value;
-
-  if (role !== "user") {
-    redirect("/dashboard");
-  }
-
+export default function UserWinnersPage() {
   return (
     <div className="flex flex-col gap-4 p-8 max-w-[1660px] mx-auto w-full animate-fadeIn">
       <div className="flex flex-col gap-4 w-full">

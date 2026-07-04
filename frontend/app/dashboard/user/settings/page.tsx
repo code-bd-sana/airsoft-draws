@@ -1,15 +1,6 @@
 import React from "react";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
-export default async function UserSettingsPage() {
-  const cookieStore = await cookies();
-  const role = cookieStore.get("demo_role")?.value;
-
-  if (role !== "user") {
-    redirect("/dashboard");
-  }
-
+export default function UserSettingsPage() {
   return (
     <div className="flex flex-col items-center gap-6 p-8 max-w-[800px] mx-auto w-full animate-fadeIn">
       

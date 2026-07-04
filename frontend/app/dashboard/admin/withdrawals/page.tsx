@@ -1,8 +1,6 @@
 import React from "react";
 import WithdrawalsStatsCards from "../../../../components/dashboard/admin/WithdrawalsStatsCards";
 import WithdrawalsTable from "../../../../components/dashboard/admin/WithdrawalsTable";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -10,14 +8,7 @@ export const metadata: Metadata = {
   description: "Manage and process host withdrawal requests.",
 };
 
-export default async function AdminWithdrawalsPage() {
-  const cookieStore = await cookies();
-  const role = cookieStore.get("demo_role")?.value;
-
-  if (role !== "admin") {
-    redirect("/dashboard");
-  }
-
+export default function AdminWithdrawalsPage() {
   return (
     <div className="flex flex-col gap-6 p-8 max-w-[1660px] mx-auto w-full animate-fadeIn">
       <div>

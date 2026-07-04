@@ -1,8 +1,6 @@
 import React from "react";
 import WinnersStatsCards from "../../../../components/dashboard/admin/WinnersStatsCards";
 import WinnersTrackingTable from "../../../../components/dashboard/admin/WinnersTrackingTable";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -10,14 +8,7 @@ export const metadata: Metadata = {
   description: "Track competition winners, prize delivery, and verifications.",
 };
 
-export default async function AdminTrackingPage() {
-  const cookieStore = await cookies();
-  const role = cookieStore.get("demo_role")?.value;
-
-  if (role !== "admin") {
-    redirect("/dashboard");
-  }
-
+export default function AdminTrackingPage() {
   return (
     <div className="flex flex-col gap-6 p-8 max-w-[1660px] mx-auto w-full animate-fadeIn">
       <div>
