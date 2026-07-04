@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { DemoAccount } from "../../types/demo-auth.types";
+import { DashboardAccount } from "../../types/dashboard.types";
 import { dashboardNavigation } from "../../config/dashboard-navigation.config";
 import { cn } from "../../lib/utils";
 import Image from "next/image";
@@ -11,7 +11,7 @@ import logo from '../../public/logo2.png';
 import { useLogout } from "../../hooks/useAuthHooks";
 
 interface DashboardSidebarProps {
-  account: DemoAccount;
+  account: DashboardAccount;
 }
 
 export default function DashboardSidebar({ account }: DashboardSidebarProps) {

@@ -7,7 +7,6 @@ import { UserLoginFormValues, UserAuthFormState } from "../../types/user-auth.ty
 import { validateLoginForm } from "../../lib/validations/user-auth.validation";
 import PrimaryButton from "../website/shared/PrimaryButton";
 import AuthSuccessState from "../host-auth/AuthSuccessState";
-import DemoLoginOptions from "./DemoLoginOptions";
 import { cn, extractApiError } from "../../lib/utils";
 import { useLoginMutation } from "../../hooks/useAuthHooks";
 
@@ -278,8 +277,6 @@ export default function UserLoginForm() {
 
 
 
-      {/* Demo Dashboard Section */}
-      <DemoLoginOptions />
     </div>
   );
 }

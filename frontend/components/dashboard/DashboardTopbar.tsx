@@ -2,13 +2,13 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { DemoAccount } from "../../types/demo-auth.types";
+import { DashboardAccount } from "../../types/dashboard.types";
 import { cn } from "../../lib/utils";
 import NotificationsDropdown from "./NotificationsDropdown";
 import { useLogout } from "../../hooks/useAuthHooks";
 
 interface DashboardTopbarProps {
-  account: DemoAccount;
+  account: DashboardAccount;
   onMenuClick: () => void;
   title?: string;
   subtitle?: string;

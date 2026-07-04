@@ -1,11 +1,11 @@
 import React from "react";
-import { DemoRole } from "../types/demo-auth.types";
+import { DashboardRole } from "../types/dashboard.types";
 
 export interface DashboardNavItem {
   label: string;
   href: string;
   icon: (props: React.SVGProps<SVGSVGElement>) => React.JSX.Element;
-  roles: DemoRole[];
+  roles: DashboardRole[];
   badge?: string | number | boolean;
 }
 
