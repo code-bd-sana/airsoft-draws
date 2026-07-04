@@ -6,6 +6,7 @@ import { ForgotPasswordFormValues, UserAuthFormState } from "../../types/user-au
 import { validateForgotPasswordForm } from "../../lib/validations/user-auth.validation";
 import PrimaryButton from "../website/shared/PrimaryButton";
 import { cn } from "../../lib/utils";
+import { useForgotPasswordMutation } from "../../hooks/useUserHooks";
 
 export default function ForgotPasswordForm() {
   const [formData, setFormData] = useState<ForgotPasswordFormValues>({
@@ -25,7 +26,9 @@ export default function ForgotPasswordForm() {
     if (errors.email) setErrors({});
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const mutation = useForgotPasswordMutation();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const validationErrors = validateForgotPasswordForm(formData);
@@ -40,13 +43,20 @@ export default function ForgotPasswordForm() {
       isSubmitting: true,
     }));
 
-    setTimeout(() => {
+    try {
+      await mutation.mutateAsync(formData.email);
       setFormState({
         values: formData,
         isSubmitting: false,
         submitStatus: "success",
       });
-    }, 1200);
+    } catch (err: any) {
+      setErrors({ email: err.response?.data?.message || "Failed to send reset link" });
+      setFormState((prev) => ({
+        ...prev,
+        isSubmitting: false,
+      }));
+    }
   };
 
   if (formState.submitStatus === "success") {

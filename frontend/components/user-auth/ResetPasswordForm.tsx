@@ -5,7 +5,9 @@ import Link from "next/link";
 import { ResetPasswordFormValues, UserAuthFormState } from "../../types/user-auth.types";
 import { validateResetPasswordForm } from "../../lib/validations/user-auth.validation";
 import PrimaryButton from "../website/shared/PrimaryButton";
-import { cn } from "../../lib/utils";
+import { cn, extractApiError } from "../../lib/utils";
+import { useSearchParams } from "next/navigation";
+import { useResetPasswordMutation } from "../../hooks/useUserHooks";
 
 export default function ResetPasswordForm() {
   const [formData, setFormData] = useState<ResetPasswordFormValues>({
@@ -19,7 +21,7 @@ export default function ResetPasswordForm() {
     submitStatus: "idle",
   });
 
-  const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string }>({});
+  const [errors, setErrors] = useState<{ password?: string; confirmPassword?: string; form?: string }>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -29,9 +31,17 @@ export default function ResetPasswordForm() {
       ...prev,
       [name]: value,
     }));
+    // Clear field-specific error and general form error on change
+    if (errors[name as keyof typeof errors] || errors.form) {
+      setErrors((prev) => ({ ...prev, [name]: undefined, form: undefined }));
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+  const mutation = useResetPasswordMutation();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const validationErrors = validateResetPasswordForm(formData);
@@ -41,18 +51,36 @@ export default function ResetPasswordForm() {
       return;
     }
 
+    if (!token) {
+      setErrors({ form: "Reset token is missing from the URL. Please use the link sent to your email." });
+      return;
+    }
+
     setFormState((prev) => ({
       ...prev,
       isSubmitting: true,
     }));
 
-    setTimeout(() => {
+    try {
+      await mutation.mutateAsync({
+        token,
+        newPassword: formData.password,
+      });
+
       setFormState({
         values: formData,
         isSubmitting: false,
         submitStatus: "success",
       });
-    }, 1200);
+    } catch (err: any) {
+      setErrors({
+        form: extractApiError(err, "Failed to reset password. The link might be expired or invalid."),
+      });
+      setFormState((prev) => ({
+        ...prev,
+        isSubmitting: false,
+      }));
+    }
   };
 
   if (formState.submitStatus === "success") {
@@ -99,6 +127,12 @@ export default function ResetPasswordForm() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        {errors.form && (
+          <div className="bg-[#f76b6b]/10 border border-[#f76b6b]/20 text-[#f76b6b] text-sm p-3 rounded-lg text-center animate-fadeIn">
+            {errors.form}
+          </div>
+        )}
+
         {/* New Password */}
         <div className="flex flex-col w-full gap-1.5">
           <label htmlFor="password" className="font-sans font-medium text-xs md:text-sm text-text-primary">

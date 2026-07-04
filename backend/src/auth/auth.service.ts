@@ -191,9 +191,14 @@ export class AuthService {
       return { message: 'If an account with that email exists, a password reset link has been sent.' };
     }
 
-    // Generate reset token (expires in 1h)
+    // Generate reset token (expires in 1h), embed a fragment of the current password hash
+    // so that if the password is changed, this token becomes invalid immediately.
     const resetToken = this.jwtService.sign(
-      { sub: user.id, type: 'RESET_PASSWORD' },
+      { 
+        sub: user.id, 
+        type: 'RESET_PASSWORD',
+        hashFragment: user.passwordHash.substring(0, 15)
+      },
       { expiresIn: '1h' }
     );
 
@@ -210,16 +215,32 @@ export class AuthService {
         throw new BadRequestException('Invalid token type');
       }
 
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.sub }
+      });
+
+      if (!user) {
+        throw new BadRequestException('Invalid or expired password reset token');
+      }
+
+      // Check if the password was already changed after this token was issued
+      if (payload.hashFragment !== user.passwordHash.substring(0, 15)) {
+        throw new BadRequestException('This password reset link has already been used or is no longer valid.');
+      }
+
       const salt = await bcrypt.genSalt(10);
       const passwordHash = await bcrypt.hash(resetPasswordDto.newPassword, salt);
 
       await this.prisma.user.update({
-        where: { id: payload.sub },
+        where: { id: user.id },
         data: { passwordHash },
       });
 
       return { message: 'Password has been successfully reset. You can now login.' };
-    } catch (error) {
+    } catch (error: any) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       throw new BadRequestException('Invalid or expired password reset token');
     }
   }
