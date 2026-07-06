@@ -8,10 +8,17 @@ import { validateLoginForm } from "../../lib/validations/user-auth.validation";
 import PrimaryButton from "../website/shared/PrimaryButton";
 import AuthSuccessState from "../host-auth/AuthSuccessState";
 import { cn, extractApiError } from "../../lib/utils";
-import { useLoginMutation } from "../../hooks/useAuthHooks";
+import { useLoginMutation, useAuthUser } from "../../hooks/useAuthHooks";
 
 export default function UserLoginForm() {
   const router = useRouter();
+  const { data: user, isLoading: isUserLoading } = useAuthUser();
+
+  React.useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
   // Controlled form values state
   const [formData, setFormData] = useState<UserLoginFormValues>({

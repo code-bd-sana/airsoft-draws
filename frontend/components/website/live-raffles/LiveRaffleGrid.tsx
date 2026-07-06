@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { liveRafflesData } from "../../../data/live-raffles.data";
+import { usePublicRaffles } from "../../../hooks/useRaffleHooks";
 import LiveRaffleCard from "./LiveRaffleCard";
 import LiveRafflesFilterBar from "./LiveRafflesFilterBar";
 import LiveRafflesEmptyState from "./LiveRafflesEmptyState";
@@ -77,45 +77,16 @@ export default function LiveRaffleGrid() {
     setCurrentPage(1);
   };
 
-  // Filter & Sort Logic
-  const filteredRaffles = liveRafflesData
-    .filter((raffle) => {
-      // Category filter
-      if (activeCategory !== "all" && raffle.category !== activeCategory) {
-        return false;
-      }
-      // Search query filter
-      if (searchQuery.trim() !== "") {
-        const query = searchQuery.toLowerCase();
-        const matchesTitle = raffle.title.toLowerCase().includes(query);
-        const matchesDesc = raffle.description?.toLowerCase().includes(query) || false;
-        return matchesTitle || matchesDesc;
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      if (sortBy === "ending-soon") {
-        return parseDurationToMinutes(a.endDate) - parseDurationToMinutes(b.endDate);
-      }
-      if (sortBy === "price-asc") {
-        return a.ticketPrice - b.ticketPrice;
-      }
-      if (sortBy === "price-desc") {
-        return b.ticketPrice - a.ticketPrice;
-      }
-      if (sortBy === "popular") {
-        const popularityA = a.soldTickets / a.totalTickets;
-        const popularityB = b.soldTickets / b.totalTickets;
-        return popularityB - popularityA; // Descending (most popular first)
-      }
-      return 0;
-    });
+  // Use the API hook
+  const { data: rafflesResponse, isLoading } = usePublicRaffles({
+    search: searchQuery,
+    page: currentPage,
+    limit: 6,
+    // Add category/sort logic as query params later if needed, but for now we just use the backend default (active status)
+  });
 
-  // Pagination Logic
-  const itemsPerPage = 6;
-  const totalPages = Math.ceil(filteredRaffles.length / itemsPerPage) || 1;
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedRaffles = filteredRaffles.slice(startIndex, startIndex + itemsPerPage);
+  const filteredRaffles = rafflesResponse?.data || [];
+  const totalPages = rafflesResponse?.meta?.lastPage || 1;
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -141,7 +112,9 @@ export default function LiveRaffleGrid() {
 
         {/* Content Area */}
         <div className="mt-8 min-h-[400px]">
-          {filteredRaffles.length > 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center items-center h-[400px] text-primary">Loading live competitions...</div>
+          ) : filteredRaffles.length > 0 ? (
             <div
               className={
                 viewMode === "grid"
@@ -149,7 +122,7 @@ export default function LiveRaffleGrid() {
                   : "flex flex-col gap-6"
               }
             >
-              {paginatedRaffles.map((raffle) => (
+              {filteredRaffles.map((raffle: any) => (
                 <LiveRaffleCard key={raffle.id} raffle={raffle} viewMode={viewMode} />
               ))}
             </div>
@@ -158,7 +131,7 @@ export default function LiveRaffleGrid() {
           )}
 
           {/* Pagination Controls */}
-          {filteredRaffles.length > itemsPerPage && (
+          {totalPages > 1 && (
             <LiveRafflesPagination
               currentPage={currentPage}
               totalPages={totalPages}

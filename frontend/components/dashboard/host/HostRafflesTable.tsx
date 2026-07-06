@@ -2,14 +2,17 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { mockHostRafflesList } from "../../../data/dashboard/host-dashboard.data";
+import { useHostRaffles, useDeleteRaffle } from "../../../hooks/useRaffleHooks";
 import { cn } from "../../../lib/utils";
 
 const filters = ["All", "Live", "Pending Review", "Ended", "Drafts"];
 
 export default function HostRafflesTable() {
   const [activeFilter, setActiveFilter] = useState("All");
-  const [expandedId, setExpandedId] = useState<string | null>("r-1"); // Default open first for demo
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const { data: raffles, isLoading } = useHostRaffles();
+  const deleteMutation = useDeleteRaffle();
 
   const toggleRow = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
@@ -78,9 +81,19 @@ export default function HostRafflesTable() {
 
         {/* Table Rows */}
         <div className="flex flex-col">
-          {mockHostRafflesList.map((raffle) => {
+          {isLoading && (
+            <div className="p-8 text-center text-[#5a752a]">Loading raffles...</div>
+          )}
+          
+          {!isLoading && raffles?.filter((r: any) => {
+            if (activeFilter === "All") return true;
+            if (activeFilter === "Live" && r.status === "ACTIVE") return true;
+            if (activeFilter === "Pending Review" && r.status === "PENDING_APPROVAL") return true;
+            if (activeFilter === "Ended" && r.status === "ENDED") return true;
+            if (activeFilter === "Drafts" && r.status === "DRAFT") return true;
+            return false;
+          }).map((raffle: any) => {
             const isExpanded = expandedId === raffle.id;
-
             return (
               <div key={raffle.id} className="flex flex-col border-b border-[#2d3c13] last:border-b-0">
                 {/* Main Row */}
@@ -102,7 +115,7 @@ export default function HostRafflesTable() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                     </svg>
                     <span className="font-heading font-medium text-[14px] text-[#e8edd4] truncate">
-                      {raffle.name}
+                      {raffle.title}
                     </span>
                   </div>
                   
@@ -114,28 +127,28 @@ export default function HostRafflesTable() {
                   
                   <div className="hidden sm:block">
                     <span className="font-heading font-medium text-[14px] text-[#e8edd4]">
-                      £{raffle.raised.toFixed(2)}
+                      £{(Number(raffle.pricePerTicket) * raffle.ticketsSold).toFixed(2)}
                     </span>
                   </div>
                   
                   <div>
                     <div className={cn(
                       "inline-flex h-[22px] px-[10px] items-center justify-center rounded-full",
-                      raffle.status === "Live" && "bg-[#083b18] text-[#4ade80]",
-                      raffle.status === "Completed" && "bg-[#1a230a] text-[#a0d056] border border-[#2d3c13]",
-                      raffle.status === "Draft" && "bg-[#1a230a] text-[#5a752a] border border-[#2d3c13]",
-                      raffle.status === "Pending Review" && "bg-[#422006] text-[#eab308]",
-                      raffle.status === "Ended" && "bg-[#3b0808] text-[#f87171]"
+                      raffle.status === "ACTIVE" && "bg-[#083b18] text-[#4ade80]",
+                      raffle.status === "ENDED" && "bg-[#3b0808] text-[#f87171]",
+                      raffle.status === "DRAFT" && "bg-[#1a230a] text-[#5a752a] border border-[#2d3c13]",
+                      raffle.status === "PENDING_APPROVAL" && "bg-[#422006] text-[#eab308]",
+                      raffle.status === "CANCELLED" && "bg-[#3b0808] text-[#f87171]"
                     )}>
                       <span className="font-sans font-medium text-[11px]">
-                        {raffle.status}
+                        {raffle.status === "ACTIVE" ? "Live" : raffle.status === "PENDING_APPROVAL" ? "Pending Review" : raffle.status}
                       </span>
                     </div>
                   </div>
                   
                   <div className="hidden md:flex justify-end min-w-0">
                     <span className="font-sans font-normal text-[13px] text-[#b3b8aa] truncate">
-                      {raffle.endsAt}
+                      {new Date(raffle.endDate).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
@@ -150,10 +163,10 @@ export default function HostRafflesTable() {
                       </span>
                       <div className="flex flex-col">
                         <span className="font-heading font-bold text-[24px] text-[#e8edd4]">
-                          £{raffle.grossRevenue.toFixed(2)}
+                          £{(Number(raffle.pricePerTicket) * raffle.ticketsSold).toFixed(2)}
                         </span>
                         <span className="font-sans font-normal text-[11px] text-[#5a752a]">
-                          {raffle.ticketsSold} tickets × £{raffle.ticketPrice.toFixed(2)}
+                          {raffle.ticketsSold} tickets × £{Number(raffle.pricePerTicket).toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -165,11 +178,11 @@ export default function HostRafflesTable() {
                       </span>
                       <div className="flex items-center gap-[12px]">
                         <span className="font-heading font-bold text-[24px] text-[#f76b6b]">
-                          - £{raffle.platformFee.toFixed(2)}
+                          - £{((Number(raffle.pricePerTicket) * raffle.ticketsSold) * 0.05).toFixed(2)}
                         </span>
                         <div className="h-[22px] px-[8px] bg-[#1a230a] border border-[#2d3c13] rounded-full flex items-center justify-center">
                           <span className="font-sans font-medium text-[10px] text-[#a0d056]">
-                            {raffle.platformFeePercent}% ({raffle.platformPlan})
+                            5% (Standard)
                           </span>
                         </div>
                       </div>
@@ -184,19 +197,24 @@ export default function HostRafflesTable() {
                       </span>
                       <div className="flex flex-col relative w-full">
                         <span className="font-heading font-bold text-[24px] text-[#8cb34a]">
-                          £{raffle.netEarnings.toFixed(2)}
+                          £{((Number(raffle.pricePerTicket) * raffle.ticketsSold) * 0.95).toFixed(2)}
                         </span>
                         <span className="font-sans font-normal text-[11px] text-[#5a752a]">
                           Paid out on completion
                         </span>
                         
-                        {/* Link */}
-                        <div className="mt-4 md:absolute md:bottom-0 md:right-0 md:mt-0">
-                          <button className="font-sans font-medium text-[12px] text-[#a0d056] hover:text-[#8cb34a] transition-colors flex items-center gap-1 group">
-                            View Full Transaction History
-                            <svg className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                            </svg>
+                        {/* Action buttons */}
+                        <div className="mt-4 md:absolute md:bottom-0 md:right-0 md:mt-0 flex gap-4">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm('Are you sure you want to delete this competition?')) {
+                                deleteMutation.mutate(raffle.id);
+                              }
+                            }}
+                            className="font-sans font-medium text-[12px] text-red-500 hover:text-red-400 transition-colors flex items-center gap-1 group"
+                          >
+                            Delete Competition
                           </button>
                         </div>
                       </div>
@@ -206,6 +224,10 @@ export default function HostRafflesTable() {
               </div>
             );
           })}
+          
+          {!isLoading && raffles?.length === 0 && (
+            <div className="p-8 text-center text-[#5a752a]">No competitions found.</div>
+          )}
         </div>
       </div>
 

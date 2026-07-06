@@ -134,12 +134,23 @@ export default function RaffleDetailsTabs({ raffle }: RaffleDetailsTabsProps) {
             {raffle.instantWinPrizes.map((prize) => (
               <div key={prize.id} className="flex items-center justify-between p-4 bg-[#161810] border border-[#2D3C13] rounded-[12px]">
                 <div className="flex items-center gap-3">
-                  {checkIcon}
-                  <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">{prize.title}</span>
+                  {prize.image ? (
+                    <div className="w-10 h-10 rounded overflow-hidden shrink-0 bg-[#0d0d0b]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={prize.image} alt={prize.title} className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    checkIcon
+                  )}
+                  <div className="flex flex-col">
+                    <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">{prize.title}</span>
+                    <span className="font-sans text-[11px] text-[#72943A]">Ticket #{prize.ticketNumber}</span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-4 text-right">
-                  <span className="font-heading font-semibold text-[14px] text-[#8CB34A]">£{prize.value.toLocaleString()}</span>
-                  <span className="font-sans text-[11px] text-[#72943A] w-[60px]">{prize.wonQuantity} of {prize.totalQuantity} Won</span>
+                  <span className={cn("font-heading font-semibold text-[13px] px-2 py-1 rounded", prize.isClaimed ? "bg-[#2d3c13] text-[#72943a]" : "bg-[#1a230a] text-[#8CB34A]")}>
+                    {prize.isClaimed ? "Claimed" : "Available"}
+                  </span>
                 </div>
               </div>
             ))}

@@ -21,6 +21,7 @@ export class TransformInterceptor<T>
         success: true,
         message: data?.message || 'Request successful',
         data: data?.data !== undefined ? data.data : data, // Wrap the data securely
+        meta: data?.meta !== undefined ? data.meta : undefined,
         timestamp: new Date().toISOString(),
       })),
     );

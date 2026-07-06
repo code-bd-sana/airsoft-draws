@@ -16,57 +16,37 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-/**
- * Retrieves a raffle by its slug or ID, falling back to liveRafflesData to construct
- * a detailed object if not explicitly defined in the detailed static dataset.
- */
-function getRaffle(slug: string): RaffleDetail | undefined {
-  // 1. Search in the explicit details dataset first
-  const raffle = raffleDetailsData.find(
-    (item) => item.slug === slug || item.id === slug
-  );
-  if (raffle) {
-    return raffle;
-  }
-
-  // 2. If not found, look up standard draw info and generate detail dynamically
-  const draw = liveRafflesData.find(
-    (item) => item.slug === slug || item.id === slug
-  );
-  if (draw) {
-    const categoryLabels: Record<string, string> = {
-      rifles: "Rifles",
-      pistols: "Pistols",
-      snipers: "Snipers",
-      accessories: "Accessories",
-      apparel: "Apparel",
-      cash: "Cash Prizes",
-      bundles: "Bundles",
-      luxury: "Luxury",
-    };
-    const displayCategory = categoryLabels[draw.category] || draw.category;
-    const worth = draw.worthPrice || draw.ticketPrice * draw.totalTickets;
-
+async function getRaffle(slug: string): Promise<RaffleDetail | undefined> {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api/v1'}/raffles/public/${slug}`, {
+      cache: 'no-store' // or next: { revalidate: 60 }
+    });
+    if (!res.ok) return undefined;
+    const json = await res.json();
+    const draw = json.data || json; // Handle wrapped response
+    
+    const worth = Number(draw.pricePerTicket) * draw.totalTickets;
+    
     return {
       id: draw.id,
       title: draw.title,
       slug: draw.slug || draw.id,
-      category: displayCategory,
-      status: draw.status === "live" ? "live" : "ending_soon",
-      images: [draw.image],
-      ticketPrice: draw.ticketPrice,
+      category: "Rifles", // static for now
+      status: draw.status === "ACTIVE" ? "live" : "ending_soon",
+      images: [draw.mainImage || "https://placehold.co/800x600/1a230a/8cb34a?text=No+Image"],
+      ticketPrice: Number(draw.pricePerTicket),
       worthPrice: worth,
       totalPoolValue: worth,
       minimumTickets: 1,
       maximumTicketsPerOrder: 50,
       totalTickets: draw.totalTickets,
-      soldTickets: draw.soldTickets,
-      remainingTickets: Math.max(draw.totalTickets - draw.soldTickets, 0),
-      drawEndDate: draw.endDate,
+      soldTickets: draw.ticketsSold || 0,
+      remainingTickets: Math.max(draw.totalTickets - (draw.ticketsSold || 0), 0),
+      drawEndDate: new Date(draw.endDate).toLocaleDateString(),
       description: draw.description || `Enter this premium draw for a chance to win the ${draw.title}! Premium gear, fast shipping, and guaranteed live draw.`,
       highlights: [
         `Main Prize: ${draw.title}`,
-        `Ticket Price: £${draw.ticketPrice.toFixed(2)}`,
+        `Ticket Price: £${Number(draw.pricePerTicket).toFixed(2)}`,
         `Estimated Valuation: £${worth.toLocaleString()}`,
         `Total Tickets: ${draw.totalTickets.toLocaleString()}`,
         `Fast Track Delivery: Fully tracked and insured shipping included.`,
@@ -80,24 +60,27 @@ function getRaffle(slug: string): RaffleDetail | undefined {
         "By entering you agree to be bound by these terms and conditions.",
         "Free postal entry: send your name and address on a postcard to: Airsoft Draws, PO Box 99, Manchester, M1 1AA."
       ],
-      instantWinPrizes: [],
-      isFeatured: draw.isFeatured || false,
-      hostName: "Airsoft Draws Host",
-      hostLogo: "AD",
-      hostDrawsCount: 15,
+      instantWinPrizes: draw.instantWins?.map((iw: any) => ({
+        id: iw.id,
+        title: iw.prizeName,
+        image: iw.image,
+        ticketNumber: iw.ticketNumber,
+        isClaimed: iw.isClaimed
+      })) || [],
+      isFeatured: false,
+      hostName: draw.host?.user ? `${draw.host.user.firstName} ${draw.host.user.lastName}` : "Airsoft Draws Host",
+      hostLogo: draw.host?.user?.firstName?.[0] || "AD",
+      hostDrawsCount: 1,
       hostVerified: true,
     };
+  } catch (e) {
+    return undefined;
   }
-
-  return undefined;
 }
 
-/**
- * Generate SEO metadata dynamically based on the active raffle detail object.
- */
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const raffle = getRaffle(slug);
+  const raffle = await getRaffle(slug);
   return {
     title: raffle ? `${raffle.title} | Airsoft Draws` : "Competition Not Found | Airsoft Draws",
     description: raffle?.description || "Browse and enter active premium airsoft drawings.",
@@ -112,7 +95,7 @@ export default async function LiveRaffleDetailPage({ params }: PageProps) {
   const { slug } = await params;
 
   // Search details by active slug or ID
-  const raffle = getRaffle(slug);
+  const raffle = await getRaffle(slug);
 
   // Fallback screen if drawing does not exist
   if (!raffle) {

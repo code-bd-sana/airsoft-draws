@@ -75,7 +75,9 @@ model Raffle {
   id             String   @id @default(uuid()) @db.VarChar(255)
   hostId         String   @map("host_id") @db.VarChar(255)
   title          String   @db.VarChar(255)
+  slug           String?  @unique @db.VarChar(255)
   description    String?
+  mainImage      String?  @map("main_image") @db.VarChar(255)
   prizeName      String?  @map("prize_name") @db.VarChar(255)
   pricePerTicket Decimal  @map("price_per_ticket") @db.Decimal(10, 2)
   totalTickets   Int      @map("total_tickets")
@@ -99,10 +101,11 @@ model InstantWin {
   raffleId     String   @map("raffle_id") @db.VarChar(255)
   ticketNumber Int      @map("ticket_number")
   prizeName    String   @map("prize_name") @db.VarChar(255)
+  image        String?  @db.VarChar(255)
   isClaimed    Boolean  @default(false) @map("is_claimed")
   createdAt    DateTime @default(now()) @map("created_at")
 
-  raffle Raffle @relation(fields: [raffleId], references: [id])
+  raffle Raffle @relation(fields: [raffleId], references: [id], onDelete: Cascade)
 
   @@map("instant_wins")
 }

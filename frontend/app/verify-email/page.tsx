@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Metadata } from "next";
 import UserAuthLayout from "../../components/user-auth/UserAuthLayout";
 import VerifyEmailForm from "../../components/user-auth/VerifyEmailForm";
@@ -11,7 +11,9 @@ export const metadata: Metadata = {
 export default function VerifyEmailPage() {
   return (
     <UserAuthLayout mode="register">
-      <VerifyEmailForm />
+      <Suspense fallback={<div className="text-white p-4">Loading...</div>}>
+        <VerifyEmailForm />
+      </Suspense>
     </UserAuthLayout>
   );
 }

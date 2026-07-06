@@ -18,18 +18,25 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
   const {
     id,
     title,
-    image,
-    ticketPrice,
+    mainImage,
+    pricePerTicket,
     totalTickets,
-    soldTickets,
+    ticketsSold,
     endDate,
-    category,
-    worthPrice,
-    badgeText,
+    prizeName,
     slug,
-  } = raffle;
+  } = raffle as any;
 
-  const soldPercent = Math.min(Math.round((soldTickets / totalTickets) * 100), 100);
+  const image = mainImage || "https://placehold.co/800x600/1a230a/8cb34a?text=No+Image";
+  const ticketPrice = Number(pricePerTicket);
+  const soldTickets = ticketsSold || 0;
+  const category = "rifles"; // Add category to schema later if needed
+  const worthPrice = ticketPrice * totalTickets;
+  const badgeText = soldTickets / totalTickets > 0.9 ? "ALMOST GONE" : "HOT";
+  
+  const soldPercent = totalTickets > 0 ? Math.min(Math.round((soldTickets / totalTickets) * 100), 100) : 0;
+  
+  const formattedEndDate = new Date(endDate).toLocaleDateString();
 
   // SVG Icons matching Figma design
   const fireIcon = (
@@ -183,7 +190,7 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
               {clockIcon}
               <div className="flex gap-1 text-[11px]">
                 <span className="text-text-muted">Closes in</span>
-                <span className="font-semibold text-text-primary">{endDate}</span>
+                <span className="font-semibold text-text-primary">{formattedEndDate}</span>
               </div>
             </div>
           </div>
@@ -274,7 +281,7 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
           <div className="flex items-center gap-1.5 bg-[#111210] border border-[#1a230a] px-3 py-2 rounded-[10px] mb-4 text-xs">
             {clockIcon}
             <span className="text-[#5a752a]">Closes in</span>
-            <span className="font-semibold text-text-primary">{endDate}</span>
+            <span className="font-semibold text-text-primary">{formattedEndDate}</span>
           </div>
         </div>
 
