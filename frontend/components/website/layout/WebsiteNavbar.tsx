@@ -8,7 +8,7 @@ import { NAV_LINKS } from "../../../lib/constants";
 import PrimaryButton from "../shared/PrimaryButton";
 import { cn } from "../../../lib/utils";
 import logo from '../../../public/logo3.png';
-import { useAuthUser } from "../../../hooks/useAuthHooks";
+import { useAuthUser, useLogout } from "../../../hooks/useAuthHooks";
 
 /**
  * Global website navigation navbar with sticky backdrop blur and responsive mobile slide-out sidebar y.
@@ -18,6 +18,7 @@ export default function WebsiteNavbar() {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const { data: user } = useAuthUser();
+  const logout = useLogout();
 
   // Monitor scrolling to add backdrop background
   useEffect(() => {
@@ -81,9 +82,17 @@ export default function WebsiteNavbar() {
           {/* Auth Buttons */}
           <div className="hidden lg:flex items-center gap-4">
             {user ? (
-              <PrimaryButton href="/dashboard" className="px-5 py-2 text-xs">
-                Dashboard
-              </PrimaryButton>
+              <>
+                <PrimaryButton href="/dashboard" className="px-5 py-2 text-xs">
+                  Dashboard
+                </PrimaryButton>
+                <button
+                  onClick={logout}
+                  className="font-sans text-xs font-semibold text-text-primary hover:text-error uppercase tracking-wider transition-colors duration-200 px-3 py-2 cursor-pointer"
+                >
+                  Log Out
+                </button>
+              </>
             ) : (
               <>
                 <Link
@@ -183,13 +192,24 @@ export default function WebsiteNavbar() {
         {/* Bottom Login and Host Buttons */}
         <div className="flex flex-col gap-3.5 pt-6 border-t border-divider mt-auto">
           {user ? (
-            <PrimaryButton
-              href="/dashboard"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-3 text-xs"
-            >
-              Dashboard
-            </PrimaryButton>
+            <>
+              <PrimaryButton
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-3 text-xs"
+              >
+                Dashboard
+              </PrimaryButton>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  logout();
+                }}
+                className="flex items-center justify-center font-sans font-semibold text-xs text-error hover:text-error/80 uppercase tracking-wider py-3 border border-error/50 rounded-button transition-colors duration-200 cursor-pointer"
+              >
+                Log Out
+              </button>
+            </>
           ) : (
             <>
               <Link
