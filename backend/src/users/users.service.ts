@@ -40,7 +40,7 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    const { businessName, bio, phone, address, ...userData } = updateProfileDto;
+    const { businessName, bio, ...userData } = updateProfileDto;
 
     const updatedUser = await this.prisma.$transaction(async (prisma) => {
       const u = await prisma.user.update({
@@ -53,8 +53,8 @@ export class UsersService {
         const hostProfileData: any = {};
         if (businessName !== undefined) hostProfileData.businessName = businessName;
         if (bio !== undefined) hostProfileData.bio = bio;
-        if (phone !== undefined) hostProfileData.phone = phone;
-        if (address !== undefined) hostProfileData.address = address;
+        if (userData.phone !== undefined) hostProfileData.phone = userData.phone;
+        if (userData.address !== undefined) hostProfileData.address = userData.address;
 
         if (Object.keys(hostProfileData).length > 0) {
           if (u.hostProfile) {

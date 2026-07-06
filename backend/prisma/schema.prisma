@@ -15,6 +15,8 @@ model User {
   lastName        String?  @map("last_name") @db.VarChar(100)
   avatarUrl       String?  @map("avatar_url") @db.VarChar(255)
   location        String?  @db.VarChar(255)
+  phone           String?  @db.VarChar(50)
+  address         String?  @db.Text
   role            String   @default("CLIENT") @db.VarChar(50) // ADMIN, HOST, CLIENT
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
