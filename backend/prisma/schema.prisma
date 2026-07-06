@@ -32,6 +32,9 @@ model HostProfile {
   userId        String   @unique @map("user_id") @db.VarChar(255)
   businessName  String   @map("business_name") @db.VarChar(255)
   slug          String?  @unique @db.VarChar(255)
+  bio           String?  @db.Text
+  phone         String?  @db.VarChar(50)
+  address       String?  @db.Text
   walletBalance Decimal  @default(0.00) @map("wallet_balance") @db.Decimal(10, 2)
   isVerified    Boolean  @default(false) @map("is_verified")
   createdAt     DateTime @default(now()) @map("created_at")

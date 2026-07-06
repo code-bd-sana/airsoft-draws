@@ -8,6 +8,14 @@ export interface User {
   role: string;
   avatarUrl: string | null;
   location?: string | null;
+  hostProfile?: {
+    businessName: string;
+    slug?: string;
+    bio?: string;
+    phone?: string;
+    address?: string;
+    isVerified: boolean;
+  } | null;
 }
 
 export interface AuthResponse {

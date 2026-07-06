@@ -40,7 +40,7 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    const { businessName, ...userData } = updateProfileDto;
+    const { businessName, bio, phone, address, ...userData } = updateProfileDto;
 
     const updatedUser = await this.prisma.$transaction(async (prisma) => {
       const u = await prisma.user.update({
@@ -49,16 +49,25 @@ export class UsersService {
         include: { hostProfile: true }
       });
 
-      if (u.role === 'HOST' && businessName !== undefined) {
-        if (u.hostProfile) {
-          await prisma.hostProfile.update({
-            where: { userId },
-            data: { businessName }
-          });
-        } else {
-          await prisma.hostProfile.create({
-            data: { userId, businessName }
-          });
+      if (u.role === 'HOST') {
+        const hostProfileData: any = {};
+        if (businessName !== undefined) hostProfileData.businessName = businessName;
+        if (bio !== undefined) hostProfileData.bio = bio;
+        if (phone !== undefined) hostProfileData.phone = phone;
+        if (address !== undefined) hostProfileData.address = address;
+
+        if (Object.keys(hostProfileData).length > 0) {
+          if (u.hostProfile) {
+            await prisma.hostProfile.update({
+              where: { userId },
+              data: hostProfileData
+            });
+          } else if (businessName !== undefined) {
+            // Need businessName at minimum to create
+            await prisma.hostProfile.create({
+              data: { userId, ...hostProfileData }
+            });
+          }
         }
       }
       return prisma.user.findUnique({

@@ -79,6 +79,7 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: loginDto.email },
+      include: { hostProfile: true }
     });
 
     if (!user) {
@@ -113,6 +114,7 @@ export class AuthService {
       const payload = this.jwtService.verify(token);
       const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
+        include: { hostProfile: true }
       });
 
       if (!user) {
