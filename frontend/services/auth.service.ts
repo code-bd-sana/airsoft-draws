@@ -8,6 +8,10 @@ export interface User {
   role: string;
   avatarUrl: string | null;
   location?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  createdAt?: string;
+  isEmailVerified?: boolean;
   hostProfile?: {
     businessName: string;
     slug?: string;
