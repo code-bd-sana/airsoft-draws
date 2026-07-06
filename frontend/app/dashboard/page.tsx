@@ -1,14 +1,24 @@
-import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
-import { DemoRole } from "../../types/demo-auth.types";
+"use client";
 
-export default async function DashboardRootPage() {
-  const cookieStore = await cookies();
-  const role = cookieStore.get("demo_role")?.value as DemoRole | undefined;
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../features/auth/AuthContext";
 
-  if (role === "admin") redirect("/dashboard/admin");
-  if (role === "host") redirect("/dashboard/host");
-  if (role === "user") redirect("/dashboard/user");
+export default function DashboardRootPage() {
+  const { user, isLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
 
-  redirect("/login");
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        router.push("/login");
+      } else {
+        if (user?.role === "ADMIN") router.push("/dashboard/admin");
+        else if (user?.role === "HOST") router.push("/dashboard/host");
+        else router.push("/dashboard/user");
+      }
+    }
+  }, [user, isLoading, isAuthenticated, router]);
+
+  return <div className="min-h-screen bg-bg flex items-center justify-center">Loading...</div>;
 }

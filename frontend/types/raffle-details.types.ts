@@ -5,10 +5,9 @@ export type RaffleTabId = "details" | "how-to-enter" | "terms";
 export interface InstantWinPrize {
   id: string;
   title: string;
-  value: number;
-  totalQuantity: number;
-  wonQuantity: number;
-  ticketNumbers?: string[];
+  image: string | null;
+  ticketNumber: number;
+  isClaimed: boolean;
 }
 
 export interface RaffleDetail {

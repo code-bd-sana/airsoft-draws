@@ -2,14 +2,14 @@
 
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
-import { DemoAccount } from "../../types/demo-auth.types";
+import { DashboardAccount } from "../../types/dashboard.types";
 import { dashboardNavigation } from "../../config/dashboard-navigation.config";
 import DashboardSidebar from "./DashboardSidebar";
 import DashboardTopbar from "./DashboardTopbar";
 import MobileDashboardMenu from "./MobileDashboardMenu";
 
 interface DashboardShellProps {
-  account: DemoAccount;
+  account: DashboardAccount;
   children: React.ReactNode;
 }
 

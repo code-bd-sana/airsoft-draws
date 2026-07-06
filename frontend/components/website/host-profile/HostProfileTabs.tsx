@@ -4,8 +4,11 @@ import React, { useState } from "react";
 import DrawCard from "../shared/DrawCard";
 import { liveRafflesData } from "../../../data/live-raffles.data";
 
-export default function HostProfileTabs() {
+export default function HostProfileTabs({ raffles = [] }: { raffles?: any[] }) {
   const [activeTab, setActiveTab] = useState<"active" | "past" | "reviews" | "about">("active");
+
+  const liveDraws = raffles.filter(r => r.status === 'ACTIVE');
+  const pastDraws = raffles.filter(r => r.status === 'ENDED' || r.status === 'COMPLETED');
 
   return (
     <div className="flex flex-col mt-8">
@@ -57,19 +60,31 @@ export default function HostProfileTabs() {
       <div className="min-h-[400px]">
         {activeTab === "active" && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-in fade-in duration-300">
-            {liveRafflesData.slice(0, 4).map((draw) => (
-              <DrawCard key={draw.id} draw={draw} />
-            ))}
+            {liveDraws.length > 0 ? (
+              liveDraws.map((draw) => (
+                <DrawCard key={draw.id} draw={draw} />
+              ))
+            ) : (
+              <p className="text-[#72943A] col-span-full py-10 text-center">No active draws at the moment.</p>
+            )}
           </div>
         )}
 
         {activeTab === "past" && (
-          <div className="flex flex-col items-center justify-center py-20 text-center gap-3 animate-in fade-in duration-300">
-            <span className="text-[32px]">🏆</span>
-            <h3 className="font-heading font-medium text-[18px] text-[#E8EDD4]">No Past Draws</h3>
-            <p className="font-sans text-[13px] text-[#72943A] max-w-[300px]">
-              This host hasn&apos;t completed any draws yet. Check back later to see their history of winners!
-            </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-in fade-in duration-300">
+            {pastDraws.length > 0 ? (
+              pastDraws.map((draw) => (
+                <DrawCard key={draw.id} draw={draw} />
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 text-center gap-3 w-full col-span-full">
+                <span className="text-[32px]">🏆</span>
+                <h3 className="font-heading font-medium text-[18px] text-[#E8EDD4]">No Past Draws</h3>
+                <p className="font-sans text-[13px] text-[#72943A] max-w-[300px]">
+                  This host hasn't completed any draws yet. Check back later to see their history of winners!
+                </p>
+              </div>
+            )}
           </div>
         )}
 

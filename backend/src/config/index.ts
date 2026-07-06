@@ -18,6 +18,16 @@ export interface AppConfig {
     port: number;
     environment: string;
   };
+  mail: {
+    host: string;
+    port: number;
+    user: string;
+    pass: string;
+    from: string;
+  };
+  frontend: {
+    url: string;
+  };
 }
 
 /**
@@ -40,5 +50,15 @@ export const config: AppConfig = {
   server: {
     port: Number(process.env.PORT) || 3001,
     environment: process.env.NODE_ENV || 'development',
+  },
+  mail: {
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: Number(process.env.SMTP_PORT) || 587,
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASSWORD || '',
+    from: process.env.FROM_EMAIL || 'Airsoft Draws <noreply@airsoftdraws.com>',
+  },
+  frontend: {
+    url: process.env.FRONTEND_URL || 'http://localhost:3000',
   },
 };

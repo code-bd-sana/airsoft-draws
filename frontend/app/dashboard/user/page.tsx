@@ -1,16 +1,7 @@
 import React from "react";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import Image from "next/image";
 
-export default async function UserDashboardPage() {
-  const cookieStore = await cookies();
-  const role = cookieStore.get("demo_role")?.value;
-
-  if (role !== "user") {
-    redirect("/dashboard");
-  }
-
+export default function UserDashboardPage() {
   return (
     <div className="flex flex-col gap-5 p-8 max-w-[1660px] mx-auto w-full animate-fadeIn">
       {/* KPI Cards Row */}

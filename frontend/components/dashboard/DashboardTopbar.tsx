@@ -2,12 +2,13 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { DemoAccount } from "../../types/demo-auth.types";
+import { DashboardAccount } from "../../types/dashboard.types";
 import { cn } from "../../lib/utils";
 import NotificationsDropdown from "./NotificationsDropdown";
+import { useLogout } from "../../hooks/useAuthHooks";
 
 interface DashboardTopbarProps {
-  account: DemoAccount;
+  account: DashboardAccount;
   onMenuClick: () => void;
   title?: string;
   subtitle?: string;
@@ -18,20 +19,10 @@ export default function DashboardTopbar({ account, onMenuClick, title = "Dashboa
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
+  const logout = useLogout();
+
   const handleLogout = async () => {
-    try {
-      const res = await fetch("/api/demo-auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "logout" }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        router.push(data.redirectUrl || "/login");
-      }
-    } catch (err) {
-      console.error(err);
-    }
+    await logout();
   };
 
   return (

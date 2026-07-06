@@ -3,14 +3,15 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { DemoAccount } from "../../types/demo-auth.types";
+import { DashboardAccount } from "../../types/dashboard.types";
 import { dashboardNavigation } from "../../config/dashboard-navigation.config";
 import { cn } from "../../lib/utils";
 import Image from "next/image";
 import logo from '../../public/logo2.png';
+import { useLogout } from "../../hooks/useAuthHooks";
 
 interface DashboardSidebarProps {
-  account: DemoAccount;
+  account: DashboardAccount;
 }
 
 export default function DashboardSidebar({ account }: DashboardSidebarProps) {
@@ -20,20 +21,10 @@ export default function DashboardSidebar({ account }: DashboardSidebarProps) {
   // Filter nav items by role
   const navItems = dashboardNavigation.filter(item => item.roles.includes(account.role));
 
+  const logout = useLogout();
+
   const handleLogout = async () => {
-    try {
-      const res = await fetch("/api/demo-auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "logout" }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        router.push(data.redirectUrl || "/login");
-      }
-    } catch (err) {
-      console.error(err);
-    }
+    await logout();
   };
 
   return (

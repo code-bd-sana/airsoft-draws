@@ -55,13 +55,8 @@ export default function BillingHistoryTable({ history }: Props) {
                 <td className="py-[20px] px-[24px] lg:px-[32px] font-sans font-medium text-[13px] text-[#8cb34a]">
                   £{item.amount.toFixed(2)}
                 </td>
-                <td className="py-[20px] px-[24px] lg:px-[32px]">
-                  <button className="flex items-center gap-[8px] font-sans font-medium text-[12px] text-[#5a752a] hover:text-[#8cb34a] transition-colors">
-                    <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-[14px] h-[14px]">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                    </svg>
-                    Download
-                  </button>
+                <td className="py-[20px] px-[24px] lg:px-[32px] font-sans font-medium text-[12px] text-[#5a752a]">
+                  {item.invoice || item.id}
                 </td>
               </tr>
             ))}

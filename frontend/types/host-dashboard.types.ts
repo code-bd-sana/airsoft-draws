@@ -118,4 +118,5 @@ export interface BillingHistoryItem {
   description: string;
   amount: number;
   status: "Paid" | "Pending" | "Failed";
+  invoice?: string;
 }

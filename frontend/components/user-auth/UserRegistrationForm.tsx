@@ -7,9 +7,18 @@ import { UserRegistrationFormValues, UserAuthFormState } from "../../types/user-
 import { validateRegisterForm, getPasswordStrength } from "../../lib/validations/user-auth.validation";
 import PrimaryButton from "../website/shared/PrimaryButton";
 import { cn } from "../../lib/utils";
+import { useRegisterMutation, useAuthUser } from "../../hooks/useAuthHooks";
+import { extractApiError } from "../../lib/utils";
 
 export default function UserRegistrationForm() {
   const router = useRouter();
+  const { data: user } = useAuthUser();
+
+  React.useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
   // Controlled form values state
   const [formData, setFormData] = useState<UserRegistrationFormValues>({
@@ -58,7 +67,9 @@ export default function UserRegistrationForm() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const registerMutation = useRegisterMutation();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // 1. Perform validation checks
@@ -69,23 +80,39 @@ export default function UserRegistrationForm() {
       return;
     }
 
-    // 2. Submit form (mock loading state)
-    setFormState((prev) => ({
-      ...prev,
-      isSubmitting: true,
-      submitStatus: "idle",
-    }));
+    // 2. Submit form
+      try {
+        await registerMutation.mutateAsync({
+          email: formData.email,
+          password: formData.password,
+          firstName: formData.fullName.split(' ')[0] || '',
+          lastName: formData.fullName.split(' ').slice(1).join(' ') || '',
+          role: 'CLIENT',
+        });
 
-    setTimeout(() => {
-      // Mock successful registration
-      setFormState((prev) => ({
-        ...prev,
-        isSubmitting: false,
-        submitStatus: "success",
-      }));
-      // Redirect to simulated register success page
-      router.push("/register/success");
-    }, 1500);
+        // The mutation doesn't auto-redirect for registration, we do it here
+        showToast("Registration successful! Check your email to verify.");
+        setTimeout(() => {
+          router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+        }, 1500);
+      } catch (error: any) {
+        setFormState((prev) => ({
+          ...prev,
+          isSubmitting: false,
+        }));
+
+        const responseData = error.response?.data;
+        if (responseData?.error && Array.isArray(responseData.error)) {
+          const newErrors: any = {};
+          responseData.error.forEach((err: any) => {
+            newErrors[err.field === 'firstName' || err.field === 'lastName' ? 'fullName' : err.field] = err.errors[0];
+          });
+          setErrors(prev => ({...prev, ...newErrors}));
+          showToast("Please fix the validation errors.");
+        } else {
+          showToast(extractApiError(error, "Registration failed. Please try again."));
+        }
+      }
   };
 
   // Calculate password strength rating
@@ -104,7 +131,7 @@ export default function UserRegistrationForm() {
       <div className="flex items-center justify-start self-start bg-surface border border-divider p-1 rounded-badge">
         <div className="bg-accent-bg border border-border-medium px-4 py-2 rounded-badge">
           <span className="font-sans text-[11px] md:text-xs font-semibold text-text-brand uppercase tracking-wider">
-            User Register
+            Client Register
           </span>
         </div>
         <button

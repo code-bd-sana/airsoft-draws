@@ -1,15 +1,6 @@
 import React from "react";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
-export default async function UserProfilePage() {
-  const cookieStore = await cookies();
-  const role = cookieStore.get("demo_role")?.value;
-
-  if (role !== "user") {
-    redirect("/dashboard");
-  }
-
+export default function UserProfilePage() {
   return (
     <div className="flex flex-col xl:flex-row gap-5 p-8 max-w-[1660px] mx-auto w-full animate-fadeIn items-start">
       {/* Left Column: Profile Summary */}

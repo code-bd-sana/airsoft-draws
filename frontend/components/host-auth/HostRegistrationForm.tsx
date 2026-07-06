@@ -14,6 +14,8 @@ import {
 import PrimaryButton from "../website/shared/PrimaryButton";
 import AuthSuccessState from "./AuthSuccessState";
 import { cn } from "../../lib/utils";
+import { useRegisterMutation } from "../../hooks/useAuthHooks";
+import { extractApiError } from "../../lib/utils";
 
 interface HostRegistrationFormProps {
   step: HostRegistrationStep;
@@ -120,7 +122,9 @@ export default function HostRegistrationForm({
   };
 
   // Advancing steps with validation gates
-  const handleContinue = (e: React.FormEvent) => {
+  const registerMutation = useRegisterMutation();
+
+  const handleContinue = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (step === 1) {
@@ -163,13 +167,29 @@ export default function HostRegistrationForm({
         isSubmitting: true,
       }));
 
-      setTimeout(() => {
+      try {
+        await registerMutation.mutateAsync({
+          email: formData.email,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          location: formData.city ? `${formData.city}, ${formData.country}` : formData.country,
+          role: 'HOST',
+          businessName: formData.businessName || `${formData.firstName} ${formData.lastName}`, // Fallback for individual
+        });
+        
+        showToast("Host registration successful! Check your email to verify.");
+        setTimeout(() => {
+          router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+        }, 1500);
+      } catch (error: any) {
         setFormState((prev) => ({
           ...prev,
           isSubmitting: false,
-          submitStatus: "success",
         }));
-      }, 1500);
+        const errorMsg = extractApiError(error, "Registration failed");
+        showToast(errorMsg);
+      }
     }
   };
 
@@ -201,14 +221,14 @@ export default function HostRegistrationForm({
         <div className="flex items-center justify-start self-start bg-surface border border-divider p-1 rounded-badge">
           <button
             type="button"
-            onClick={() => showToast("User Login is coming soon!")}
+            onClick={() => router.push("/register")}
             className="font-sans text-[11px] md:text-xs font-semibold text-text-muted hover:text-text-primary px-4 py-2 rounded-badge transition-colors duration-200"
           >
-            User Login
+            Client Register
           </button>
           <div className="bg-accent-bg border border-border-medium px-4 py-2 rounded-badge">
             <span className="font-sans text-[11px] md:text-xs font-semibold text-text-brand uppercase tracking-wider">
-              Host Login
+              Host Register
             </span>
           </div>
         </div>
@@ -384,8 +404,8 @@ export default function HostRegistrationForm({
               <div className="flex items-center justify-between mt-4">
                 <span className="text-xs text-text-muted">
                   Already have a Host account?{" "}
-                  <Link href="/host/login" className="font-semibold text-primary hover:underline">
-                    Log In
+                  <Link href="/login" className="font-semibold text-primary hover:underline">
+                    Log in
                   </Link>
                 </span>
                 <PrimaryButton type="submit" className="font-heading font-semibold text-xs px-6 py-2.5">

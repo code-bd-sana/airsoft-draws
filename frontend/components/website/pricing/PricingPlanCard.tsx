@@ -1,21 +1,68 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { PricingPlan, BillingCycle } from "../../../types/pricing.types";
 import PrimaryButton from "../shared/PrimaryButton";
 import SecondaryButton from "../shared/SecondaryButton";
 import { cn } from "../../../lib/utils";
+import { useAuthUser } from "../../../hooks/useAuthHooks";
+import { useCreateCheckoutSessionMutation } from "../../../hooks/useSubscriptionHooks";
+import { SubscriptionPlan } from "../../../services/subscription.service";
 
 interface PricingPlanCardProps {
   plan: PricingPlan;
   billingCycle: BillingCycle;
+  dbPlan?: SubscriptionPlan; // Passed from backend if available
 }
 
 /**
  * Pricing plan card component matching the Figma layouts.
  * Highlights the Premium plan. Handles pricing calculations.
  */
-export default function PricingPlanCard({ plan, billingCycle }: PricingPlanCardProps) {
+export default function PricingPlanCard({ plan, billingCycle, dbPlan }: PricingPlanCardProps) {
   const isYearly = billingCycle === "yearly";
   const price = isYearly && plan.yearlyPrice !== undefined ? plan.yearlyPrice : plan.monthlyPrice;
+  const router = useRouter();
+  const { data: user } = useAuthUser();
+  const createCheckout = useCreateCheckoutSessionMutation();
+  const [loading, setLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const handleSubscribe = () => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    if (user.role !== 'HOST') {
+      alert('Only Host accounts can purchase subscriptions. Please create a Host account.');
+      return;
+    }
+    if (!dbPlan) {
+      alert('Subscription plan not found in database.');
+      return;
+    }
+
+    setLoading(true);
+    createCheckout.mutate(dbPlan.id, {
+      onSuccess: (data) => {
+        if (data.isTest) {
+          setTimeout(() => {
+            setLoading(false);
+            setShowSuccessModal(true);
+          }, 2500); // Simulate network loading
+        } else if (data.url) {
+          window.location.href = data.url;
+        } else {
+          setLoading(false);
+          alert('No checkout URL returned.');
+        }
+      },
+      onError: () => {
+        setLoading(false);
+        alert('Failed to initiate checkout.');
+      }
+    });
+  };
 
   return (
     <div
@@ -108,15 +155,46 @@ export default function PricingPlanCard({ plan, billingCycle }: PricingPlanCardP
       {/* CTA Action Button */}
       <div className="mt-auto">
         {plan.isFeatured ? (
-          <PrimaryButton className="w-full py-3 text-sm tracking-wide">
-            {plan.ctaLabel}
+          <PrimaryButton 
+            className="w-full py-3 text-sm tracking-wide flex justify-center items-center gap-2" 
+            onClick={handleSubscribe} 
+            disabled={loading}
+          >
+            {loading ? 'Processing...' : plan.ctaLabel}
           </PrimaryButton>
         ) : (
-          <SecondaryButton className="w-full py-3 text-sm tracking-wide">
-            {plan.ctaLabel}
+          <SecondaryButton 
+            className="w-full py-3 text-sm tracking-wide flex justify-center items-center gap-2" 
+            onClick={handleSubscribe} 
+            disabled={loading}
+          >
+            {loading ? 'Processing...' : plan.ctaLabel}
           </SecondaryButton>
         )}
       </div>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-surface border border-border p-8 rounded-[24px] shadow-glow w-[90%] max-w-md flex flex-col items-center text-center animate-in zoom-in-95 duration-300">
+            <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8 text-primary">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            </div>
+            <h2 className="font-heading font-bold text-2xl text-text-primary mb-3">Payment Successful</h2>
+            <p className="font-sans text-sm text-text-secondary mb-8">Your subscription has been activated successfully.</p>
+            <PrimaryButton 
+              className="w-full py-3" 
+              onClick={() => {
+                window.location.href = '/dashboard/host/billing?status=success';
+              }}
+            >
+              Continue to Dashboard
+            </PrimaryButton>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

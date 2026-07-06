@@ -16,8 +16,12 @@ export default function VerifiedHostCard({ host }: VerifiedHostCardProps) {
 
         <div className="flex flex-col gap-4 relative z-10">
           <div className="flex items-center justify-between">
-            <div className="w-[56px] h-[56px] rounded-full bg-[#1A230A] border border-[#43581E] flex items-center justify-center shrink-0 shadow-sm">
-              <span className="font-heading font-bold text-[#8CB34A] text-[20px]">{host.logo || host.name.charAt(0)}</span>
+            <div className="w-[56px] h-[56px] rounded-full bg-[#1A230A] border border-[#43581E] flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+              {host.logo && (host.logo.startsWith('http') || host.logo.startsWith('/')) ? (
+                <img src={host.logo} alt={host.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="font-heading font-bold text-[#8CB34A] text-[20px]">{host.logo || host.name.charAt(0)}</span>
+              )}
             </div>
             {host.isVerified && (
               <span className="bg-[#8CB34A]/10 border border-[#8CB34A]/20 text-[#8CB34A] px-2.5 py-1 rounded-[6px] text-[10px] font-bold uppercase tracking-wide flex items-center gap-1.5 shadow-[0_0_10px_rgba(140,179,74,0.1)]">
