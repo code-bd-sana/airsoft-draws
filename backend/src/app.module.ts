@@ -10,6 +10,7 @@ import { join } from 'path';
 import { PaymentModule } from './payment/payment.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { RafflesModule } from './raffles/raffles.module';
+import { HostsModule } from './hosts/hosts.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { RafflesModule } from './raffles/raffles.module';
     PaymentModule,
     SubscriptionsModule,
     RafflesModule,
+    HostsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

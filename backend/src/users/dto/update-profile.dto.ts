@@ -21,4 +21,19 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   businessName?: string;
+
+  @ApiProperty({ example: 'We are the best airsoft hosts.', description: 'Host Bio', required: false })
+  @IsOptional()
+  @IsString()
+  bio?: string;
+
+  @ApiProperty({ example: '+441234567890', description: 'Contact Phone', required: false })
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @ApiProperty({ example: '123 Airsoft Lane, London, UK', description: 'Business Address', required: false })
+  @IsOptional()
+  @IsString()
+  address?: string;
 }

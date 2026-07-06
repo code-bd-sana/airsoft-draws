@@ -8,6 +8,7 @@ import { NAV_LINKS } from "../../../lib/constants";
 import PrimaryButton from "../shared/PrimaryButton";
 import { cn } from "../../../lib/utils";
 import logo from '../../../public/logo3.png';
+import { useAuthUser } from "../../../hooks/useAuthHooks";
 
 /**
  * Global website navigation navbar with sticky backdrop blur and responsive mobile slide-out sidebar y.
@@ -16,6 +17,7 @@ export default function WebsiteNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const { data: user } = useAuthUser();
 
   // Monitor scrolling to add backdrop background
   useEffect(() => {
@@ -56,7 +58,7 @@ export default function WebsiteNavbar() {
               className="object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-md brightness-110 contrast-125"
             />
           </Link>
-{/* Desktop Navigation Links */}
+          {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center gap-8">
             {NAV_LINKS.map((link) => {
               const isActive = pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href));
@@ -78,15 +80,23 @@ export default function WebsiteNavbar() {
 
           {/* Auth Buttons */}
           <div className="hidden lg:flex items-center gap-4">
-            <Link
-              href="/login"
-              className="font-sans text-xs font-semibold text-text-primary hover:text-text-brand uppercase tracking-wider transition-colors duration-200 px-3 py-2"
-            >
-              Log In
-            </Link>
-            <PrimaryButton href="/host/register" className="px-5 py-2 text-xs">
-              Start Hosting
-            </PrimaryButton>
+            {user ? (
+              <PrimaryButton href="/dashboard" className="px-5 py-2 text-xs">
+                Dashboard
+              </PrimaryButton>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="font-sans text-xs font-semibold text-text-primary hover:text-text-brand uppercase tracking-wider transition-colors duration-200 px-3 py-2"
+                >
+                  Log In
+                </Link>
+                <PrimaryButton href="/host/register" className="px-5 py-2 text-xs">
+                  Start Hosting
+                </PrimaryButton>
+              </>
+            )}
           </div>
 
           {/* Hamburger Mobile Menu Toggle */}
@@ -172,20 +182,32 @@ export default function WebsiteNavbar() {
 
         {/* Bottom Login and Host Buttons */}
         <div className="flex flex-col gap-3.5 pt-6 border-t border-divider mt-auto">
-          <Link
-            href="/login"
-            onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center justify-center font-sans font-semibold text-xs text-text-primary hover:text-text-brand uppercase tracking-wider py-3 border border-border rounded-button transition-colors duration-200"
-          >
-            Log In
-          </Link>
-          <PrimaryButton
-            href="/host/register"
-            onClick={() => setMobileMenuOpen(false)}
-            className="py-3 text-xs"
-          >
-            Start Hosting
-          </PrimaryButton>
+          {user ? (
+            <PrimaryButton
+              href="/dashboard"
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-3 text-xs"
+            >
+              Dashboard
+            </PrimaryButton>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center font-sans font-semibold text-xs text-text-primary hover:text-text-brand uppercase tracking-wider py-3 border border-border rounded-button transition-colors duration-200"
+              >
+                Log In
+              </Link>
+              <PrimaryButton
+                href="/host/register"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-3 text-xs"
+              >
+                Start Hosting
+              </PrimaryButton>
+            </>
+          )}
         </div>
       </div>
     </>
