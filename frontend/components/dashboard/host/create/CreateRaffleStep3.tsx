@@ -6,19 +6,32 @@ interface Props {
   updateForm: (data: Partial<RaffleFormData>) => void;
   onNext: () => void;
   onPrev: () => void;
+  setImageFile: (file: File | null) => void;
 }
 
-export default function CreateRaffleStep3({ formData, updateForm, onNext, onPrev }: Props) {
+export default function CreateRaffleStep3({ formData, updateForm, onNext, onPrev, setImageFile }: Props) {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   
-  // Mock image upload handler for demo purposes
   const handleUploadClick = () => {
-    // We just simulate setting a mock image URL to satisfy the form state
-    updateForm({ coverImage: "https://placehold.co/800x600/1a230a/8cb34a?text=Uploaded+Image" });
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const url = URL.createObjectURL(file);
+      updateForm({ coverImage: url });
+    }
   };
 
   const handleClearImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     updateForm({ coverImage: null });
+    setImageFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   return (
@@ -78,6 +91,13 @@ export default function CreateRaffleStep3({ formData, updateForm, onNext, onPrev
                 </span>
               </>
             )}
+            <input 
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+            />
           </div>
         </div>
       </div>

@@ -27,7 +27,7 @@ export default function SubscriptionBillingPage() {
     description: tx.type === 'SUBSCRIPTION_FEE' ? 'Subscription Payment' : tx.type,
     amount: Number(tx.amount),
     invoice: tx.gatewayTransactionId,
-    status: tx.status === 'COMPLETED' ? 'Paid' : 'Pending'
+    status: (tx.status === 'COMPLETED' ? 'Paid' : tx.status === 'FAILED' ? 'Failed' : 'Pending') as 'Paid' | 'Pending' | 'Failed'
   })) || [];
 
   return (

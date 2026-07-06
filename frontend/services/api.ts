@@ -14,7 +14,11 @@ api.interceptors.response.use(
   (response) => {
     // Unwrap the backend's TransformInterceptor payload if present
     if (response.data && response.data.success === true && response.data.data !== undefined) {
-      response.data = response.data.data;
+      if (response.data.meta !== undefined) {
+        response.data = { data: response.data.data, meta: response.data.meta };
+      } else {
+        response.data = response.data.data;
+      }
     }
     return response;
   },
