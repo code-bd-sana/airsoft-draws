@@ -55,6 +55,7 @@ export default function CreateRaffleWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<RaffleFormData>(initialData);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   const { data: mySub, isLoading: isSubLoading } = useMySubscription();
@@ -69,6 +70,7 @@ export default function CreateRaffleWizard() {
   const prevStep = () => setCurrentStep((p) => Math.max(p - 1, 1));
   
   const handlePublish = async () => {
+    setIsSubmitting(true);
     try {
       // 1. Upload instant win images first
       const processedInstantWins = [];
@@ -116,6 +118,8 @@ export default function CreateRaffleWizard() {
       router.push("/dashboard/host/competitions");
     } catch (err: any) {
       alert(err?.response?.data?.message || "Failed to create competition");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -154,7 +158,7 @@ export default function CreateRaffleWizard() {
           <CreateRaffleStep5 formData={formData} updateForm={updateForm} onNext={nextStep} onPrev={prevStep} />
         )}
         {currentStep === 6 && (
-          <CreateRaffleStep6 formData={formData} onPublish={handlePublish} onPrev={prevStep} />
+          <CreateRaffleStep6 formData={formData} onPublish={handlePublish} onPrev={prevStep} isSubmitting={isSubmitting} />
         )}
       </div>
     </div>

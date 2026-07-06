@@ -63,6 +63,18 @@ export default function CreateRaffleStep4({ formData, updateForm, onNext, onPrev
     updateForm({ instantWins: updated });
   };
 
+  const applyFromFirst = (index: number) => {
+    const source = formData.instantWins[0];
+    const updated = [...formData.instantWins];
+    updated[index] = {
+      ...updated[index],
+      prizeName: source.prizeName,
+      imageFile: source.imageFile,
+      imageUrl: source.imageUrl,
+    };
+    updateForm({ instantWins: updated });
+  };
+
   const isValid = !formData.hasInstantWins || formData.instantWins.every(iw => iw.prizeName.trim() !== "");
 
   return (
@@ -115,6 +127,15 @@ export default function CreateRaffleStep4({ formData, updateForm, onNext, onPrev
                         title="Copy this prize's name and image to all other instant wins"
                       >
                         Apply to all
+                      </button>
+                    )}
+                    {idx > 0 && formData.instantWins[0].prizeName && (
+                      <button
+                        onClick={() => applyFromFirst(idx)}
+                        className="text-[12px] text-[#8cb34a] hover:underline"
+                        title="Copy the details from Prize #1"
+                      >
+                        Copy from 1st
                       </button>
                     )}
                   </div>

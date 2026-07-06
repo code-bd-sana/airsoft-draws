@@ -6,9 +6,10 @@ interface Props {
   formData: RaffleFormData;
   onPrev: () => void;
   onPublish: () => void;
+  isSubmitting?: boolean;
 }
 
-export default function CreateRaffleStep6({ formData, onPrev, onPublish }: Props) {
+export default function CreateRaffleStep6({ formData, onPrev, onPublish, isSubmitting = false }: Props) {
   // Calculate potential earnings
   const tickets = parseInt(formData.totalTickets) || 0;
   const price = parseFloat(formData.ticketPrice) || 0;
@@ -119,14 +120,17 @@ export default function CreateRaffleStep6({ formData, onPrev, onPublish }: Props
         </button>
         <button
           onClick={onPublish}
-          className="h-[48px] px-[32px] bg-[#8cb34a] hover:bg-[#72943a] transition-colors rounded-[8px] flex items-center gap-[8px] justify-center shadow-[0_0_20px_rgba(140,179,74,0.3)]"
+          disabled={isSubmitting}
+          className="h-[48px] px-[32px] bg-[#8cb34a] hover:bg-[#72943a] transition-colors rounded-[8px] flex items-center gap-[8px] justify-center shadow-[0_0_20px_rgba(140,179,74,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span className="font-heading font-medium text-[16px] text-[#0d0d0b]">
-            Publish Raffle
+            {isSubmitting ? "Publishing..." : "Publish Raffle"}
           </span>
-          <svg className="w-5 h-5 text-[#0d0d0b]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-          </svg>
+          {!isSubmitting && (
+            <svg className="w-5 h-5 text-[#0d0d0b]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+            </svg>
+          )}
         </button>
       </div>
     </div>
