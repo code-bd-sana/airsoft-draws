@@ -9,7 +9,9 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    rawBody: true, // Required for Stripe Webhook signature verification
+  });
 
   // Enable CORS for Next.js frontend with credentials support
   app.enableCors({
