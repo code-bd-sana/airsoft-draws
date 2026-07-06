@@ -7,11 +7,18 @@ import { UserRegistrationFormValues, UserAuthFormState } from "../../types/user-
 import { validateRegisterForm, getPasswordStrength } from "../../lib/validations/user-auth.validation";
 import PrimaryButton from "../website/shared/PrimaryButton";
 import { cn } from "../../lib/utils";
-import { useRegisterMutation } from "../../hooks/useAuthHooks";
+import { useRegisterMutation, useAuthUser } from "../../hooks/useAuthHooks";
 import { extractApiError } from "../../lib/utils";
 
 export default function UserRegistrationForm() {
   const router = useRouter();
+  const { data: user } = useAuthUser();
+
+  React.useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
   // Controlled form values state
   const [formData, setFormData] = useState<UserRegistrationFormValues>({
