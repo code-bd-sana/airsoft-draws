@@ -10,7 +10,20 @@ export const metadata: Metadata = {
   description: "Browse verified hosts running premium airsoft competitions.",
 };
 
-export default function VerifiedHostsPage() {
+export default async function VerifiedHostsPage() {
+  let verifiedHosts = [];
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api/v1'}/hosts/verified`, {
+      cache: 'no-store'
+    });
+    if (res.ok) {
+      const json = await res.json();
+      verifiedHosts = json.data || json;
+    }
+  } catch (err) {
+    console.error("Failed to fetch verified hosts", err);
+  }
+
   return (
     <>
       <WebsiteNavbar />
@@ -25,7 +38,7 @@ export default function VerifiedHostsPage() {
             </p>
           </div>
           
-          <VerifiedHostsList hosts={verifiedHostsData} />
+          <VerifiedHostsList hosts={verifiedHosts} />
         </div>
       </main>
       <WebsiteFooter />

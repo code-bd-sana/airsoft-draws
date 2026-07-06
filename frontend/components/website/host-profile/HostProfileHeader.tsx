@@ -24,8 +24,12 @@ export default function HostProfileHeader({
   return (
     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-[#2D3C13]">
       <div className="flex items-center gap-5">
-        <div className="w-[88px] h-[88px] rounded-full bg-[#1A230A] border border-[#43581E] flex items-center justify-center shrink-0">
-          <span className="font-heading font-bold text-[#8CB34A] text-[32px]">{logo}</span>
+        <div className="w-[88px] h-[88px] rounded-full bg-[#1A230A] border border-[#43581E] flex items-center justify-center shrink-0 overflow-hidden">
+          {logo && (logo.startsWith('http') || logo.startsWith('/')) ? (
+            <img src={logo} alt={name} className="w-full h-full object-cover" />
+          ) : (
+            <span className="font-heading font-bold text-[#8CB34A] text-[32px]">{logo}</span>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">
