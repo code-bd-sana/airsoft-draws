@@ -13,8 +13,10 @@ import { useLoginMutation, useAuthUser } from "../../hooks/useAuthHooks";
 export default function UserLoginForm() {
   const router = useRouter();
   const { data: user, isLoading: isUserLoading } = useAuthUser();
+  const [isMounted, setIsMounted] = useState(false);
 
   React.useEffect(() => {
+    setIsMounted(true);
     if (user) {
       router.push('/dashboard');
     }
@@ -239,7 +241,7 @@ export default function UserLoginForm() {
           {/* Submit Button */}
           <PrimaryButton
             type="submit"
-            disabled={formState.isSubmitting}
+            disabled={formState.isSubmitting || !isMounted}
             className="w-full py-3.5 mt-2 font-heading font-semibold text-sm tracking-wide uppercase"
           >
             {formState.isSubmitting ? "Logging In..." : "Log In →"}
