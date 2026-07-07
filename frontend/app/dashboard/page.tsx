@@ -13,8 +13,9 @@ export default function DashboardRootPage() {
       if (!isAuthenticated) {
         router.push("/login");
       } else {
-        if (user?.role === "ADMIN") router.push("/dashboard/admin");
-        else if (user?.role === "HOST") router.push("/dashboard/host");
+        const role = user?.role?.toUpperCase();
+        if (role === "ADMIN") router.push("/dashboard/admin");
+        else if (role === "HOST") router.push("/dashboard/host");
         else router.push("/dashboard/user");
       }
     }
