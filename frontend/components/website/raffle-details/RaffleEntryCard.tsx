@@ -2,6 +2,9 @@
 
 import React, { useState } from "react";
 import { RaffleDetail } from "../../../types/raffle-details.types";
+import { usePurchaseTicketsMutation } from "../../../hooks/useTicketHooks";
+import { useAuth } from "../../../features/auth/AuthContext";
+import { useRouter } from "next/navigation";
 
 interface RaffleEntryCardProps {
   raffle: RaffleDetail;
@@ -9,6 +12,12 @@ interface RaffleEntryCardProps {
 
 export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
   const [quantity, setQuantity] = useState(1);
+  const [statusMessage, setStatusMessage] = useState<{type: 'success'|'error'|'info', text: string} | null>(null);
+
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+  
+  const purchaseMutation = usePurchaseTicketsMutation(raffle.id);
 
   const {
     ticketPrice,
@@ -25,6 +34,36 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
   const handleQuickPick = (val: number) => setQuantity(val);
   const handleDecrement = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
   const handleIncrement = () => setQuantity(prev => prev + 1);
+
+  const handlePurchase = () => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+    
+    if (quantity > remainingTickets) {
+      setStatusMessage({ type: 'error', text: `Only ${remainingTickets} tickets left.` });
+      return;
+    }
+    
+    setStatusMessage(null);
+    purchaseMutation.mutate(quantity, {
+      onSuccess: (data) => {
+        let msg = `Successfully purchased ${data.tickets.length} tickets!`;
+        if (data.instantWins && data.instantWins.length > 0) {
+          msg += ` 🎉 YOU GOT ${data.instantWins.length} INSTANT WIN(S)! 🎉`;
+        }
+        setStatusMessage({ type: 'success', text: msg });
+        setQuantity(1);
+      },
+      onError: (error: any) => {
+        setStatusMessage({ 
+          type: 'error', 
+          text: error.response?.data?.message || 'Failed to purchase tickets' 
+        });
+      }
+    });
+  };
 
   return (
     <div className="bg-[#111210] border border-[#2D3C13] rounded-[16px] p-6 flex flex-col w-full max-w-[400px]">
@@ -113,9 +152,25 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
           <span className="font-heading font-semibold text-[16px] text-[#8CB34A]">£{totalPrice.toFixed(2)}</span>
         </div>
 
-        <button className="w-full h-[48px] rounded-[8px] bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] font-heading font-medium text-[14px] transition-colors shadow-[0_0_15px_rgba(140,179,74,0.15)] flex items-center justify-center">
-          Enter Draw — £{totalPrice.toFixed(2)}
+        <button 
+          onClick={handlePurchase}
+          disabled={purchaseMutation.isPending || remainingTickets === 0}
+          className={`w-full h-[48px] rounded-[8px] font-heading font-medium text-[14px] transition-colors flex items-center justify-center ${
+            purchaseMutation.isPending || remainingTickets === 0
+              ? 'bg-[#2D3C13] text-[#72943A] cursor-not-allowed'
+              : 'bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] shadow-[0_0_15px_rgba(140,179,74,0.15)]'
+          }`}
+        >
+          {purchaseMutation.isPending ? 'Processing...' : `Enter Draw — £${totalPrice.toFixed(2)}`}
         </button>
+
+        {statusMessage && (
+          <div className={`p-3 rounded-lg text-sm font-sans text-center ${
+            statusMessage.type === 'success' ? 'bg-[#1A230A] text-[#A0D056] border border-[#8CB34A]' : 'bg-red-950 text-red-400 border border-red-800'
+          }`}>
+            {statusMessage.text}
+          </div>
+        )}
 
         <p className="font-sans text-[10px] text-[#5A752A] text-center">
           Secure checkout. Competitions fully audited. 18+

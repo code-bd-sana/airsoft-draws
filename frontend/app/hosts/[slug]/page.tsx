@@ -13,7 +13,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   let name = slug;
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api/v1'}/hosts/public/${slug}`);
+    const apiUrl = process.env.BACKEND_API_URL || 'http://127.0.0.1:5000/api/v1';
+    const res = await fetch(`${apiUrl}/hosts/public/${slug}`);
     if (res.ok) {
       const json = await res.json();
       const host = json.data || json;
@@ -32,7 +33,8 @@ export default async function HostProfilePage({ params }: PageProps) {
   
   let host = null;
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api/v1'}/hosts/public/${slug}`, {
+    const apiUrl = process.env.BACKEND_API_URL || 'http://127.0.0.1:5000/api/v1';
+    const res = await fetch(`${apiUrl}/hosts/public/${slug}`, {
       cache: 'no-store'
     });
     if (res.ok) {

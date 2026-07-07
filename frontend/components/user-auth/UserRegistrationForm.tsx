@@ -104,9 +104,11 @@ export default function UserRegistrationForm() {
         }));
 
         const responseData = error.response?.data;
-        if (responseData?.error && Array.isArray(responseData.error)) {
+        const validationErrors = responseData?.errors || responseData?.error;
+        
+        if (validationErrors && Array.isArray(validationErrors)) {
           const newErrors: any = {};
-          responseData.error.forEach((err: any) => {
+          validationErrors.forEach((err: any) => {
             newErrors[err.field === 'firstName' || err.field === 'lastName' ? 'fullName' : err.field] = err.errors[0];
           });
           setErrors(prev => ({...prev, ...newErrors}));

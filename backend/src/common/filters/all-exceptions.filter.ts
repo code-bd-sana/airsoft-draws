@@ -38,6 +38,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       success: false,
       message: Array.isArray(message) ? message[0] : message, // take the first message if it's an array
       errors: Array.isArray(message) ? message : errors, // if message is an array, it's likely validation errors
+      debug_error: exception.message,
+      debug_stack: exception.stack,
       path: request.url,
       timestamp: new Date().toISOString(),
     });

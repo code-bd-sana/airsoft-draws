@@ -11,6 +11,7 @@ import { PaymentModule } from './payment/payment.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { RafflesModule } from './raffles/raffles.module';
 import { HostsModule } from './hosts/hosts.module';
+import { TicketsModule } from './tickets/tickets.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { HostsModule } from './hosts/hosts.module';
     SubscriptionsModule,
     RafflesModule,
     HostsModule,
+    TicketsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

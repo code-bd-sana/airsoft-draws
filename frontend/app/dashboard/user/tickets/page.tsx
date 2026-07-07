@@ -1,60 +1,43 @@
+"use client";
+
 import React from "react";
-import Image from "next/image";
 import TicketsTable, { Ticket } from "@/components/dashboard/TicketsTable";
-
-
-const DUMMY_TICKETS: Ticket[] = [
-  {
-    id: "1",
-    ticketId: "#TKT-0231",
-    competitionName: "VFC HK416 Carbine Bundle",
-    purchaseDate: "15 Jun 2025",
-    pricePaid: "£12.50",
-    status: "live",
-  },
-  {
-    id: "2",
-    ticketId: "#TKT-0232",
-    competitionName: "Tokyo Marui MWS GBBR",
-    purchaseDate: "10 Jun 2025",
-    pricePaid: "£9.00",
-    status: "drawn-won",
-  },
-  {
-    id: "3",
-    ticketId: "#TKT-0233",
-    competitionName: "Sniper Precision Set",
-    purchaseDate: "05 Jun 2025",
-    pricePaid: "£15.00",
-    status: "drawn-lost",
-  },
-  {
-    id: "4",
-    ticketId: "#TKT-0234",
-    competitionName: "Full Tactical Loadout",
-    purchaseDate: "01 Jun 2025",
-    pricePaid: "£3.00",
-    status: "live",
-  },
-  {
-    id: "5",
-    ticketId: "#TKT-0235",
-    competitionName: "Plate Carrier Bundle",
-    purchaseDate: "28 May 2025",
-    pricePaid: "£25.00",
-    status: "drawn-lost",
-  },
-  {
-    id: "6",
-    ticketId: "#TKT-0236",
-    competitionName: "G36 Competition Bundle",
-    purchaseDate: "20 May 2025",
-    pricePaid: "£7.50",
-    status: "drawn-won",
-  },
-];
+import { useMyTicketsQuery } from "../../../../hooks/useTicketHooks";
+import { format } from "date-fns";
 
 export default function UserTicketsPage() {
+  const { data: ticketsData, isLoading, isError } = useMyTicketsQuery();
+
+  if (isLoading) {
+    return <div className="p-8 text-center text-[#72943A]">Loading tickets...</div>;
+  }
+  if (isError) {
+    return <div className="p-8 text-center text-red-500">Failed to load tickets.</div>;
+  }
+
+  const backendTickets = ticketsData || [];
+
+  const formattedTickets: Ticket[] = backendTickets.map((t: any) => {
+    let status: Ticket["status"] = "live";
+    if (t.raffle.status === "ENDED") {
+      // Check if user won
+      const hasWon = t.winners && t.winners.length > 0;
+      status = hasWon ? "drawn-won" : "drawn-lost";
+    }
+    return {
+      id: t.id,
+      ticketId: `#TKT-${t.ticketNumber}`,
+      competitionName: t.raffle.title,
+      purchaseDate: format(new Date(t.createdAt), "dd MMM yyyy"),
+      pricePaid: "Paid", // Backend currently doesn't return exact price per ticket easily without transaction join
+      status,
+    };
+  });
+
+  const totalOwned = formattedTickets.length;
+  const activeTickets = formattedTickets.filter((t) => t.status === "live").length;
+  const wonTickets = formattedTickets.filter((t) => t.status === "drawn-won").length;
+
   return (
     <div className="flex flex-col gap-6 p-8 max-w-[1660px] mx-auto w-full animate-fadeIn">
       {/* KPI Cards Row */}
@@ -65,7 +48,7 @@ export default function UserTicketsPage() {
             Total Tickets Owned
           </p>
           <p className="font-heading font-bold text-[36px] leading-tight text-[#E8EDD4]">
-            142
+            {totalOwned}
           </p>
           <span className="font-sans text-[11px] font-medium text-[#72943A]">
             All time
@@ -78,10 +61,10 @@ export default function UserTicketsPage() {
             Active Tickets
           </p>
           <p className="font-heading font-bold text-[36px] leading-tight text-[#E8EDD4]">
-            35
+            {activeTickets}
           </p>
           <span className="font-sans text-[11px] font-medium text-[#72943A]">
-            in 8 competitions
+            Current
           </span>
         </div>
 
@@ -91,18 +74,18 @@ export default function UserTicketsPage() {
             Tickets in Won Competitions
           </p>
           <p className="font-heading font-bold text-[36px] leading-tight text-[#E8EDD4]">
-            12
+            {wonTickets}
           </p>
           <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#1A230A] border border-[#2D3C13] w-fit">
             <span className="font-sans text-[10px] font-medium text-[#4ADE80]">
-              3 prizes won
+              {wonTickets} prizes won
             </span>
           </div>
         </div>
       </div>
 
       {/* Tickets Data Table Component */}
-      <TicketsTable tickets={DUMMY_TICKETS} />
+      <TicketsTable tickets={formattedTickets} />
     </div>
   );
 }
