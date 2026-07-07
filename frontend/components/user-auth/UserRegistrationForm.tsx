@@ -13,8 +13,10 @@ import { extractApiError } from "../../lib/utils";
 export default function UserRegistrationForm() {
   const router = useRouter();
   const { data: user } = useAuthUser();
+  const [isMounted, setIsMounted] = useState(false);
 
   React.useEffect(() => {
+    setIsMounted(true);
     if (user) {
       router.push('/dashboard');
     }
@@ -431,7 +433,7 @@ export default function UserRegistrationForm() {
           {/* Submit Button */}
           <PrimaryButton
             type="submit"
-            disabled={formState.isSubmitting}
+            disabled={formState.isSubmitting || !isMounted}
             className="w-full py-3.5 mt-2 font-heading font-semibold text-sm tracking-wide uppercase"
           >
             {formState.isSubmitting ? "Registering..." : "Register →"}
