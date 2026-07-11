@@ -34,6 +34,16 @@ export const raffleService = {
     return response.data;
   },
 
+  async getRaffleById(id: string): Promise<any> {
+    const response = await api.get(`/raffles/host/${id}`);
+    return response.data;
+  },
+
+  async updateRaffle(id: string, data: any): Promise<any> {
+    const response = await api.patch(`/raffles/host/${id}`, data);
+    return response.data;
+  },
+
   async createRaffle(data: any): Promise<Raffle> {
     const response = await api.post('/raffles', data);
     return response.data;

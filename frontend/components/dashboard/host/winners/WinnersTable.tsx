@@ -10,6 +10,7 @@ export default function WinnersTable() {
   const [activeTab, setActiveTab] = useState<"Awaiting Draw" | "Drawn">("Awaiting Draw");
   const [selectedDrawToRun, setSelectedDrawToRun] = useState<any | null>(null);
   const [selectedDrawToView, setSelectedDrawToView] = useState<any | null>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
   
   const { data: response, isLoading } = useHostRaffles();
   const raffles = response?.data || [];
@@ -28,13 +29,18 @@ export default function WinnersTable() {
 
   const handleConfirmDraw = async () => {
     if (!selectedDrawToRun) return;
+    setIsDrawing(true);
     try {
+      // Simulate an authentic "Draw" delay
+      await new Promise(resolve => setTimeout(resolve, 3000));
       await drawWinnerMutation.mutateAsync(selectedDrawToRun.id);
       setSelectedDrawToRun(null);
-      // Wait a bit or let React Query invalidate the UI
       setActiveTab("Drawn");
     } catch (e: any) {
       alert(e?.response?.data?.message || "Failed to draw winner");
+      setSelectedDrawToRun(null);
+    } finally {
+      setIsDrawing(false);
     }
   };
 
@@ -169,8 +175,9 @@ export default function WinnersTable() {
       {selectedDrawToRun && (
         <DrawConfirmationModal 
           draw={{ name: selectedDrawToRun.title } as any}
-          isOpen={true}
-          onClose={() => setSelectedDrawToRun(null)}
+          isOpen={!!selectedDrawToRun}
+          isDrawing={isDrawing}
+          onClose={() => !isDrawing && setSelectedDrawToRun(null)}
           onConfirm={handleConfirmDraw}
         />
       )}

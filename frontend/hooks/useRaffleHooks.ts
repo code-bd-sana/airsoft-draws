@@ -23,6 +23,25 @@ export const useHostRaffles = (params?: { page?: number; limit?: number; status?
   });
 };
 
+export const useGetRaffleById = (id: string) => {
+  return useQuery({
+    queryKey: ['raffle', id],
+    queryFn: () => raffleService.getRaffleById(id),
+    enabled: !!id,
+  });
+};
+
+export const useUpdateRaffle = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => raffleService.updateRaffle(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['hostRaffles'] });
+      queryClient.invalidateQueries({ queryKey: ['raffle', variables.id] });
+    },
+  });
+};
+
 export const useCreateRaffle = () => {
   const queryClient = useQueryClient();
   return useMutation({

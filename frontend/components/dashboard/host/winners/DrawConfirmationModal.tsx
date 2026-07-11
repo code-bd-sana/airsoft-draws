@@ -4,11 +4,12 @@ import { HostDrawItem } from "../../../../types/host-dashboard.types";
 interface Props {
   draw: HostDrawItem;
   isOpen: boolean;
+  isDrawing: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }
 
-export default function DrawConfirmationModal({ draw, isOpen, onClose, onConfirm }: Props) {
+export default function DrawConfirmationModal({ draw, isOpen, isDrawing, onClose, onConfirm }: Props) {
   if (!isOpen) return null;
 
   return (
@@ -33,16 +34,18 @@ export default function DrawConfirmationModal({ draw, isOpen, onClose, onConfirm
         <div className="flex flex-col w-full gap-[12px]">
           <button 
             onClick={onConfirm}
-            className="w-full h-[48px] bg-[#8cb34a] hover:bg-[#72943a] transition-colors rounded-[8px] flex items-center justify-center"
+            disabled={isDrawing}
+            className="w-full h-[48px] bg-[#8cb34a] hover:bg-[#72943a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-[8px] flex items-center justify-center"
           >
             <span className="font-heading font-medium text-[15px] text-[#0d0d0b]">
-              Confirm & Draw Winner
+              {isDrawing ? "Drawing Winner..." : "Confirm & Draw Winner"}
             </span>
           </button>
           
           <button 
             onClick={onClose}
-            className="w-full h-[48px] bg-transparent border border-[#2d3c13] hover:bg-[#1a230a] transition-colors rounded-[8px] flex items-center justify-center"
+            disabled={isDrawing}
+            className="w-full h-[48px] bg-transparent border border-[#2d3c13] hover:bg-[#1a230a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-[8px] flex items-center justify-center"
           >
             <span className="font-heading font-medium text-[15px] text-[#e8edd4]">
               Cancel

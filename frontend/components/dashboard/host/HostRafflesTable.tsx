@@ -11,6 +11,7 @@ const filters = ["All", "Live", "Pending Review", "Ended", "Drafts"];
 export default function HostRafflesTable() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [drawingId, setDrawingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
   const { data: response, isLoading } = useHostRaffles({ page, limit: 10, status: activeFilter });
@@ -211,17 +212,22 @@ export default function HostRafflesTable() {
                               onClick={async (e) => {
                                 e.stopPropagation();
                                 if (confirm("Are you sure you want to run the draw now?")) {
+                                  setDrawingId(raffle.id);
                                   try {
+                                    await new Promise(res => setTimeout(res, 3000));
                                     await drawWinnerMutation.mutateAsync(raffle.id);
                                     alert("Draw completed successfully!");
                                   } catch (err: any) {
                                     alert(err?.response?.data?.message || "Failed to run draw");
+                                  } finally {
+                                    setDrawingId(null);
                                   }
                                 }
                               }}
-                              className="font-sans font-medium text-[12px] px-[16px] py-[6px] bg-[#8cb34a] text-[#0d0d0b] rounded-[6px] hover:bg-[#72943a] transition-colors flex items-center"
+                              disabled={drawingId === raffle.id}
+                              className="font-sans font-medium text-[12px] px-[16px] py-[6px] bg-[#8cb34a] disabled:opacity-50 text-[#0d0d0b] rounded-[6px] hover:bg-[#72943a] transition-colors flex items-center"
                             >
-                              Run Draw Now
+                              {drawingId === raffle.id ? "Drawing..." : "Run Draw Now"}
                             </button>
                           )}
                           {raffle.status === "ENDED" && (
@@ -233,6 +239,13 @@ export default function HostRafflesTable() {
                               View Winners
                             </Link>
                           )}
+                          <Link
+                            href={`/dashboard/host/competitions/${raffle.id}/edit`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="font-sans font-medium text-[12px] text-[#5a752a] hover:text-[#e8edd4] transition-colors flex items-center gap-1 group ml-[8px]"
+                          >
+                            Edit
+                          </Link>
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();

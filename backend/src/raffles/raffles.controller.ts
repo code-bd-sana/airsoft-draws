@@ -63,6 +63,15 @@ export class RafflesController {
     return this.rafflesService.findHostRaffles(hostId, query);
   }
 
+  @Get('host/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiOperation({ summary: 'Get a specific raffle for the host' })
+  findOneHost(@Req() req: Request, @Param('id') id: string) {
+    const hostId = this.extractUserId(req);
+    return this.rafflesService.findOneHost(id, hostId);
+  }
+
   @Patch('host/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')

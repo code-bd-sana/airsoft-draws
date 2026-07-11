@@ -216,6 +216,21 @@ export class RafflesService {
     };
   }
 
+  async findOneHost(id: string, hostId: string) {
+    const hostProfile = await this.prisma.hostProfile.findUnique({ where: { userId: hostId } });
+    if (!hostProfile) throw new BadRequestException('Host profile not found');
+
+    const raffle = await this.prisma.raffle.findFirst({
+      where: { id, hostId: hostProfile.id },
+      include: {
+        instantWins: true,
+      }
+    });
+
+    if (!raffle) throw new NotFoundException('Competition not found');
+    return raffle;
+  }
+
   async update(id: string, hostId: string, data: any) {
     const hostProfile = await this.prisma.hostProfile.findUnique({ where: { userId: hostId } });
     if (!hostProfile) throw new BadRequestException('Host profile not found');
@@ -275,12 +290,7 @@ export class RafflesService {
       }
 
       if (raffle.tickets.length === 0) {
-        // If no tickets sold, we just end it without a winner
-        await tx.raffle.update({
-          where: { id: raffleId },
-          data: { status: 'ENDED' }
-        });
-        return { message: 'Competition ended with no tickets sold' };
+        throw new BadRequestException('Cannot draw a winner because no tickets have been sold yet.');
       }
 
       // 2. Select a random ticket
