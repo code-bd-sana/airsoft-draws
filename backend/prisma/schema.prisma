@@ -82,6 +82,7 @@ model Raffle {
   hostId         String   @map("host_id") @db.VarChar(255)
   title          String   @db.VarChar(255)
   slug           String?  @unique @db.VarChar(255)
+  category       String?  @db.VarChar(100)
   description    String?
   mainImage      String?  @map("main_image") @db.VarChar(255)
   prizeName      String?  @map("prize_name") @db.VarChar(255)

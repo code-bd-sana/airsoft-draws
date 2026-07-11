@@ -103,20 +103,46 @@ export class RafflesService {
   }
 
   async findAllPublic(query: any) {
-    // Basic implementation for public raffles (active only)
-    const { search, page = 1, limit = 12 } = query;
+    const { search, page = 1, limit = 12, category, statusFilter, sort } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
     const now = new Date();
+    
+    // Base where clause (only ACTIVE)
     const whereClause: any = { 
       status: 'ACTIVE',
-      startDate: { lte: now },
-      endDate: { gte: now }
     };
-    
+
+    // Category filter
+    if (category && category !== 'All') {
+      whereClause.category = category;
+    }
+
+    // Status filter
+    if (statusFilter === 'Live') {
+      whereClause.startDate = { lte: now };
+      whereClause.endDate = { gte: now };
+    } else if (statusFilter === 'Upcoming') {
+      whereClause.startDate = { gt: now };
+    } else if (statusFilter === 'Past') {
+      whereClause.endDate = { lt: now };
+    }
+
     if (search) {
       whereClause.title = { contains: search, mode: 'insensitive' };
     }
+
+    // Sort logic
+    let orderBy: any = { createdAt: 'desc' }; // default Latest
+    if (sort === 'Ending Soon') {
+      orderBy = { endDate: 'asc' };
+    } else if (sort === 'Price: Low to High') {
+      orderBy = { pricePerTicket: 'asc' };
+    } else if (sort === 'Price: High to Low') {
+      orderBy = { pricePerTicket: 'desc' };
+    }
+    
+
 
     const [raffles, total] = await Promise.all([
       this.prisma.raffle.findMany({
@@ -124,7 +150,7 @@ export class RafflesService {
         include: { host: { include: { user: true } } },
         skip,
         take: Number(limit),
-        orderBy: { endDate: 'asc' },
+        orderBy,
       }),
       this.prisma.raffle.count({ where: whereClause })
     ]);

@@ -19,7 +19,7 @@ export interface Raffle {
 }
 
 export const raffleService = {
-  async getPublicRaffles(params: { search?: string; page?: number; limit?: number }) {
+  async getPublicRaffles(params: { search?: string; page?: number; limit?: number; category?: string; statusFilter?: string; sort?: string }) {
     const response = await api.get('/raffles', { params });
     return response.data;
   },
