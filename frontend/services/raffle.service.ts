@@ -49,10 +49,7 @@ export const raffleService = {
     return response.data;
   },
 
-  async updateRaffle(id: string, data: any): Promise<Raffle> {
-    const response = await api.patch(`/raffles/host/${id}`, data);
-    return response.data;
-  },
+
 
   async deleteRaffle(id: string): Promise<void> {
     const response = await api.delete(`/raffles/host/${id}`);
