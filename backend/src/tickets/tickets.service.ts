@@ -153,9 +153,18 @@ export class TicketsService {
           select: {
             id: true,
             title: true,
+            slug: true,
             mainImage: true,
             endDate: true,
             status: true,
+            prizeName: true,
+            description: true,
+            pricePerTicket: true,
+            totalTickets: true,
+            ticketsSold: true,
+            host: {
+              include: { user: true }
+            }
           }
         },
         winners: true,

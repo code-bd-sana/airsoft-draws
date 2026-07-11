@@ -5,6 +5,7 @@ import { RaffleDetail } from "../../../types/raffle-details.types";
 import { usePurchaseTicketsMutation } from "../../../hooks/useTicketHooks";
 import { useAuth } from "../../../features/auth/AuthContext";
 import { useRouter } from "next/navigation";
+import WinAnimationModal from "../../ui/WinAnimationModal";
 
 interface RaffleEntryCardProps {
   raffle: RaffleDetail;
@@ -13,6 +14,7 @@ interface RaffleEntryCardProps {
 export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
   const [quantity, setQuantity] = useState(1);
   const [statusMessage, setStatusMessage] = useState<{type: 'success'|'error'|'info', text: string} | null>(null);
+  const [instantWinData, setInstantWinData] = useState<Array<{title: string, ticketNumber: number}> | null>(null);
 
   const { isAuthenticated } = useAuth();
   const router = useRouter();
@@ -52,6 +54,17 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
         let msg = `Successfully purchased ${data.tickets.length} tickets!`;
         if (data.instantWins && data.instantWins.length > 0) {
           msg += ` 🎉 YOU GOT ${data.instantWins.length} INSTANT WIN(S)! 🎉`;
+          
+          // Map backend winner records to modal expected format
+          const formattedWins = data.instantWins.map((iw: any) => {
+             // Find matching ticket for number
+             const tk = data.tickets.find((t: any) => t.id === iw.ticketId);
+             return {
+                title: iw.prizeName,
+                ticketNumber: tk ? tk.ticketNumber : 0
+             };
+          });
+          setInstantWinData(formattedWins);
         }
         setStatusMessage({ type: 'success', text: msg });
         setQuantity(1);
@@ -185,6 +198,11 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
         Share this competition
       </button>
 
+      <WinAnimationModal 
+        isOpen={!!instantWinData} 
+        onClose={() => setInstantWinData(null)} 
+        prizes={instantWinData || []} 
+      />
     </div>
   );
 }

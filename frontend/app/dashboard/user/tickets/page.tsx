@@ -23,6 +23,12 @@ export default function UserTicketsPage() {
       // Check if user won
       const hasWon = t.winners && t.winners.length > 0;
       status = hasWon ? "drawn-won" : "drawn-lost";
+    } else {
+      // If still active but they won an instant win
+      const hasInstantWin = t.winners?.some((w: any) => w.winType === 'INSTANT_WIN');
+      if (hasInstantWin) {
+        status = "instant-win";
+      }
     }
     return {
       id: t.id,
@@ -31,12 +37,13 @@ export default function UserTicketsPage() {
       purchaseDate: format(new Date(t.createdAt), "dd MMM yyyy"),
       pricePaid: "Paid", // Backend currently doesn't return exact price per ticket easily without transaction join
       status,
+      raw: t,
     };
   });
 
   const totalOwned = formattedTickets.length;
-  const activeTickets = formattedTickets.filter((t) => t.status === "live").length;
-  const wonTickets = formattedTickets.filter((t) => t.status === "drawn-won").length;
+  const activeTickets = formattedTickets.filter((t) => t.status === "live" || t.status === "instant-win").length;
+  const wonTickets = formattedTickets.filter((t) => t.status === "drawn-won" || t.status === "instant-win").length;
 
   return (
     <div className="flex flex-col gap-6 p-8 max-w-[1660px] mx-auto w-full animate-fadeIn">
