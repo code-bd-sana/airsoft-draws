@@ -47,7 +47,50 @@ export default function WinnersTable() {
   };
 
   if (isLoading) {
-    return <div className="p-8 text-[#5a752a]">Loading competitions...</div>;
+    return (
+      <div className="w-full bg-[#161810] border border-[#2d3c13] rounded-[16px] overflow-hidden flex flex-col mt-[24px] animate-in fade-in duration-300">
+        <div className="p-[24px] border-b border-[#2d3c13] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
+          <div>
+            <div className="h-[24px] w-[150px] bg-[#2d3c13]/60 rounded animate-pulse mb-[8px]"></div>
+            <div className="h-[16px] w-[250px] bg-[#2d3c13]/40 rounded animate-pulse"></div>
+          </div>
+          <div className="h-[40px] w-[210px] bg-[#2d3c13]/50 rounded-[10px] animate-pulse"></div>
+        </div>
+        <div className="w-full overflow-x-auto min-h-[400px]">
+          <table className="w-full min-w-[800px] text-left border-collapse">
+            <thead>
+              <tr className="border-b border-[#2d3c13] bg-[#0d0d0b]/50">
+                <th className="py-[16px] px-[24px]"><div className="h-[14px] w-[80px] bg-[#2d3c13]/50 rounded animate-pulse"></div></th>
+                <th className="py-[16px] px-[24px]"><div className="h-[14px] w-[80px] bg-[#2d3c13]/50 rounded animate-pulse"></div></th>
+                <th className="py-[16px] px-[24px]"><div className="h-[14px] w-[80px] bg-[#2d3c13]/50 rounded animate-pulse"></div></th>
+                <th className="py-[16px] px-[24px] flex justify-end"><div className="h-[14px] w-[80px] bg-[#2d3c13]/50 rounded animate-pulse"></div></th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...Array(5)].map((_, i) => (
+                <tr key={i} className="border-b border-[#2d3c13]/50 last:border-0">
+                  <td className="py-[20px] px-[24px]">
+                    <div className="flex flex-col gap-2">
+                      <div className="h-[18px] w-[180px] bg-[#2d3c13]/60 rounded animate-pulse" style={{ animationDelay: `${i * 150}ms` }}></div>
+                      <div className="h-[14px] w-[100px] bg-[#2d3c13]/40 rounded animate-pulse" style={{ animationDelay: `${i * 150}ms` }}></div>
+                    </div>
+                  </td>
+                  <td className="py-[20px] px-[24px]">
+                    <div className="h-[16px] w-[90px] bg-[#2d3c13]/40 rounded animate-pulse" style={{ animationDelay: `${i * 150 + 50}ms` }}></div>
+                  </td>
+                  <td className="py-[20px] px-[24px]">
+                    <div className="h-[16px] w-[70px] bg-[#2d3c13]/40 rounded animate-pulse" style={{ animationDelay: `${i * 150 + 100}ms` }}></div>
+                  </td>
+                  <td className="py-[20px] px-[24px] text-right">
+                    <div className="h-[36px] w-[120px] bg-[#8cb34a]/20 rounded-[6px] animate-pulse ml-auto" style={{ animationDelay: `${i * 150 + 150}ms` }}></div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
   }
 
   return (

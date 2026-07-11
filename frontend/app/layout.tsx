@@ -26,8 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang='en' className={`${spaceGrotesk.variable} ${inter.variable} h-full antialiased`}>
-      <body className='min-h-full flex flex-col'>
+    <html lang='en' suppressHydrationWarning className={`${spaceGrotesk.variable} ${inter.variable} h-full antialiased`}>
+      <body suppressHydrationWarning className='min-h-full flex flex-col'>
         <Providers>{children}</Providers>
         <Toaster 
           position="bottom-right"
