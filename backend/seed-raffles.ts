@@ -46,6 +46,8 @@ async function main() {
 
   if (existingFiestas.length > 0) {
     const raffleIds = existingFiestas.map(r => r.id);
+    await prisma.winner.deleteMany({ where: { raffleId: { in: raffleIds } } });
+    await prisma.ticket.deleteMany({ where: { raffleId: { in: raffleIds } } });
     await prisma.instantWin.deleteMany({ where: { raffleId: { in: raffleIds } } });
     await prisma.raffle.deleteMany({ where: { id: { in: raffleIds } } });
   }
@@ -81,7 +83,7 @@ async function main() {
       return {
         raffleId: createdRaffle.id,
         ticketNumber,
-        prizeName: `${randomPrize} (Ticket ${ticketNumber})`
+        prizeName: randomPrize
       };
     });
 

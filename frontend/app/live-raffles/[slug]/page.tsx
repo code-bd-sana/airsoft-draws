@@ -25,9 +25,9 @@ async function getRaffle(slug: string): Promise<RaffleDetail | undefined> {
     if (!res.ok) return undefined;
     const json = await res.json();
     const draw = json.data || json; // Handle wrapped response
-    
+
     const worth = Number(draw.pricePerTicket) * draw.totalTickets;
-    
+
     return {
       id: draw.id,
       title: draw.title,
@@ -181,7 +181,7 @@ export default async function LiveRaffleDetailPage({ params }: PageProps) {
                 </div>
 
                 {/* Interactive Details, How-to, and T&Cs Tabs */}
-                <RaffleDetailsTabs raffle={raffle} />
+                {/* <RaffleDetailsTabs raffle={raffle} /> */}
 
                 {/* New Host Profile Banner */}
                 {/* Host banner goes here later */}
