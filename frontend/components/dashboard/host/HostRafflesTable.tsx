@@ -2,17 +2,22 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useHostRaffles, useDeleteRaffle } from "../../../hooks/useRaffleHooks";
+import { useHostRaffles, useDeleteRaffle, useDrawWinner } from "../../../hooks/useRaffleHooks";
 import { cn } from "../../../lib/utils";
+import { Pagination } from "../../ui/Pagination";
 
 const filters = ["All", "Live", "Pending Review", "Ended", "Drafts"];
 
 export default function HostRafflesTable() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
-  const { data: raffles, isLoading } = useHostRaffles();
+  const { data: response, isLoading } = useHostRaffles({ page, limit: 10, status: activeFilter });
+  const raffles = response?.data || [];
+  const meta = response?.meta;
   const deleteMutation = useDeleteRaffle();
+  const drawWinnerMutation = useDrawWinner();
 
   const toggleRow = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
@@ -26,7 +31,10 @@ export default function HostRafflesTable() {
           {filters.map((filter) => (
             <button
               key={filter}
-              onClick={() => setActiveFilter(filter)}
+              onClick={() => {
+                setActiveFilter(filter);
+                setPage(1);
+              }}
               className={cn(
                 "h-[32px] px-[16px] rounded-full border transition-colors flex items-center justify-center font-sans font-medium text-[13px]",
                 activeFilter === filter
@@ -85,14 +93,7 @@ export default function HostRafflesTable() {
             <div className="p-8 text-center text-[#5a752a]">Loading raffles...</div>
           )}
           
-          {!isLoading && raffles?.filter((r: any) => {
-            if (activeFilter === "All") return true;
-            if (activeFilter === "Live" && r.status === "ACTIVE") return true;
-            if (activeFilter === "Pending Review" && r.status === "PENDING_APPROVAL") return true;
-            if (activeFilter === "Ended" && r.status === "ENDED") return true;
-            if (activeFilter === "Drafts" && r.status === "DRAFT") return true;
-            return false;
-          }).map((raffle: any) => {
+          {!isLoading && raffles.map((raffle: any) => {
             const isExpanded = expandedId === raffle.id;
             return (
               <div key={raffle.id} className="flex flex-col border-b border-[#2d3c13] last:border-b-0">
@@ -204,7 +205,34 @@ export default function HostRafflesTable() {
                         </span>
                         
                         {/* Action buttons */}
-                        <div className="mt-4 md:absolute md:bottom-0 md:right-0 md:mt-0 flex gap-4">
+                        <div className="mt-4 md:absolute md:bottom-0 md:right-0 md:mt-0 flex gap-4 items-center">
+                          {raffle.status === "ACTIVE" && (
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (confirm("Are you sure you want to run the draw now?")) {
+                                  try {
+                                    await drawWinnerMutation.mutateAsync(raffle.id);
+                                    alert("Draw completed successfully!");
+                                  } catch (err: any) {
+                                    alert(err?.response?.data?.message || "Failed to run draw");
+                                  }
+                                }
+                              }}
+                              className="font-sans font-medium text-[12px] px-[16px] py-[6px] bg-[#8cb34a] text-[#0d0d0b] rounded-[6px] hover:bg-[#72943a] transition-colors flex items-center"
+                            >
+                              Run Draw Now
+                            </button>
+                          )}
+                          {raffle.status === "ENDED" && (
+                            <Link
+                              href="/dashboard/host/winners"
+                              onClick={(e) => e.stopPropagation()}
+                              className="font-sans font-medium text-[12px] px-[16px] py-[6px] bg-[#1a230a] text-[#8cb34a] border border-[#2d3c13] rounded-[6px] hover:bg-[#2d3c13] transition-colors flex items-center"
+                            >
+                              View Winners
+                            </Link>
+                          )}
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
@@ -212,7 +240,7 @@ export default function HostRafflesTable() {
                                 deleteMutation.mutate(raffle.id);
                               }
                             }}
-                            className="font-sans font-medium text-[12px] text-red-500 hover:text-red-400 transition-colors flex items-center gap-1 group"
+                            className="font-sans font-medium text-[12px] text-red-500 hover:text-red-400 transition-colors flex items-center gap-1 group ml-[8px]"
                           >
                             Delete Competition
                           </button>
@@ -231,28 +259,15 @@ export default function HostRafflesTable() {
         </div>
       </div>
 
-      {/* Pagination (Static demo) */}
-      <div className="flex justify-end gap-[8px]">
-        <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] border border-[#2d3c13] text-[#5a752a] hover:bg-[#1a230a] transition-colors">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-          </svg>
-        </button>
-        <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] bg-[#1a230a] border border-[#8cb34a] text-[#a0d056] font-sans font-medium text-[13px]">
-          1
-        </button>
-        <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] border border-[#2d3c13] text-[#5a752a] hover:bg-[#1a230a] hover:text-[#e8edd4] transition-colors font-sans font-medium text-[13px]">
-          2
-        </button>
-        <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] border border-[#2d3c13] text-[#5a752a] hover:bg-[#1a230a] hover:text-[#e8edd4] transition-colors font-sans font-medium text-[13px]">
-          3
-        </button>
-        <button className="w-[32px] h-[32px] flex items-center justify-center rounded-[8px] border border-[#2d3c13] text-[#5a752a] hover:bg-[#1a230a] hover:text-[#e8edd4] transition-colors">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-          </svg>
-        </button>
-      </div>
+      {/* Pagination component */}
+      {/* Pagination component */}
+      {!isLoading && meta && meta.total > 0 && (
+        <Pagination 
+          currentPage={meta.page}
+          totalPages={meta.lastPage}
+          onPageChange={setPage}
+        />
+      )}
     </div>
   );
 }

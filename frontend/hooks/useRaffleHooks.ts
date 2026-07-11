@@ -16,10 +16,10 @@ export const usePublicRaffleDetail = (slug: string) => {
   });
 };
 
-export const useHostRaffles = () => {
+export const useHostRaffles = (params?: { page?: number; limit?: number; status?: string }) => {
   return useQuery({
-    queryKey: ['hostRaffles'],
-    queryFn: raffleService.getMyRaffles,
+    queryKey: ['hostRaffles', params],
+    queryFn: () => raffleService.getMyRaffles(params),
   });
 };
 
@@ -63,6 +63,25 @@ export const useApproveRaffle = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminPendingRaffles'] });
       queryClient.invalidateQueries({ queryKey: ['publicRaffles'] });
+    },
+  });
+};
+
+export const useRaffleWinners = (raffleId: string) => {
+  return useQuery({
+    queryKey: ['raffleWinners', raffleId],
+    queryFn: () => raffleService.getWinners(raffleId),
+    enabled: !!raffleId,
+  });
+};
+
+export const useDrawWinner = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (raffleId: string) => raffleService.drawWinner(raffleId),
+    onSuccess: (_, raffleId) => {
+      queryClient.invalidateQueries({ queryKey: ['hostRaffles'] });
+      queryClient.invalidateQueries({ queryKey: ['raffleWinners', raffleId] });
     },
   });
 };

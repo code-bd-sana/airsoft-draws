@@ -92,6 +92,12 @@ model Raffle {
   startDate      DateTime @map("start_date")
   endDate        DateTime @map("end_date")
   status         String   @default("PENDING_APPROVAL") @db.VarChar(50) // DRAFT, PENDING_APPROVAL, ACTIVE, ENDED, CANCELLED
+  
+  // Draw Settings
+  isAutoDraw      Boolean  @default(true) @map("is_auto_draw")
+  autoDrawDate    Boolean  @default(true) @map("auto_draw_date")
+  autoDrawSoldOut Boolean  @default(false) @map("auto_draw_sold_out")
+
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
 

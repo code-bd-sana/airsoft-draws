@@ -1,17 +1,22 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as crypto from 'crypto';
+import { RafflesService } from '../raffles/raffles.service';
 
 @Injectable()
 export class TicketsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => RafflesService))
+    private readonly rafflesService: RafflesService
+  ) {}
 
   async purchaseTickets(userId: string, raffleId: string, quantity: number) {
     if (quantity <= 0) {
       throw new BadRequestException('Quantity must be at least 1');
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       // 1. Fetch the active raffle and lock it for update if needed.
       // We will use standard query here, and rely on the transaction isolation.
       const raffle = await tx.raffle.findUnique({
@@ -123,7 +128,7 @@ export class TicketsService {
       }
 
       // 7. Update Raffle Tickets Sold
-      await tx.raffle.update({
+      const updatedRaffle = await tx.raffle.update({
         where: { id: raffle.id },
         data: {
           ticketsSold: {
@@ -133,16 +138,37 @@ export class TicketsService {
       });
 
       return {
-        message: 'Tickets purchased successfully',
+        updatedRaffle,
         transaction,
-        tickets: createdTickets,
-        instantWins: userInstantWins,
+        createdTickets,
+        userInstantWins
       };
     }, {
       // Optional: Set isolation level or timeout if needed
       maxWait: 5000,
       timeout: 10000,
     });
+
+    // 8. Outside the transaction, check if we need to trigger auto-draw for sold out
+    if (
+      result.updatedRaffle.isAutoDraw && 
+      result.updatedRaffle.autoDrawSoldOut && 
+      result.updatedRaffle.ticketsSold >= result.updatedRaffle.totalTickets &&
+      result.updatedRaffle.status === 'ACTIVE'
+    ) {
+      try {
+        await this.rafflesService.drawWinner(result.updatedRaffle.id);
+      } catch (err) {
+        console.error('Failed to trigger auto draw on sold out:', err);
+      }
+    }
+
+    return {
+      message: 'Tickets purchased successfully',
+      transaction: result.transaction,
+      tickets: result.createdTickets,
+      instantWins: result.userInstantWins,
+    };
   }
 
   async getUserTickets(userId: string) {

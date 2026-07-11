@@ -30,7 +30,9 @@ export interface RaffleFormData {
   // Step 5
   startDate: string;
   endDate: string;
-  autoDraw: boolean;
+  isAutoDraw: boolean;
+  autoDrawDate: boolean;
+  autoDrawSoldOut: boolean;
   guaranteedDraw: boolean;
 }
 
@@ -47,7 +49,9 @@ const initialData: RaffleFormData = {
   instantWins: [],
   startDate: "",
   endDate: "",
-  autoDraw: true,
+  isAutoDraw: true,
+  autoDrawDate: true,
+  autoDrawSoldOut: false,
   guaranteedDraw: false,
 };
 
@@ -106,6 +110,9 @@ export default function CreateRaffleWizard() {
         totalTickets: formData.totalTickets,
         startDate: formData.startDate,
         endDate: formData.endDate,
+        isAutoDraw: formData.isAutoDraw,
+        autoDrawDate: formData.autoDrawDate,
+        autoDrawSoldOut: formData.autoDrawSoldOut,
         instantWins: formData.hasInstantWins ? processedInstantWins : [],
       });
 

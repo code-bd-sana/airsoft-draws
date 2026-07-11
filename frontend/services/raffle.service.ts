@@ -29,8 +29,8 @@ export const raffleService = {
     return response.data;
   },
 
-  async getMyRaffles(): Promise<Raffle[]> {
-    const response = await api.get('/raffles/host/my-raffles');
+  async getMyRaffles(params?: { page?: number; limit?: number; status?: string }) {
+    const response = await api.get('/raffles/host/my-raffles', { params });
     return response.data;
   },
 
@@ -46,6 +46,16 @@ export const raffleService = {
 
   async deleteRaffle(id: string): Promise<void> {
     const response = await api.delete(`/raffles/host/${id}`);
+    return response.data;
+  },
+
+  async drawWinner(id: string) {
+    const response = await api.post(`/raffles/host/${id}/draw`);
+    return response.data;
+  },
+
+  async getWinners(id: string) {
+    const response = await api.get(`/raffles/host/${id}/winners`);
     return response.data;
   },
 

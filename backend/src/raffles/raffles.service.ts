@@ -57,6 +57,9 @@ export class RafflesService {
         startDate,
         endDate,
         status: 'PENDING_APPROVAL', // Requires admin approval
+        isAutoDraw: data.isAutoDraw !== undefined ? data.isAutoDraw : true,
+        autoDrawDate: data.autoDrawDate !== undefined ? data.autoDrawDate : true,
+        autoDrawSoldOut: data.autoDrawSoldOut !== undefined ? data.autoDrawSoldOut : false,
       },
     });
 
@@ -177,14 +180,40 @@ export class RafflesService {
     return raffle;
   }
 
-  async findHostRaffles(hostId: string) {
+  async findHostRaffles(hostId: string, query: any = {}) {
     const hostProfile = await this.prisma.hostProfile.findUnique({ where: { userId: hostId } });
-    if (!hostProfile) return [];
+    if (!hostProfile) return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
 
-    return this.prisma.raffle.findMany({
-      where: { hostId: hostProfile.id },
-      orderBy: { createdAt: 'desc' }
-    });
+    const { page = 1, limit = 10, status } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const whereClause: any = { hostId: hostProfile.id };
+    
+    if (status && status !== 'All') {
+      if (status === 'Live') whereClause.status = 'ACTIVE';
+      else if (status === 'Pending Review') whereClause.status = 'PENDING_APPROVAL';
+      else if (status === 'Ended') whereClause.status = 'ENDED';
+      else if (status === 'Drafts') whereClause.status = 'DRAFT';
+    }
+
+    const [raffles, total] = await Promise.all([
+      this.prisma.raffle.findMany({
+        where: whereClause,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: Number(limit)
+      }),
+      this.prisma.raffle.count({ where: whereClause })
+    ]);
+
+    return {
+      data: raffles,
+      meta: {
+        total,
+        page: Number(page),
+        lastPage: Math.ceil(total / Number(limit)) || 1
+      }
+    };
   }
 
   async update(id: string, hostId: string, data: any) {
@@ -226,6 +255,124 @@ export class RafflesService {
       where: { id },
       data: { status: 'ACTIVE' }
     });
+  }
+
+  async drawWinner(raffleId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Get the raffle and check its status
+      const raffle = await tx.raffle.findUnique({
+        where: { id: raffleId },
+        include: { winners: true, tickets: true }
+      });
+
+      if (!raffle) {
+        throw new NotFoundException('Raffle not found');
+      }
+
+      const hasMainWinner = raffle.winners.some(w => w.winType === 'MAIN_DRAW');
+      if (hasMainWinner) {
+        throw new BadRequestException('A winner has already been drawn for this competition');
+      }
+
+      if (raffle.tickets.length === 0) {
+        // If no tickets sold, we just end it without a winner
+        await tx.raffle.update({
+          where: { id: raffleId },
+          data: { status: 'ENDED' }
+        });
+        return { message: 'Competition ended with no tickets sold' };
+      }
+
+      // 2. Select a random ticket
+      const randomIndex = Math.floor(Math.random() * raffle.tickets.length);
+      const winningTicket = raffle.tickets[randomIndex];
+
+      // 3. Create the Winner record
+      const winner = await tx.winner.create({
+        data: {
+          userId: winningTicket.userId,
+          raffleId: raffle.id,
+          ticketId: winningTicket.id,
+          winType: 'MAIN_DRAW',
+          prizeName: raffle.prizeName || raffle.title,
+        },
+        include: { user: true, ticket: true }
+      });
+
+      // 4. Update Raffle status to ENDED
+      await tx.raffle.update({
+        where: { id: raffleId },
+        data: { status: 'ENDED' }
+      });
+
+      return winner;
+    });
+  }
+
+  async getWinners(raffleId: string, hostId?: string) {
+    // If hostId is provided, verify ownership, otherwise we might be fetching public winners?
+    // Let's assume we fetch all winners for a raffle. The controller can restrict it.
+    
+    // First, find the raffle
+    const raffle = await this.prisma.raffle.findUnique({
+      where: { id: raffleId },
+      include: {
+        instantWins: true,
+        winners: {
+          include: {
+            user: {
+              select: { id: true, firstName: true, lastName: true, email: true }
+            },
+            ticket: true
+          }
+        }
+      }
+    });
+
+    if (!raffle) {
+      throw new NotFoundException('Raffle not found');
+    }
+
+    if (hostId) {
+      const hostProfile = await this.prisma.hostProfile.findUnique({ where: { userId: hostId } });
+      if (hostProfile?.id !== raffle.hostId) {
+        throw new ForbiddenException('You do not have permission to view this.');
+      }
+    }
+
+    // Since Instant Wins might not have `Winner` records yet (they are created when claimed), 
+    // we need to combine the data if needed, or just return the winners array.
+    // Wait, earlier we linked instant wins to tickets when purchased. Let's return both.
+
+    // Get tickets that won instant wins
+    const instantWinTickets = await this.prisma.ticket.findMany({
+      where: {
+        raffleId: raffleId,
+        ticketNumber: {
+          in: raffle.instantWins.map(iw => iw.ticketNumber)
+        }
+      },
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, email: true }
+        }
+      }
+    });
+
+    // Map instant wins with the user who bought that ticket
+    const mappedInstantWins = raffle.instantWins.map(iw => {
+      const winningTicket = instantWinTickets.find(t => t.ticketNumber === iw.ticketNumber);
+      return {
+        ...iw,
+        winner: winningTicket ? winningTicket.user : null,
+        ticket: winningTicket ? winningTicket : null
+      };
+    });
+
+    return {
+      mainDraw: raffle.winners.filter(w => w.winType === 'MAIN_DRAW'),
+      instantWins: mappedInstantWins
+    };
   }
 
   async getPendingApprovals() {

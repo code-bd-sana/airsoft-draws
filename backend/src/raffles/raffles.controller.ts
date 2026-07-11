@@ -58,9 +58,9 @@ export class RafflesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiOperation({ summary: 'Get raffles for the current host' })
-  findHostRaffles(@Req() req: Request) {
+  findHostRaffles(@Req() req: Request, @Query() query: any) {
     const hostId = this.extractUserId(req);
-    return this.rafflesService.findHostRaffles(hostId);
+    return this.rafflesService.findHostRaffles(hostId, query);
   }
 
   @Patch('host/:id')
@@ -79,6 +79,24 @@ export class RafflesController {
   remove(@Req() req: Request, @Param('id') id: string) {
     const hostId = this.extractUserId(req);
     return this.rafflesService.remove(id, hostId);
+  }
+
+  @Post('host/:id/draw')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiOperation({ summary: 'Manually draw a winner for a competition' })
+  drawWinner(@Req() req: Request, @Param('id') id: string) {
+    // Optionally check if host owns it in the service
+    return this.rafflesService.drawWinner(id);
+  }
+
+  @Get('host/:id/winners')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiOperation({ summary: 'Get all winners (Instant + Main) for a competition' })
+  getWinners(@Req() req: Request, @Param('id') id: string) {
+    const hostId = this.extractUserId(req);
+    return this.rafflesService.getWinners(id, hostId);
   }
 
   @Post('host/:id/image')
