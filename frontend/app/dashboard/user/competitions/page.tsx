@@ -150,6 +150,7 @@ export default function UserRafflesPage() {
                       alt={raffle.title}
                       fill
                       className="object-cover opacity-60 transition-opacity hover:opacity-80"
+                      unoptimized
                     />
 
                     <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
