@@ -1,6 +1,5 @@
 import React from "react";
 import WinnersTable from "../../../../components/dashboard/host/winners/WinnersTable";
-import { mockDrawsList } from "../../../../data/dashboard/host-dashboard.data";
 
 export const metadata = {
   title: "Winners & Draws | Host Dashboard",
@@ -21,7 +20,7 @@ export default function WinnersAndDrawsPage() {
       </div>
 
       {/* Main Table Component (includes modal state internally) */}
-      <WinnersTable draws={mockDrawsList} />
+      <WinnersTable />
 
     </div>
   );

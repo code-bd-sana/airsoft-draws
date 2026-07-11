@@ -19,7 +19,7 @@ export interface Raffle {
 }
 
 export const raffleService = {
-  async getPublicRaffles(params: { search?: string; page?: number; limit?: number }) {
+  async getPublicRaffles(params: { search?: string; page?: number; limit?: number; category?: string; statusFilter?: string; sort?: string }) {
     const response = await api.get('/raffles', { params });
     return response.data;
   },
@@ -29,8 +29,18 @@ export const raffleService = {
     return response.data;
   },
 
-  async getMyRaffles(): Promise<Raffle[]> {
-    const response = await api.get('/raffles/host/my-raffles');
+  async getMyRaffles(params?: { page?: number; limit?: number; status?: string }) {
+    const response = await api.get('/raffles/host/my-raffles', { params });
+    return response.data;
+  },
+
+  async getRaffleById(id: string): Promise<any> {
+    const response = await api.get(`/raffles/host/${id}`);
+    return response.data;
+  },
+
+  async updateRaffle(id: string, data: any): Promise<any> {
+    const response = await api.patch(`/raffles/host/${id}`, data);
     return response.data;
   },
 
@@ -39,13 +49,20 @@ export const raffleService = {
     return response.data;
   },
 
-  async updateRaffle(id: string, data: any): Promise<Raffle> {
-    const response = await api.patch(`/raffles/host/${id}`, data);
-    return response.data;
-  },
+
 
   async deleteRaffle(id: string): Promise<void> {
     const response = await api.delete(`/raffles/host/${id}`);
+    return response.data;
+  },
+
+  async drawWinner(id: string) {
+    const response = await api.post(`/raffles/host/${id}/draw`);
+    return response.data;
+  },
+
+  async getWinners(id: string) {
+    const response = await api.get(`/raffles/host/${id}/winners`);
     return response.data;
   },
 
@@ -67,6 +84,16 @@ export const raffleService = {
 
   async approveRaffle(id: string): Promise<Raffle> {
     const response = await api.patch(`/raffles/admin/${id}/approve`);
+    return response.data;
+  },
+
+  async getAdminAllRaffles(params?: { search?: string; page?: number; limit?: number; status?: string }): Promise<any> {
+    const response = await api.get('/raffles/admin/all', { params });
+    return response.data;
+  },
+
+  async adminDeleteRaffle(id: string): Promise<void> {
+    const response = await api.delete(`/raffles/admin/${id}`);
     return response.data;
   }
 };

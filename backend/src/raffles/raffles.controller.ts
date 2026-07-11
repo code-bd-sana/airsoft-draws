@@ -58,9 +58,18 @@ export class RafflesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiOperation({ summary: 'Get raffles for the current host' })
-  findHostRaffles(@Req() req: Request) {
+  findHostRaffles(@Req() req: Request, @Query() query: any) {
     const hostId = this.extractUserId(req);
-    return this.rafflesService.findHostRaffles(hostId);
+    return this.rafflesService.findHostRaffles(hostId, query);
+  }
+
+  @Get('host/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiOperation({ summary: 'Get a specific raffle for the host' })
+  findOneHost(@Req() req: Request, @Param('id') id: string) {
+    const hostId = this.extractUserId(req);
+    return this.rafflesService.findOneHost(id, hostId);
   }
 
   @Patch('host/:id')
@@ -79,6 +88,24 @@ export class RafflesController {
   remove(@Req() req: Request, @Param('id') id: string) {
     const hostId = this.extractUserId(req);
     return this.rafflesService.remove(id, hostId);
+  }
+
+  @Post('host/:id/draw')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiOperation({ summary: 'Manually draw a winner for a competition' })
+  drawWinner(@Req() req: Request, @Param('id') id: string) {
+    // Optionally check if host owns it in the service
+    return this.rafflesService.drawWinner(id);
+  }
+
+  @Get('host/:id/winners')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiOperation({ summary: 'Get all winners (Instant + Main) for a competition' })
+  getWinners(@Req() req: Request, @Param('id') id: string) {
+    const hostId = this.extractUserId(req);
+    return this.rafflesService.getWinners(id, hostId);
   }
 
   @Post('host/:id/image')
@@ -143,6 +170,22 @@ export class RafflesController {
   @ApiOperation({ summary: 'Get all pending raffles for approval' })
   getPendingApprovals() {
     return this.rafflesService.getPendingApprovals();
+  }
+
+  @Get('admin/all')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Get all raffles for admin management' })
+  findAllAdmin(@Query() query: any) {
+    return this.rafflesService.findAllAdmin(query);
+  }
+
+  @Delete('admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Delete a raffle as an admin' })
+  adminDelete(@Param('id') id: string) {
+    return this.rafflesService.adminDelete(id);
   }
 
   @Patch('admin/:id/approve')

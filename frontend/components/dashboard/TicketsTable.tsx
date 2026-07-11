@@ -9,7 +9,8 @@ export interface Ticket {
   competitionName: string;
   purchaseDate: string;
   pricePaid: string;
-  status: "live" | "drawn-won" | "drawn-lost";
+  status: "live" | "drawn-won" | "drawn-lost" | "instant-win";
+  raw?: any; // The raw backend ticket data for the modal
 }
 
 interface TicketsTableProps {
@@ -17,7 +18,7 @@ interface TicketsTableProps {
 }
 
 export default function TicketsTable({ tickets }: TicketsTableProps) {
-  const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
 
   return (
     <>
@@ -91,6 +92,11 @@ export default function TicketsTable({ tickets }: TicketsTableProps) {
                         <span className="text-[10px] font-medium text-[#8CB34A] uppercase tracking-wide">Live</span>
                       </div>
                     )}
+                    {ticket.status === "instant-win" && (
+                      <div className="px-3 py-1 rounded-full border border-[#EAB308] bg-[#EAB308]/10 shadow-[0_0_10px_rgba(234,179,8,0.2)]">
+                        <span className="text-[10px] font-medium text-[#EAB308] uppercase tracking-wide">Instant Win</span>
+                      </div>
+                    )}
                     {ticket.status === "drawn-won" && (
                       <div className="px-3 py-1 rounded-full border border-[#4ADE80] bg-[#4ADE80]/10">
                         <span className="text-[10px] font-medium text-[#4ADE80] uppercase tracking-wide">Drawn — Won</span>
@@ -106,7 +112,7 @@ export default function TicketsTable({ tickets }: TicketsTableProps) {
                   {/* Action */}
                   <div className="col-span-1 text-right pr-4">
                     <button 
-                      onClick={() => setSelectedTicket(ticket.ticketId)}
+                      onClick={() => setSelectedTicket(ticket)}
                       className="font-sans font-medium text-[12px] text-[#8CB34A] hover:text-[#A0D056] transition-colors whitespace-nowrap group flex items-center justify-end gap-1 w-full"
                     >
                       View <span className="hidden sm:inline">Competition</span>
@@ -125,7 +131,8 @@ export default function TicketsTable({ tickets }: TicketsTableProps) {
       <CompetitionDetailsModal 
         isOpen={!!selectedTicket} 
         onClose={() => setSelectedTicket(null)} 
-        ticketId={selectedTicket || ""} 
+        ticket={selectedTicket} 
+        allTickets={tickets}
       />
     </>
   );

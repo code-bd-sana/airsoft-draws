@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { toast } from "sonner";
 import { useMySubscription, useCancelSubscriptionMutation } from "../../../../hooks/useSubscriptionHooks";
 
 export default function CurrentPlanCard() {
@@ -8,20 +9,18 @@ export default function CurrentPlanCard() {
   const cancelMutation = useCancelSubscriptionMutation();
   const [isCancelling, setIsCancelling] = useState(false);
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     if (confirm("Are you sure you want to cancel your subscription?")) {
       setIsCancelling(true);
-      cancelMutation.mutate(undefined, {
-        onSuccess: () => {
-          alert('Subscription cancelled successfully.');
-          setIsCancelling(false);
-          refetch();
-        },
-        onError: () => {
-          alert('Failed to cancel subscription.');
-          setIsCancelling(false);
-        }
-      });
+      try {
+        await cancelMutation.mutateAsync();
+        toast.success('Subscription cancelled successfully.');
+        refetch();
+      } catch (err) {
+        toast.error('Failed to cancel subscription.');
+      } finally {
+        setIsCancelling(false);
+      }
     }
   };
 

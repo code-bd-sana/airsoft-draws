@@ -96,8 +96,8 @@ export default function CreateRaffleStep6({ formData, onPrev, onPublish, isSubmi
             </div>
             <div className="flex flex-col gap-[4px]">
               <span className="font-sans font-medium text-[11px] uppercase text-[#5a752a]">Auto Draw</span>
-              <span className={cn("font-sans font-medium text-[14px]", formData.autoDraw ? "text-[#8cb34a]" : "text-[#5a752a]")}>
-                {formData.autoDraw ? "Enabled" : "Disabled"}
+              <span className={cn("font-sans font-medium text-[14px]", formData.isAutoDraw ? "text-[#8cb34a]" : "text-[#5a752a]")}>
+                {formData.isAutoDraw ? "Enabled" : "Disabled"}
               </span>
             </div>
             <div className="flex flex-col gap-[4px]">
