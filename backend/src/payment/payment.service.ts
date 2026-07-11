@@ -27,8 +27,8 @@ export class PaymentService {
     const baseUrl = process.env.CASHFLOWS_BASE_URL || 'https://gateway-int.cashflows.com';
     const configId = process.env.CASHFLOWS_CONFIGURATION_ID || '';
 
-    // Test Payment Flow
-    if (process.env.USE_TEST_PAYMENT === 'true') {
+    // Test Payment Flow (Forced active for now to bypass payment gateway)
+    if (true || process.env.USE_TEST_PAYMENT === 'true') {
       const startDate = new Date();
       const endDate = new Date();
       endDate.setDate(endDate.getDate() + plan.durationDays);
@@ -80,16 +80,16 @@ export class PaymentService {
     const requestPayload = {
       Request: {
         type: "Payment",
-        amountToCollect: plan.price.toString(),
+        amountToCollect: plan!.price.toString(),
         currency: "GBP",
         order: {
           orderNumber: orderNumber,
         },
         recurring: true, // Mark as recurring for subscriptions
         customer: {
-           email: host.user.email,
-           firstName: host.user.firstName || '',
-           lastName: host.user.lastName || '',
+           email: host!.user.email,
+           firstName: host!.user.firstName || '',
+           lastName: host!.user.lastName || '',
         },
         returnUrl: `${process.env.FRONTEND_URL}/dashboard/host/billing?status=success`,
         cancelUrl: `${process.env.FRONTEND_URL}/dashboard/host/billing?status=cancel`
