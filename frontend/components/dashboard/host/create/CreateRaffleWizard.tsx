@@ -131,7 +131,21 @@ export default function CreateRaffleWizard() {
     }
   };
 
-  if (isSubLoading) return <div className="text-white p-8">Checking subscription...</div>;
+  if (isSubLoading) {
+    return (
+      <div className="w-full bg-[#161810] border border-[#2d3c13] rounded-[16px] min-h-[400px] flex flex-col items-center justify-center p-[32px]">
+        <div className="relative flex items-center justify-center w-24 h-24 mb-8">
+          <div className="absolute inset-0 rounded-full border-[3px] border-[#2d3c13] opacity-20"></div>
+          <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-[#8cb34a] border-r-[#8cb34a] animate-spin" style={{ animationDuration: '1s' }}></div>
+          <div className="w-4 h-4 bg-[#8cb34a] rounded-full animate-pulse shadow-[0_0_15px_#8cb34a]"></div>
+        </div>
+        <h3 className="text-[#8cb34a] text-xl font-semibold mb-2">Verifying Subscription</h3>
+        <p className="text-[#8c9477] text-sm max-w-[280px] text-center animate-pulse">
+          Please wait a moment while we securely check your host status...
+        </p>
+      </div>
+    );
+  }
 
   if (!mySub || mySub.status !== 'ACTIVE') {
     return (
