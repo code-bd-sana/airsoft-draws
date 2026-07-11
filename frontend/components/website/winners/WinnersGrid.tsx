@@ -11,6 +11,7 @@ import { cn } from "../../../lib/utils";
  */
 export default function WinnersGrid() {
   const [activeTab, setActiveTab] = useState<"all" | "month" | "week">("all");
+  const [winnerTypeFilter, setWinnerTypeFilter] = useState<"all" | "instant" | "main_draw">("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -23,6 +24,10 @@ export default function WinnersGrid() {
     const today = new Date("2026-06-26");
     
     const filtered = winnersData.filter((winner) => {
+      if (winnerTypeFilter !== "all" && winner.winnerType !== winnerTypeFilter) {
+        return false;
+      }
+
       const winDate = new Date(winner.dateString);
       
       if (activeTab === "week") {
@@ -54,7 +59,7 @@ export default function WinnersGrid() {
     });
 
     return filtered;
-  }, [activeTab, sortBy]);
+  }, [activeTab, sortBy, winnerTypeFilter]);
 
   // Pagination bounds
   const totalPages = Math.ceil(processedWinners.length / itemsPerPage) || 1;
@@ -93,6 +98,28 @@ export default function WinnersGrid() {
       />
 
       <div className="container-custom mt-8 md:mt-12">
+        {/* Winner Type Tabs */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-10 max-w-3xl mx-auto">
+          {[
+            { label: "All Winners", value: "all" },
+            { label: "Main Draw", value: "main_draw" },
+            { label: "Instant Wins", value: "instant" },
+          ].map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => { setWinnerTypeFilter(tab.value as any); setCurrentPage(1); }}
+              className={cn(
+                "font-sans font-semibold text-xs px-5 py-2.5 rounded-button border transition-all duration-200 cursor-pointer select-none",
+                winnerTypeFilter === tab.value
+                  ? "bg-primary border-primary text-primary-text hover:bg-primary-hover"
+                  : "bg-surface border-border text-text-muted hover:text-text-primary hover:border-border-medium"
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         {visibleWinners.length > 0 ? (
           <>
             {/* Grid of Winner Cards: 4 columns desktop, 2 cols tablet, 1 col mobile */}

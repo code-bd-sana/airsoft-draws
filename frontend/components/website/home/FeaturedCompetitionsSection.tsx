@@ -8,9 +8,9 @@ import SecondaryButton from "../shared/SecondaryButton";
 import { cn } from "../../../lib/utils";
 
 /**
- * Featured Draws / Live Competitions grid section with client-side category filter tabs.
+ * Featured Competitions grid section with client-side category filter tabs and horizontal scroll carousel.
  */
-export default function FeaturedDrawsSection() {
+export default function FeaturedCompetitionsSection() {
   const [activeCategory, setActiveCategory] = useState("all");
 
   const filterTabs = [
@@ -52,8 +52,8 @@ export default function FeaturedDrawsSection() {
         {/* Section Header */}
         <SectionHeader
           badgeText="LIVE NOW"
-          headingText="Active Competitions"
-          paragraphText="Browse all active gear draws. New competitions added daily by verified hosts with secure escrow delivery."
+          headingText="Featured Competitions"
+          paragraphText="Browse all active gear competitions. New competitions added daily by verified hosts with secure escrow delivery."
         />
 
         {/* Filter Tabs Row */}
@@ -74,11 +74,13 @@ export default function FeaturedDrawsSection() {
           ))}
         </div>
 
-        {/* Competitions Grid */}
+        {/* Competitions Carousel */}
         {filteredDraws.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-12">
+          <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 md:gap-8 mb-12 pb-6 -mx-4 px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {filteredDraws.map((draw) => (
-              <DrawCard key={draw.id} draw={draw} />
+              <div key={draw.id} className="snap-center shrink-0 w-[85vw] sm:w-[350px] lg:w-[400px]">
+                <DrawCard draw={draw} />
+              </div>
             ))}
           </div>
         ) : (
@@ -108,8 +110,8 @@ export default function FeaturedDrawsSection() {
 
         {/* View All Button */}
         <div className="flex justify-center mt-6">
-          <SecondaryButton href="#live-draws" icon={arrowIcon} className="px-8 py-3.5">
-            View All Draws
+          <SecondaryButton href="/live-raffles" icon={arrowIcon} className="px-8 py-3.5">
+            View All Competitions
           </SecondaryButton>
         </div>
 

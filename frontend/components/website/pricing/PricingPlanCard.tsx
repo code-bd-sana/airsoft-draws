@@ -44,16 +44,16 @@ export default function PricingPlanCard({ plan, billingCycle }: PricingPlanCardP
         {/* Price Tag */}
         <div className="flex items-baseline gap-1 mt-3">
           <span className="font-heading font-bold text-4xl text-text-brand select-none">
-            £{price}
+            £{isYearly ? price * 12 : price}
           </span>
           <span className="font-sans text-xs text-text-muted select-none">
-            /month
+            {isYearly ? " billed yearly" : "/month"}
           </span>
         </div>
         
         {isYearly && plan.monthlyPrice > 0 && (
           <span className="font-sans text-[10px] text-text-secondary mt-1 select-none">
-            Billed £{price * 12}/year
+            Equivalent to £{price} per month
           </span>
         )}
       </div>

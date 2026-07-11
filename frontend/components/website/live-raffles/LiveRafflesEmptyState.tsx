@@ -30,7 +30,7 @@ export default function LiveRafflesEmptyState({ onReset }: LiveRafflesEmptyState
         No Competitions Found
       </h3>
       <p className="text-sm text-text-muted max-w-xs leading-relaxed mb-6">
-        We couldn&apos;t find any active raffle matching your search query or category selections.
+        We couldn&apos;t find any active competition matching your search query or category selections.
       </p>
       <button
         onClick={onReset}

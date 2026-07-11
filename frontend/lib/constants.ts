@@ -3,7 +3,8 @@ import { NavLink, SocialLink } from "../types/common.types";
 export const BRAND_NAME = "Airsoft Draws";
 
 export const NAV_LINKS: NavLink[] = [
-  { label: "Live Raffles", href: "/live-raffles" },
+  { label: "Home", href: "/" },
+  { label: "Competitions", href: "/live-raffles" },
   { label: "Winners", href: "/winners" },
   { label: "How It Works", href: "/how-it-works" },
   { label: "Pricing", href: "/pricing" },
@@ -46,6 +47,7 @@ export const FOOTER_SECTIONS = [
       { label: "Terms of Service", href: "#" },
       { label: "Privacy Policy", href: "#" },
       { label: "Responsible Play", href: "#" },
+      { label: "GamCare", href: "https://www.gamcare.org.uk" },
     ],
   },
 ];

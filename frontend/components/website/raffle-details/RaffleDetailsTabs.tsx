@@ -138,7 +138,7 @@ export default function RaffleDetailsTabs({ raffle }: RaffleDetailsTabsProps) {
                     Complete checkout
                   </h4>
                   <p className="text-xs text-[#72943a] leading-relaxed">
-                    Pay securely via card or PayPal. Free postal entry also available — see T&Cs.
+                    Pay securely via card or PayPal. <Link href={`/live-raffles/${raffle.slug}/free-entry`} className="text-primary hover:underline font-semibold">Free postal entry also available</Link> — see T&Cs.
                   </p>
                 </div>
               </div>
@@ -205,26 +205,48 @@ export default function RaffleDetailsTabs({ raffle }: RaffleDetailsTabsProps) {
             </div>
 
             <div className="flex flex-col gap-2.5">
+              <div className="bg-[#0d2010] border border-[#16a34a] rounded-md px-3 py-1.5 mb-2 w-fit">
+                <span className="text-[10px] font-semibold text-[#4ade80] uppercase tracking-wider">
+                  Instant Wins Included
+                </span>
+              </div>
+              <p className="text-xs text-[#72943a] mb-2 leading-relaxed">
+                Tickets are randomly allocated. If you get a matching ticket number, you win that prize instantly!
+              </p>
               {raffle.instantWinPrizes.map((prize) => (
                 <div
                   key={prize.id}
-                  className="bg-[#0d0d0b] border border-border px-3.5 py-3 rounded-button flex items-center justify-between gap-3 text-xs"
+                  className="bg-[#0d0d0b] border border-border p-4 rounded-button flex flex-col gap-3 text-xs"
                 >
-                  <div className="bg-[#1a230a] rounded-[6px] w-8 h-8 flex items-center justify-center shrink-0">
-                    {presentIcon}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="bg-[#1a230a] rounded-[6px] w-8 h-8 flex items-center justify-center shrink-0">
+                      {presentIcon}
+                    </div>
+                    
+                    <span className="flex-grow font-medium text-text-primary">
+                      {prize.title}
+                    </span>
+
+                    <span className="font-heading font-semibold text-[#a0d056] shrink-0 px-1">
+                      {formatCurrency(prize.value, 0)}
+                    </span>
+
+                    <span className="text-[10px] text-[#5a752a] font-medium min-w-[70px] text-right shrink-0">
+                      {prize.wonQuantity} of {prize.totalQuantity} won
+                    </span>
                   </div>
                   
-                  <span className="flex-grow font-medium text-text-primary">
-                    {prize.title}
-                  </span>
-
-                  <span className="font-heading font-semibold text-[#a0d056] shrink-0 px-1">
-                    {formatCurrency(prize.value, 0)}
-                  </span>
-
-                  <span className="text-[10px] text-[#5a752a] font-medium min-w-[70px] text-right shrink-0">
-                    {prize.wonQuantity} of {prize.totalQuantity} won
-                  </span>
+                  {prize.ticketNumbers && prize.ticketNumbers.length > 0 && (
+                    <div className="pl-11 pr-2">
+                      <div className="flex flex-wrap gap-1.5">
+                        {prize.ticketNumbers.map(tnum => (
+                          <span key={tnum} className="bg-surface border border-divider px-1.5 py-0.5 rounded text-[10px] font-mono text-text-muted">
+                            {tnum}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
