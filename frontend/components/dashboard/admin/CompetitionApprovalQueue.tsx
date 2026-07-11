@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import RejectCompetitionModal from "./RejectCompetitionModal";
 import { useAdminPendingRaffles, useApproveRaffle } from "../../../hooks/useRaffleHooks";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 
 const MOCK_APPROVALS = [
   {
@@ -67,9 +68,9 @@ export default function CompetitionApprovalQueue() {
   const handleApprove = async (id: string) => {
     try {
       await approveMutation.mutateAsync(id);
-      alert('Competition approved and is now live!');
+      toast.success('Competition approved and is now live!');
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to approve');
+      toast.error(err?.response?.data?.message || 'Failed to approve');
     }
   };
 

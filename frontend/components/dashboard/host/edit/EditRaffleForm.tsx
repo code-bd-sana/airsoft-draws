@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useGetRaffleById, useUpdateRaffle } from "../../../../hooks/useRaffleHooks";
 import { cn } from "../../../../lib/utils";
+import { toast } from "sonner";
 
 interface Props {
   raffleId: string;
@@ -55,10 +56,10 @@ export default function EditRaffleForm({ raffleId }: Props) {
       if (payload.pricePerTicket) payload.pricePerTicket = Number(payload.pricePerTicket);
 
       await updateMutation.mutateAsync({ id: raffleId, data: payload });
-      alert("Competition updated successfully!");
+      toast.success("Competition updated successfully!");
       router.push("/dashboard/host/competitions");
     } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to update competition.");
+      toast.error(err?.response?.data?.message || "Failed to update competition.");
     }
   };
 

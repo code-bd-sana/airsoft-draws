@@ -29,7 +29,7 @@ export default function DashboardTopbar({ account, onMenuClick, title = "Dashboa
     <header className="h-[88px] w-full bg-[#0D0D0B] border-b border-[#2D3C13] flex items-center justify-between px-[20px] lg:px-[40px] shrink-0 sticky top-0 z-30">
       <div className="flex items-center gap-4">
         {/* Mobile menu trigger */}
-        <button 
+        <button
           onClick={onMenuClick}
           className="lg:hidden p-2 -ml-2 text-[#E8EDD4] hover:bg-[#161810] rounded-md transition-colors"
         >
@@ -55,16 +55,16 @@ export default function DashboardTopbar({ account, onMenuClick, title = "Dashboa
           <svg className="w-4 h-4 text-[#B3B8AA] shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
           </svg>
-          <input 
-            type="text" 
-            placeholder="Search competitions, orders..." 
+          <input
+            type="text"
+            placeholder="Search competitions, orders..."
             className="bg-transparent border-none outline-none text-[#E8EDD4] text-[13px] placeholder:text-[#E8EDD4]/50 w-full ml-2 font-sans"
           />
         </div>
 
         {/* Notifications */}
         <div className="relative">
-          <button 
+          <button
             onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
             className="relative w-[40px] h-[40px] bg-[#161810] border border-[#2D3C13] rounded-[8px] flex items-center justify-center shrink-0 hover:bg-[#1A230A] transition-colors"
           >
@@ -74,10 +74,10 @@ export default function DashboardTopbar({ account, onMenuClick, title = "Dashboa
             {/* Notification Dot */}
             <span className="absolute top-[8px] right-[8px] w-[6px] h-[6px] bg-[#f76b6b] rounded-[3px]" />
           </button>
-          
-          <NotificationsDropdown 
-            isOpen={isNotificationsOpen} 
-            onClose={() => setIsNotificationsOpen(false)} 
+
+          <NotificationsDropdown
+            isOpen={isNotificationsOpen}
+            onClose={() => setIsNotificationsOpen(false)}
           />
         </div>
 
@@ -86,7 +86,7 @@ export default function DashboardTopbar({ account, onMenuClick, title = "Dashboa
 
         {/* Profile Dropdown */}
         <div className="relative">
-          <button 
+          <button
             onClick={() => setIsProfileOpen(!isProfileOpen)}
             className="flex items-center gap-[8px] hover:opacity-80 transition-opacity"
           >
@@ -112,7 +112,7 @@ export default function DashboardTopbar({ account, onMenuClick, title = "Dashboa
                 onClick={handleLogout}
                 className="w-full text-left px-4 py-2 text-sm text-[#f76b6b] hover:bg-[#1A230A] transition-colors"
               >
-                Log Out Demo
+                Log Out
               </button>
             </div>
           )}

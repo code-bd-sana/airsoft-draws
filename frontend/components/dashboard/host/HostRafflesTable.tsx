@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useHostRaffles, useDeleteRaffle, useDrawWinner } from "../../../hooks/useRaffleHooks";
 import { cn } from "../../../lib/utils";
 import { Pagination } from "../../ui/Pagination";
+import { toast } from "sonner";
 
 const filters = ["All", "Live", "Pending Review", "Ended", "Drafts"];
 
@@ -216,9 +217,9 @@ export default function HostRafflesTable() {
                                   try {
                                     await new Promise(res => setTimeout(res, 3000));
                                     await drawWinnerMutation.mutateAsync(raffle.id);
-                                    alert("Draw completed successfully!");
+                                    toast.success("Draw completed successfully!");
                                   } catch (err: any) {
-                                    alert(err?.response?.data?.message || "Failed to run draw");
+                                    toast.error(err?.response?.data?.message || "Failed to run draw");
                                   } finally {
                                     setDrawingId(null);
                                   }

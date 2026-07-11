@@ -5,6 +5,7 @@ import { cn } from "../../../../lib/utils";
 import DrawConfirmationModal from "./DrawConfirmationModal";
 import { useHostRaffles, useDrawWinner } from "../../../../hooks/useRaffleHooks";
 import WinnerDetailsModal from "./WinnerDetailsModal";
+import { toast } from "sonner";
 
 export default function WinnersTable() {
   const [activeTab, setActiveTab] = useState<"Awaiting Draw" | "Drawn">("Awaiting Draw");
@@ -35,9 +36,10 @@ export default function WinnersTable() {
       await new Promise(resolve => setTimeout(resolve, 3000));
       await drawWinnerMutation.mutateAsync(selectedDrawToRun.id);
       setSelectedDrawToRun(null);
+      toast.success("Draw completed successfully!");
       setActiveTab("Drawn");
     } catch (e: any) {
-      alert(e?.response?.data?.message || "Failed to draw winner");
+      toast.error(e?.response?.data?.message || "Failed to draw winner");
       setSelectedDrawToRun(null);
     } finally {
       setIsDrawing(false);

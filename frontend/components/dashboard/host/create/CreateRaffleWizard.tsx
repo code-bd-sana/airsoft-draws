@@ -8,6 +8,7 @@ import CreateRaffleStep3 from "./CreateRaffleStep3";
 import CreateRaffleStep4 from "./CreateRaffleStep4";
 import CreateRaffleStep5 from "./CreateRaffleStep5";
 import CreateRaffleStep6 from "./CreateRaffleStep6";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useMySubscription } from "../../../../hooks/useSubscriptionHooks";
 import { useCreateRaffle, useUploadRaffleImage } from "../../../../hooks/useRaffleHooks";
@@ -121,10 +122,10 @@ export default function CreateRaffleWizard() {
         await uploadImage.mutateAsync({ id: created.id, file: imageFile });
       }
 
-      alert("Competition Created and Pending Approval!");
+      toast.success("Competition Created and Pending Approval!");
       router.push("/dashboard/host/competitions");
     } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to create competition");
+      toast.error(err?.response?.data?.message || "Failed to create competition");
     } finally {
       setIsSubmitting(false);
     }

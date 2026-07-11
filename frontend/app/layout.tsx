@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Space_Grotesk, Inter } from 'next/font/google';
 import './globals.css';
 import Providers from './providers';
+import { Toaster } from 'sonner';
 
 const spaceGrotesk = Space_Grotesk({
   variable: '--font-space-grotesk',
@@ -28,6 +29,17 @@ export default function RootLayout({
     <html lang='en' className={`${spaceGrotesk.variable} ${inter.variable} h-full antialiased`}>
       <body className='min-h-full flex flex-col'>
         <Providers>{children}</Providers>
+        <Toaster 
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: '#161810',
+              border: '1px solid #2d3c13',
+              color: '#e8edd4',
+            },
+            className: 'font-sans text-[14px]',
+          }}
+        />
       </body>
     </html>
   );

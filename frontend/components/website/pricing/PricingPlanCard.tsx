@@ -8,6 +8,7 @@ import { cn } from "../../../lib/utils";
 import { useAuthUser } from "../../../hooks/useAuthHooks";
 import { useCreateCheckoutSessionMutation } from "../../../hooks/useSubscriptionHooks";
 import { SubscriptionPlan } from "../../../services/subscription.service";
+import { toast } from "sonner";
 
 interface PricingPlanCardProps {
   plan: PricingPlan;
@@ -34,11 +35,11 @@ export default function PricingPlanCard({ plan, billingCycle, dbPlan }: PricingP
       return;
     }
     if (user.role !== 'HOST') {
-      alert('Only Host accounts can purchase subscriptions. Please create a Host account.');
+      toast.error('Only Host accounts can purchase subscriptions. Please create a Host account.');
       return;
     }
     if (!dbPlan) {
-      alert('Subscription plan not found in database.');
+      toast.error('Subscription plan not found in database.');
       return;
     }
 
@@ -54,12 +55,12 @@ export default function PricingPlanCard({ plan, billingCycle, dbPlan }: PricingP
           window.location.href = data.url;
         } else {
           setLoading(false);
-          alert('No checkout URL returned.');
+          toast.error('No checkout URL returned.');
         }
       },
       onError: () => {
         setLoading(false);
-        alert('Failed to initiate checkout.');
+        toast.error('Failed to initiate checkout.');
       }
     });
   };
