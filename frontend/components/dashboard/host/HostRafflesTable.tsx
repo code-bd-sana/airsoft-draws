@@ -92,7 +92,37 @@ export default function HostRafflesTable() {
         {/* Table Rows */}
         <div className="flex flex-col">
           {isLoading && (
-            <div className="p-8 text-center text-[#5a752a]">Loading raffles...</div>
+            <div className="flex flex-col w-full animate-in fade-in duration-300">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="grid grid-cols-5 items-center px-[24px] min-h-[72px] py-3 border-b border-[#2d3c13] last:border-b-0 bg-[#161810]">
+                  {/* Raffle Name */}
+                  <div className="col-span-2 sm:col-span-1 flex items-center gap-[12px] pr-4">
+                    <div className="w-[12px] h-[12px] shrink-0 bg-[#2d3c13]/50 rounded-sm animate-pulse" style={{ animationDelay: `${i * 150}ms` }}></div>
+                    <div className="h-[18px] w-[140px] bg-[#2d3c13]/60 rounded animate-pulse" style={{ animationDelay: `${i * 150}ms` }}></div>
+                  </div>
+                  
+                  {/* Tickets Sold */}
+                  <div className="hidden sm:block">
+                    <div className="h-[16px] w-[80px] bg-[#2d3c13]/40 rounded animate-pulse" style={{ animationDelay: `${i * 150 + 50}ms` }}></div>
+                  </div>
+                  
+                  {/* Raised */}
+                  <div className="hidden sm:block">
+                    <div className="h-[16px] w-[60px] bg-[#2d3c13]/40 rounded animate-pulse" style={{ animationDelay: `${i * 150 + 100}ms` }}></div>
+                  </div>
+                  
+                  {/* Status */}
+                  <div>
+                    <div className="h-[22px] w-[70px] bg-[#2d3c13]/50 rounded-full animate-pulse" style={{ animationDelay: `${i * 150 + 150}ms` }}></div>
+                  </div>
+                  
+                  {/* Ends */}
+                  <div className="hidden md:flex justify-end">
+                    <div className="h-[16px] w-[90px] bg-[#2d3c13]/40 rounded animate-pulse ml-auto" style={{ animationDelay: `${i * 150 + 200}ms` }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
           
           {!isLoading && raffles.map((raffle: any) => {
