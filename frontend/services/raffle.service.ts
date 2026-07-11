@@ -88,5 +88,15 @@ export const raffleService = {
   async approveRaffle(id: string): Promise<Raffle> {
     const response = await api.patch(`/raffles/admin/${id}/approve`);
     return response.data;
+  },
+
+  async getAdminAllRaffles(params?: { search?: string; page?: number; limit?: number; status?: string }): Promise<any> {
+    const response = await api.get('/raffles/admin/all', { params });
+    return response.data;
+  },
+
+  async adminDeleteRaffle(id: string): Promise<void> {
+    const response = await api.delete(`/raffles/admin/${id}`);
+    return response.data;
   }
 };

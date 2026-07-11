@@ -1,61 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
-import RejectCompetitionModal from "./RejectCompetitionModal";
-import { useAdminPendingRaffles, useApproveRaffle } from "../../../hooks/useRaffleHooks";
 import { formatDistanceToNow } from "date-fns";
+import { useState } from "react";
 import { toast } from "sonner";
-
-const MOCK_APPROVALS = [
-  {
-    id: "1",
-    hostInitials: "TG",
-    hostName: "Tactical Gear UK",
-    submittedTime: "Submitted 2 hours ago",
-    warning: "Draw date soon",
-    title: "Sniper Rifle Set — L96A1",
-    description: "High-precision L96A1 airsoft sniper rifle with custom stock and bipod included. RRP £340.",
-    details: "Price: £2.50/ticket · Total: 500 tickets · Draw: 30 Jun 2025",
-    checks: [
-      { label: "Skill question included", passed: true },
-      { label: "Terms attached", passed: true },
-      { label: "Prize images uploaded", passed: true },
-    ]
-  },
-  {
-    id: "2",
-    hostInitials: "AW",
-    hostName: "Airsoft World",
-    submittedTime: "Submitted 4 hours ago",
-    warning: null,
-    title: "VFC HK416 Bundle — Full Kit",
-    description: "Gas blowback HK416 with two extra mags, sling, and 3000 BBs. Complete ready-to-play package.",
-    details: "Price: £1.50/ticket · Total: 400 tickets · Draw: 15 Jul 2025",
-    checks: [
-      { label: "Skill question included", passed: true },
-      { label: "Terms attached", passed: true },
-      { label: "Prize images uploaded", passed: true },
-    ]
-  },
-  {
-    id: "3",
-    hostInitials: "CZ",
-    hostName: "Combat Zone Ltd",
-    submittedTime: "Submitted 6 hours ago",
-    warning: null,
-    title: "Ghillie Suit Deluxe — Woodland Pattern",
-    description: "Full ghillie suit set in woodland camo. Covers head, body, and rifle. One size fits all.",
-    details: "Price: £1.00/ticket · Total: 250 tickets · Draw: 1 Aug 2025",
-    checks: [
-      { label: "Skill question included", passed: true },
-      { label: "Terms attached", passed: true },
-    ]
-  }
-];
+import { useAdminPendingRaffles, useApproveRaffle } from "../../../hooks/useRaffleHooks";
+import RejectCompetitionModal from "./RejectCompetitionModal";
 
 export default function CompetitionApprovalQueue() {
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [selectedCompetition, setSelectedCompetition] = useState<{ id: string, title: string } | null>(null);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
 
   const { data: pendingRaffles, isLoading } = useAdminPendingRaffles();
   const approveMutation = useApproveRaffle();
@@ -66,17 +20,22 @@ export default function CompetitionApprovalQueue() {
   };
 
   const handleApprove = async (id: string) => {
+    setApprovingId(id);
     try {
+      // Simulating a short delay for the amazing loading effect
+      await new Promise(resolve => setTimeout(resolve, 2500));
       await approveMutation.mutateAsync(id);
       toast.success('Competition approved and is now live!');
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to approve');
+    } finally {
+      setApprovingId(null);
     }
   };
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      
+
       {/* Header */}
       <div className="flex items-center gap-4 mb-2">
         <h1 className="font-heading font-bold text-[24px] text-[#E8EDD4]">
@@ -89,11 +48,36 @@ export default function CompetitionApprovalQueue() {
 
       {/* Queue List */}
       <div className="flex flex-col gap-6">
-        {isLoading && <div className="text-[#E8EDD4] p-4">Loading pending competitions...</div>}
-        
+        {isLoading && (
+          <div className="flex flex-col gap-6">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="w-full bg-[#111210] border border-[#2D3C13] rounded-[16px] h-[240px] animate-pulse" />
+            ))}
+          </div>
+        )}
+
         {!isLoading && pendingRaffles?.map((item: any) => (
-          <div key={item.id} className="w-full bg-[#111210] border border-[#2D3C13] rounded-[16px] flex flex-col overflow-hidden">
-            
+          <div key={item.id} className="relative w-full bg-[#111210] border border-[#2D3C13] rounded-[16px] flex flex-col overflow-hidden">
+
+            {/* Amazing Glowing Loading Overlay */}
+            {approvingId === item.id && (
+              <div className="absolute inset-0 z-10 bg-[#0d0d0b]/80 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in duration-300">
+                <div className="relative flex items-center justify-center w-[120px] h-[120px] mb-4">
+                  <div className="absolute inset-0 rounded-full border-[2px] border-[#8cb34a]/30 animate-ping" style={{ animationDuration: '2s' }}></div>
+                  <div className="absolute inset-0 rounded-full border-[4px] border-transparent border-t-[#8cb34a] border-r-[#8cb34a] animate-spin" style={{ animationDuration: '0.8s' }}></div>
+                  <div className="absolute inset-2 rounded-full shadow-[0_0_30px_rgba(140,179,74,0.3)]"></div>
+                  {/* Glowing center dot */}
+                  <div className="w-4 h-4 bg-[#8cb34a] rounded-full animate-pulse shadow-[0_0_15px_#8cb34a]"></div>
+                </div>
+                <h3 className="font-heading font-medium text-[20px] text-[#8cb34a] mb-2 animate-pulse drop-shadow-[0_0_8px_rgba(140,179,74,0.5)]">
+                  Approving & Publishing...
+                </h3>
+                <p className="font-sans text-[13px] text-[#A0D056]">
+                  Generating public URLs and updating live status
+                </p>
+              </div>
+            )}
+
             {/* Top Bar (Host Info & Warning) */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#2D3C13]/50">
               <div className="flex items-center gap-3">
@@ -107,7 +91,7 @@ export default function CompetitionApprovalQueue() {
                     {item.host?.user?.firstName || 'Host'} {item.host?.user?.lastName || ''}
                   </span>
                   <span className="font-sans text-[11px] text-[#5A752A] leading-tight mt-0.5">
-                    Submitted {formatDistanceToNow(new Date(item.createdAt))} ago
+                    Submitted {item.createdAt ? formatDistanceToNow(new Date(item.createdAt)) : 'recently'} ago
                   </span>
                 </div>
               </div>
@@ -134,7 +118,7 @@ export default function CompetitionApprovalQueue() {
                   {item.description || 'No description provided.'}
                 </p>
                 <span className="font-sans text-[12px] text-[#72943A] mt-1">
-                  Price: £{item.pricePerTicket} / ticket · Total: {item.totalTickets} tickets · Draw: {new Date(item.endDate).toLocaleDateString()}
+                  Price: £{item.pricePerTicket} / ticket · Total: {item.totalTickets} tickets · Draw: {item.endDate ? new Date(item.endDate).toLocaleDateString() : 'TBD'}
                 </span>
               </div>
             </div>
@@ -142,18 +126,20 @@ export default function CompetitionApprovalQueue() {
             {/* Bottom Bar (Actions) */}
             <div className="flex flex-col sm:flex-row items-center justify-end p-6 pt-4 gap-4 mt-2">
               <div className="flex items-center gap-3 w-full sm:w-auto">
-                <button 
+                <button
                   onClick={() => handleReject(item.id, item.title)}
-                  className="flex-1 sm:flex-none h-[40px] px-6 rounded-[8px] bg-transparent border border-[#7F1D1D] hover:bg-[#7F1D1D]/20 text-[#f76b6b] font-heading font-medium text-[13px] transition-colors"
+                  disabled={approvingId !== null}
+                  className="flex-1 sm:flex-none h-[40px] px-6 rounded-[8px] bg-transparent border border-[#7F1D1D] hover:bg-[#7F1D1D]/20 text-[#f76b6b] cursor-pointer font-heading font-medium text-[13px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Reject
                 </button>
-                <button 
+                <button
                   onClick={() => handleApprove(item.id)}
-                  disabled={approveMutation.isPending}
-                  className="flex-1 sm:flex-none h-[40px] px-6 rounded-[8px] bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] font-heading font-medium text-[13px] transition-colors disabled:opacity-50"
+                  disabled={approvingId !== null}
+                  className="flex-1 sm:flex-none h-[40px] px-6 rounded-[8px] bg-[#8CB34A] cursor-pointer
+                   hover:bg-[#A0D056] text-[#0D0D0B] font-heading font-medium text-[13px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {approveMutation.isPending ? 'Approving...' : 'Approve & Publish'}
+                  Approve & Publish
                 </button>
               </div>
             </div>
@@ -165,9 +151,9 @@ export default function CompetitionApprovalQueue() {
         )}
       </div>
 
-      <RejectCompetitionModal 
-        isOpen={isRejectModalOpen} 
-        onClose={() => setIsRejectModalOpen(false)} 
+      <RejectCompetitionModal
+        isOpen={isRejectModalOpen}
+        onClose={() => setIsRejectModalOpen(false)}
         competitionData={selectedCompetition}
       />
     </div>

@@ -104,3 +104,22 @@ export const useDrawWinner = () => {
     },
   });
 };
+
+export const useAdminAllRaffles = (params?: { search?: string; page?: number; limit?: number; status?: string }) => {
+  return useQuery({
+    queryKey: ['adminAllRaffles', params],
+    queryFn: () => raffleService.getAdminAllRaffles(params),
+  });
+};
+
+export const useAdminDeleteRaffle = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: raffleService.adminDeleteRaffle,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminAllRaffles'] });
+      queryClient.invalidateQueries({ queryKey: ['adminPendingRaffles'] });
+      queryClient.invalidateQueries({ queryKey: ['publicRaffles'] });
+    },
+  });
+};

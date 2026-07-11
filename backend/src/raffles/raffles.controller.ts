@@ -172,6 +172,22 @@ export class RafflesController {
     return this.rafflesService.getPendingApprovals();
   }
 
+  @Get('admin/all')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Get all raffles for admin management' })
+  findAllAdmin(@Query() query: any) {
+    return this.rafflesService.findAllAdmin(query);
+  }
+
+  @Delete('admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Delete a raffle as an admin' })
+  adminDelete(@Param('id') id: string) {
+    return this.rafflesService.adminDelete(id);
+  }
+
   @Patch('admin/:id/approve')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')

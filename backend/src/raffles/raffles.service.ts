@@ -392,4 +392,57 @@ export class RafflesService {
       orderBy: { createdAt: 'desc' }
     });
   }
+
+  async findAllAdmin(query: any) {
+    const { search, page = 1, limit = 10, status } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const whereClause: any = {};
+
+    if (status && status !== 'All') {
+      if (status === 'Live') whereClause.status = 'ACTIVE';
+      else if (status === 'Pending') whereClause.status = 'PENDING_APPROVAL';
+      else if (status === 'Ended') whereClause.status = 'ENDED';
+      else if (status === 'Rejected') whereClause.status = 'CANCELLED'; // assuming CANCELLED = Rejected
+      else if (status === 'Draft') whereClause.status = 'DRAFT';
+    }
+
+    if (search) {
+      whereClause.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { host: { user: { firstName: { contains: search, mode: 'insensitive' } } } },
+        { host: { user: { lastName: { contains: search, mode: 'insensitive' } } } },
+        { host: { user: { email: { contains: search, mode: 'insensitive' } } } }
+      ];
+    }
+
+    const [raffles, total] = await Promise.all([
+      this.prisma.raffle.findMany({
+        where: whereClause,
+        include: { host: { include: { user: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: Number(limit)
+      }),
+      this.prisma.raffle.count({ where: whereClause })
+    ]);
+
+    return {
+      data: raffles,
+      meta: {
+        total,
+        page: Number(page),
+        lastPage: Math.ceil(total / Number(limit)) || 1
+      }
+    };
+  }
+
+  async adminDelete(id: string) {
+    const raffle = await this.prisma.raffle.findUnique({ where: { id } });
+    if (!raffle) throw new NotFoundException('Raffle not found');
+
+    return this.prisma.raffle.delete({
+      where: { id }
+    });
+  }
 }
