@@ -9,6 +9,39 @@ export const useAdminUsers = (params: { page?: number; limit?: number; search?: 
   });
 };
 
+export const useAdminHostStats = () => {
+  return useQuery({
+    queryKey: ['adminHostStats'],
+    queryFn: adminService.getHostStats,
+  });
+};
+
+export const useAdminOrders = (params: { page?: number; limit?: number; search?: string }) => {
+  return useQuery({
+    queryKey: ['adminOrders', params],
+    queryFn: () => adminService.getOrders(params),
+  });
+};
+
+export const useAdminOrdersStats = () => {
+  return useQuery({
+    queryKey: ['adminOrdersStats'],
+    queryFn: adminService.getOrdersStats,
+  });
+};
+
+export const useProcessRefundMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ transactionId, reason }: { transactionId: string; reason?: string }) => 
+      adminService.processRefund(transactionId, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['adminOrdersStats'] });
+    },
+  });
+};
+
 export const useAdminUsersStats = () => {
   return useQuery({
     queryKey: ['admin', 'users', 'stats'],

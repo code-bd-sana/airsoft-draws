@@ -55,6 +55,34 @@ export interface HostStats {
   blockedHosts: number;
 }
 
+export interface OrderData {
+  id: string;
+  orderId: string;
+  buyerName: string;
+  buyerInitials: string;
+  competition: string;
+  tickets: number;
+  amount: number;
+  payment: string;
+  status: string;
+  date: string;
+}
+
+export interface GetOrdersResponse {
+  orders: OrderData[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface OrderStats {
+  totalOrders: number;
+  totalTicketsSold: number;
+  totalOrderValue: number;
+  refundedOrders: number;
+}
+
 
 export const adminService = {
   async getUsers(params: { page?: number; limit?: number; search?: string; role?: string }): Promise<GetUsersResponse> {
@@ -79,6 +107,21 @@ export const adminService = {
 
   async getHostStats(): Promise<HostStats> {
     const { data } = await api.get('/admin/hosts/stats');
+    return data;
+  },
+
+  async getOrders(params: { page?: number; limit?: number; search?: string }): Promise<GetOrdersResponse> {
+    const { data } = await api.get('/admin/orders', { params });
+    return data;
+  },
+
+  async getOrdersStats(): Promise<OrderStats> {
+    const { data } = await api.get('/admin/orders/stats');
+    return data;
+  },
+
+  async processRefund(transactionId: string, reason?: string): Promise<{ message: string; transaction: any }> {
+    const { data } = await api.post(`/admin/orders/${transactionId}/refund`, { reason });
     return data;
   },
 };

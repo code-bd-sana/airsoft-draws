@@ -1,19 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import { useProcessRefundMutation } from "../../../hooks/useAdminHooks";
+import { OrderData } from "../../../services/admin.service";
 
-export interface OrderData {
-  id: string;
-  orderId: string;
-  buyerName: string;
-  buyerInitials: string;
-  competition: string;
-  tickets: number;
-  amount: number;
-  payment: string;
-  status: string;
-  date: string;
-}
+export type { OrderData };
 
 interface ProcessRefundModalProps {
   isOpen: boolean;
@@ -22,7 +13,22 @@ interface ProcessRefundModalProps {
 }
 
 export default function ProcessRefundModal({ isOpen, onClose, order }: ProcessRefundModalProps) {
+  const [reason, setReason] = useState("");
+  const { mutate: processRefund, isPending } = useProcessRefundMutation();
+
   if (!isOpen || !order) return null;
+
+  const handleRefund = () => {
+    processRefund(
+      { transactionId: order.id, reason },
+      {
+        onSuccess: () => {
+          setReason("");
+          onClose();
+        },
+      }
+    );
+  };
 
   return (
     <>
@@ -40,7 +46,8 @@ export default function ProcessRefundModal({ isOpen, onClose, order }: ProcessRe
           </h2>
           <button 
             onClick={onClose}
-            className="text-[#5A752A] hover:text-[#E8EDD4] transition-colors"
+            disabled={isPending}
+            className="text-[#5A752A] hover:text-[#E8EDD4] transition-colors disabled:opacity-50"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -59,29 +66,35 @@ export default function ProcessRefundModal({ isOpen, onClose, order }: ProcessRe
         <div className="flex flex-col gap-5">
           {/* Refund Amount Input */}
           <div className="flex flex-col gap-2">
-            <label className="font-sans text-[12px] font-medium text-[#72943A]">Refund Amount</label>
+            <label className="font-sans text-[12px] font-medium text-[#72943A]">Refund Amount (Fixed)</label>
             <input 
               type="text" 
-              defaultValue={order.amount.toFixed(2)}
-              className="h-[44px] bg-[#0D0D0B] border border-[#2D3C13] rounded-[8px] px-4 text-[#E8EDD4] font-sans text-[13px] outline-none focus:border-[#43581E] transition-colors"
+              readOnly
+              value={`£${order.amount.toFixed(2)}`}
+              className="h-[44px] bg-[#0D0D0B] border border-[#2D3C13] rounded-[8px] px-4 text-[#72943A] font-sans text-[13px] outline-none cursor-not-allowed"
             />
           </div>
 
           {/* Reason Input */}
           <div className="flex flex-col gap-2 mb-2">
-            <label className="font-sans text-[12px] font-medium text-[#72943A]">Reason</label>
+            <label className="font-sans text-[12px] font-medium text-[#72943A]">Reason (Optional)</label>
             <input 
-              type="text" 
-              className="h-[44px] bg-[#0D0D0B] border border-[#2D3C13] rounded-[8px] px-4 text-[#E8EDD4] font-sans text-[13px] outline-none focus:border-[#43581E] transition-colors"
+              type="text"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              disabled={isPending}
+              placeholder="e.g. Customer requested cancellation"
+              className="h-[44px] bg-[#0D0D0B] border border-[#2D3C13] rounded-[8px] px-4 text-[#E8EDD4] font-sans text-[13px] outline-none focus:border-[#43581E] transition-colors disabled:opacity-50"
             />
           </div>
 
           {/* Submit Button */}
           <button 
-            onClick={onClose}
-            className="w-full h-[48px] rounded-[8px] bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] font-heading font-medium text-[14px] transition-colors flex items-center justify-center mt-2"
+            onClick={handleRefund}
+            disabled={isPending}
+            className="w-full h-[48px] rounded-[8px] bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] font-heading font-medium text-[14px] transition-colors flex items-center justify-center mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Process Refund
+            {isPending ? "Processing..." : "Process Refund"}
           </button>
         </div>
 
