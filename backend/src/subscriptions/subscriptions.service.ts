@@ -85,4 +85,49 @@ export class SubscriptionsService {
       }),
     );
   }
+
+  async getAdminStats() {
+    // Get all active subscriptions
+    const activeSubscriptions = await this.prisma.hostSubscription.findMany({
+      where: { status: 'ACTIVE' },
+      include: { plan: true },
+    });
+
+    let mrr = 0;
+    const planCounts: Record<string, number> = {};
+    const planNames: Record<string, string> = {};
+
+    activeSubscriptions.forEach(sub => {
+      // Calculate MRR (assuming price is per month)
+      if (sub.plan && sub.plan.price) {
+        mrr += Number(sub.plan.price);
+      }
+
+      // Count plans
+      const planId = sub.planId;
+      if (!planCounts[planId]) {
+        planCounts[planId] = 0;
+        planNames[planId] = sub.plan?.name || 'Unknown';
+      }
+      planCounts[planId]++;
+    });
+
+    // Format plan distribution for the pie chart
+    const totalActive = activeSubscriptions.length;
+    const planDistribution = Object.keys(planCounts).map(planId => {
+      const count = planCounts[planId];
+      const percentage = totalActive > 0 ? Math.round((count / totalActive) * 100) : 0;
+      return {
+        name: planNames[planId],
+        value: count,
+        percentage: `${percentage}%`,
+      };
+    });
+
+    return {
+      mrr,
+      totalActive,
+      planDistribution,
+    };
+  }
 }

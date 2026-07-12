@@ -74,4 +74,12 @@ export class SubscriptionsController {
   async getAllSubscriptions() {
     return this.subscriptionsService.getAllSubscriptions();
   }
+
+  @Get('admin/stats')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Get subscription stats for admin dashboard' })
+  async getAdminStats() {
+    return this.subscriptionsService.getAdminStats();
+  }
 }
