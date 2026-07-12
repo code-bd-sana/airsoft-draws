@@ -13,6 +13,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { RafflesModule } from './raffles/raffles.module';
 import { HostsModule } from './hosts/hosts.module';
 import { TicketsModule } from './tickets/tickets.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { TicketsModule } from './tickets/tickets.module';
     RafflesModule,
     HostsModule,
     TicketsModule,
+    AdminModule,
     ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
