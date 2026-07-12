@@ -41,8 +41,11 @@ export class AdminUsersService {
       this.prisma.user.count({ where }),
     ]);
 
-    const formattedUsers = users.map(user => {
-      const totalSpent = user.transactions.reduce((sum, t) => sum + Number(t.amount), 0);
+    const formattedUsers = users.map((user) => {
+      const totalSpent = user.transactions.reduce(
+        (sum, t) => sum + Number(t.amount),
+        0,
+      );
       return {
         id: user.id,
         email: user.email,
@@ -70,23 +73,26 @@ export class AdminUsersService {
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const [totalUsers, newThisMonth, activeUsers, blockedUsers] = await Promise.all([
-      this.prisma.user.count(),
-      this.prisma.user.count({
-        where: { createdAt: { gte: startOfMonth } },
-      }),
-      this.prisma.user.count({
-        where: { isBlocked: false },
-      }),
-      this.prisma.user.count({
-        where: { isBlocked: true },
-      }),
-    ]);
+    const [totalUsers, newThisMonth, activeUsers, blockedUsers] =
+      await Promise.all([
+        this.prisma.user.count(),
+        this.prisma.user.count({
+          where: { createdAt: { gte: startOfMonth } },
+        }),
+        this.prisma.user.count({
+          where: { isBlocked: false },
+        }),
+        this.prisma.user.count({
+          where: { isBlocked: true },
+        }),
+      ]);
 
     // Active percentage calculation
-    const activePercentage = totalUsers > 0 ? ((activeUsers / totalUsers) * 100).toFixed(1) : '0.0';
+    const activePercentage =
+      totalUsers > 0 ? ((activeUsers / totalUsers) * 100).toFixed(1) : '0.0';
     // Blocked percentage calculation
-    const blockedPercentage = totalUsers > 0 ? ((blockedUsers / totalUsers) * 100).toFixed(1) : '0.0';
+    const blockedPercentage =
+      totalUsers > 0 ? ((blockedUsers / totalUsers) * 100).toFixed(1) : '0.0';
 
     return {
       totalUsers,

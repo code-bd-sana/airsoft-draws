@@ -1,4 +1,14 @@
-import { Controller, Post, Get, Param, Body, UseGuards, Req, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Param,
+  Body,
+  UseGuards,
+  Req,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { TicketsService } from './tickets.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -17,7 +27,8 @@ export class TicketsController {
 
   private extractUserId(req: Request): string {
     const token = req.cookies?.accessToken;
-    if (!token) throw new UnauthorizedException('No authentication token found');
+    if (!token)
+      throw new UnauthorizedException('No authentication token found');
     try {
       const payload = this.jwtService.verify(token);
       return payload.sub;
@@ -33,10 +44,12 @@ export class TicketsController {
   async purchaseTickets(
     @Req() req: Request,
     @Param('raffleId') raffleId: string,
-    @Body() body: { quantity: number }
+    @Body() body: { quantity: number },
   ) {
     if (!body.quantity || body.quantity < 1) {
-      throw new BadRequestException('Quantity is required and must be at least 1');
+      throw new BadRequestException(
+        'Quantity is required and must be at least 1',
+      );
     }
     const userId = this.extractUserId(req);
     return this.ticketsService.purchaseTickets(userId, raffleId, body.quantity);

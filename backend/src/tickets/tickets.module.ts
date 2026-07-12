@@ -8,6 +8,6 @@ import { RafflesModule } from '../raffles/raffles.module';
 @Module({
   imports: [PrismaModule, JwtModule, forwardRef(() => RafflesModule)],
   controllers: [TicketsController],
-  providers: [TicketsService]
+  providers: [TicketsService],
 })
 export class TicketsModule {}

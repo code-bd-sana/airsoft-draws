@@ -1,4 +1,13 @@
-import { Controller, Post, Body, Req, Headers, UseGuards, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Req,
+  Headers,
+  UseGuards,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PaymentService } from './payment.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -15,7 +24,8 @@ export class PaymentController {
 
   private extractUserId(req: Request): string {
     const token = req.cookies?.accessToken;
-    if (!token) throw new UnauthorizedException('No authentication token found');
+    if (!token)
+      throw new UnauthorizedException('No authentication token found');
     try {
       const payload = this.jwtService.verify(token);
       return payload.sub;
@@ -25,8 +35,13 @@ export class PaymentController {
   }
 
   @Post('checkout/subscription')
-  @ApiOperation({ summary: 'Create Stripe checkout session for a subscription plan' })
-  async createSubscriptionCheckout(@Req() req: Request, @Body() body: { planId: string }) {
+  @ApiOperation({
+    summary: 'Create Stripe checkout session for a subscription plan',
+  })
+  async createSubscriptionCheckout(
+    @Req() req: Request,
+    @Body() body: { planId: string },
+  ) {
     if (!body.planId) throw new BadRequestException('planId is required');
     const hostId = this.extractUserId(req);
     return this.paymentService.createSubscriptionCheckout(hostId, body.planId);
@@ -34,7 +49,10 @@ export class PaymentController {
 
   @Post('webhook')
   @ApiOperation({ summary: 'Cashflow Webhook Endpoint' })
-  async handleWebhook(@Headers('cashflow-signature') signature: string, @Req() req: any) {
+  async handleWebhook(
+    @Headers('cashflow-signature') signature: string,
+    @Req() req: any,
+  ) {
     if (!signature) {
       throw new BadRequestException('Missing cashflow-signature header');
     }

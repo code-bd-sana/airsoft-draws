@@ -1,4 +1,11 @@
-import { Controller, Get, Post, Req, UseGuards, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Req,
+  UseGuards,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { SubscriptionsService } from './subscriptions.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -17,7 +24,8 @@ export class SubscriptionsController {
 
   private extractUserId(req: Request): string {
     const token = req.cookies?.accessToken;
-    if (!token) throw new UnauthorizedException('No authentication token found');
+    if (!token)
+      throw new UnauthorizedException('No authentication token found');
     try {
       const payload = this.jwtService.verify(token);
       return payload.sub;

@@ -47,10 +47,7 @@ export class HostsService {
   async findOnePublic(slug: string) {
     const host = await this.prisma.hostProfile.findFirst({
       where: {
-        OR: [
-          { slug },
-          { id: slug },
-        ],
+        OR: [{ slug }, { id: slug }],
       },
       include: {
         user: {
@@ -99,18 +96,24 @@ export class HostsService {
       drawsHosted: host._count.raffles,
       rating: 5.0, // Mocked
       memberSince: host.createdAt.getFullYear(),
-      raffles: host.raffles.map(raffle => {
+      raffles: host.raffles.map((raffle) => {
         // Format endDate as "Ends in Xd Yh" or a clean date string
         const end = new Date(raffle.endDate);
-        const formattedEndDate = end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-        
+        const formattedEndDate = end.toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        });
+
         return {
           id: raffle.id,
           slug: raffle.slug || raffle.id,
           title: raffle.title,
           description: raffle.description,
           image: raffle.mainImage || '/images/default-raffle.png',
-          ticketPrice: raffle.pricePerTicket ? Number(raffle.pricePerTicket.toString()) : 0,
+          ticketPrice: raffle.pricePerTicket
+            ? Number(raffle.pricePerTicket.toString())
+            : 0,
           totalTickets: raffle.totalTickets,
           soldTickets: raffle.ticketsSold,
           endDate: `Ends ${formattedEndDate}`,

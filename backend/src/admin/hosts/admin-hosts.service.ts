@@ -35,13 +35,13 @@ export class AdminHostsService {
             select: {
               email: true,
               isBlocked: true,
-            }
+            },
           },
           subscriptions: {
             where: { status: 'ACTIVE' },
             include: { plan: true },
             take: 1,
-            orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'desc' },
           },
           _count: {
             select: { raffles: true },
@@ -51,11 +51,14 @@ export class AdminHostsService {
       this.prisma.hostProfile.count({ where }),
     ]);
 
-    const formattedHosts = hosts.map(host => {
+    const formattedHosts = hosts.map((host) => {
       // For revenue, using walletBalance for simplicity right now
       const revenue = Number(host.walletBalance) || 0;
-      
-      const activePlan = host.subscriptions.length > 0 ? host.subscriptions[0].plan.name : 'Free';
+
+      const activePlan =
+        host.subscriptions.length > 0
+          ? host.subscriptions[0].plan.name
+          : 'Free';
 
       return {
         id: host.id,

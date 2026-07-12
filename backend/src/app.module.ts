@@ -17,9 +17,9 @@ import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
-    PrismaModule, 
-    MailModule, 
-    AuthModule, 
+    PrismaModule,
+    MailModule,
+    AuthModule,
     UsersModule,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),

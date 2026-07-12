@@ -9,6 +9,6 @@ import { DrawSchedulerService } from './draw-scheduler.service';
   imports: [PrismaModule, JwtModule],
   controllers: [RafflesController],
   providers: [RafflesService, DrawSchedulerService],
-  exports: [RafflesService]
+  exports: [RafflesService],
 })
 export class RafflesModule {}
