@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminService, HostData } from "../../../services/admin.service";
 import ReviewHostModal, { HostApplicationData } from "./ReviewHostModal";
+import ConfirmBlockModal from "./ConfirmBlockModal";
 
 export default function HostsTable() {
   const [activeFilter, setActiveFilter] = useState("All");
@@ -11,6 +12,8 @@ export default function HostsTable() {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedHost, setSelectedHost] = useState<HostApplicationData | null>(null);
+  
+  const [blockModalHost, setBlockModalHost] = useState<HostData | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -29,6 +32,7 @@ export default function HostsTable() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-hosts'] });
       queryClient.invalidateQueries({ queryKey: ['admin-hosts-stats'] });
+      setBlockModalHost(null);
     },
   });
 
@@ -170,7 +174,7 @@ export default function HostsTable() {
                       </button>
                       
                       <button 
-                        onClick={() => toggleBlockMutation.mutate(host.userId)}
+                        onClick={() => setBlockModalHost(host)}
                         disabled={toggleBlockMutation.isPending}
                         className={`transition-colors ${host.isBlocked ? 'text-[#f76b6b] hover:text-[#4ADE80]' : 'text-[#5A752A] hover:text-[#f76b6b]'}`} 
                         title={host.isBlocked ? "Unblock Host" : "Block Host"}
@@ -198,6 +202,15 @@ export default function HostsTable() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         data={selectedHost} 
+      />
+
+      <ConfirmBlockModal 
+        isOpen={!!blockModalHost}
+        onClose={() => setBlockModalHost(null)}
+        onConfirm={() => blockModalHost && toggleBlockMutation.mutate(blockModalHost.userId)}
+        isLoading={toggleBlockMutation.isPending}
+        isBlocked={blockModalHost?.isBlocked ?? false}
+        userIdentifier={blockModalHost?.businessName || blockModalHost?.email || ""}
       />
     </div>
   );

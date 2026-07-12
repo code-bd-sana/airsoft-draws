@@ -3,12 +3,16 @@
 import React, { useState } from "react";
 import { useAdminUsers, useToggleUserBlockMutation } from "../../../hooks/useAdminHooks";
 import { format } from "date-fns";
+import ConfirmBlockModal from "./ConfirmBlockModal";
+import { User } from "../../../services/admin.service";
 
 export default function UsersTable() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const limit = 10;
+  
+  const [blockModalUser, setBlockModalUser] = useState<User | null>(null);
 
   // Convert "All", "Active", "Blocked" filter state to role or status if needed.
   // For now we map filter to search params if possible, but our backend supports `role` and `search`.
@@ -46,7 +50,8 @@ export default function UsersTable() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <>
+      <div className="flex flex-col gap-6">
       
       {/* Controls Row */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -160,7 +165,7 @@ export default function UsersTable() {
                     </button>
                     {user.isBlocked ? (
                       <button 
-                        onClick={() => toggleBlock.mutate(user.id)}
+                        onClick={() => setBlockModalUser(user)}
                         disabled={toggleBlock.isPending}
                         className="text-[#4ADE80] hover:text-[#22c55e] transition-colors disabled:opacity-50" 
                         title="Unblock user"
@@ -171,7 +176,7 @@ export default function UsersTable() {
                       </button>
                     ) : (
                       <button 
-                        onClick={() => toggleBlock.mutate(user.id)}
+                        onClick={() => setBlockModalUser(user)}
                         disabled={toggleBlock.isPending}
                         className="text-[#f76b6b] hover:text-[#ef4444] transition-colors disabled:opacity-50" 
                         title="Block user"
@@ -211,5 +216,21 @@ export default function UsersTable() {
       )}
 
     </div>
+
+      <ConfirmBlockModal 
+        isOpen={!!blockModalUser}
+        onClose={() => setBlockModalUser(null)}
+        onConfirm={() => {
+          if (blockModalUser) {
+            toggleBlock.mutate(blockModalUser.id, {
+              onSuccess: () => setBlockModalUser(null)
+            });
+          }
+        }}
+        isLoading={toggleBlock.isPending}
+        isBlocked={blockModalUser?.isBlocked ?? false}
+        userIdentifier={blockModalUser?.email || blockModalUser?.firstName || "this user"}
+      />
+    </>
   );
 }
