@@ -165,6 +165,7 @@ model Winner {
   winType        String   @map("win_type") @db.VarChar(50) // MAIN_DRAW, INSTANT_WIN
   prizeName      String   @map("prize_name") @db.VarChar(255)
   deliveryStatus String   @default("PENDING") @map("delivery_status") @db.VarChar(50) // PENDING, SHIPPED, DELIVERED
+  verificationStatus String @default("PENDING") @map("verification_status") @db.VarChar(50) // PENDING, VERIFIED, REJECTED
   trackingNumber String?  @map("tracking_number") @db.VarChar(255)
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")

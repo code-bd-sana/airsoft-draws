@@ -1,16 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model User {
+  id              String   @id @default(uuid()) @db.VarChar(255)
+  email           String   @unique @db.VarChar(255)
+  passwordHash    String   @map("password_hash") @db.VarChar(255)
+  isEmailVerified Boolean  @default(false) @map("is_email_verified")
+  firstName       String?  @map("first_name") @db.VarChar(100)
+  lastName        String?  @map("last_name") @db.VarChar(100)
+  avatarUrl       String?  @map("avatar_url") @db.VarChar(255)
+  location        String?  @db.VarChar(255)
+  phone           String?  @db.VarChar(50)
+  address         String?  @db.Text
+  role            String   @default("CLIENT") @db.VarChar(50) // ADMIN, HOST, CLIENT
+  isBlocked       Boolean  @default(false) @map("is_blocked")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+
+  hostProfile  HostProfile?
+  tickets      Ticket[]
+  transactions Transaction[]
+  winners      Winner[]
+
+  @@map("users")
 }
 
-model Lead {
-  id        String   @id @default(cuid())
-  fullName  String
-  email     String   @unique
-  role      String   @default("CUSTOMER")
-  createdAt DateTime @default(now())
+model HostProfile {
+  id            String   @id @default(uuid()) @db.VarChar(255)
+  userId        String   @unique @map("user_id") @db.VarChar(255)
+  businessName  String   @map("business_name") @db.VarChar(255)
+  slug          String?  @unique @db.VarChar(255)
+  bio           String?  @db.Text
+  phone         String?  @db.VarChar(50)
+  address       String?  @db.Text
+  walletBalance Decimal  @default(0.00) @map("wallet_balance") @db.Decimal(10, 2)
+  isVerified    Boolean  @default(false) @map("is_verified")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user          User               @relation(fields: [userId], references: [id])
+  subscriptions HostSubscription[]
+  raffles       Raffle[]
+  withdrawals   Withdrawal[]
+
+  @@map("host_profiles")
+}
+
+model SubscriptionPlan {
+  id               String   @id @default(uuid()) @db.VarChar(255)
+  name             String   @db.VarChar(100)
+  price            Decimal  @db.Decimal(10, 2)
+  durationDays     Int      @map("duration_days")
+  maxActiveRaffles Int?     @map("max_active_raffles")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  subscriptions HostSubscription[]
+
+  @@map("subscription_plans")
+}
+
+model HostSubscription {
+  id        String   @id @default(uuid()) @db.VarChar(255)
+  hostId    String   @map("host_id") @db.VarChar(255)
+  planId    String   @map("plan_id") @db.VarChar(255)
+  status    String   @default("ACTIVE") @db.VarChar(50) // ACTIVE, EXPIRED, CANCELLED
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  host HostProfile      @relation(fields: [hostId], references: [id])
+  plan SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@map("host_subscriptions")
+}
+
+model Raffle {
+  id             String   @id @default(uuid()) @db.VarChar(255)
+  hostId         String   @map("host_id") @db.VarChar(255)
+  title          String   @db.VarChar(255)
+  slug           String?  @unique @db.VarChar(255)
+  category       String?  @db.VarChar(100)
+  description    String?
+  mainImage      String?  @map("main_image") @db.VarChar(255)
+  prizeName      String?  @map("prize_name") @db.VarChar(255)
+  pricePerTicket Decimal  @map("price_per_ticket") @db.Decimal(10, 2)
+  totalTickets   Int      @map("total_tickets")
+  ticketsSold    Int      @default(0) @map("tickets_sold")
+  startDate      DateTime @map("start_date")
+  endDate        DateTime @map("end_date")
+  status         String   @default("PENDING_APPROVAL") @db.VarChar(50) // DRAFT, PENDING_APPROVAL, ACTIVE, ENDED, CANCELLED
+  
+  // Draw Settings
+  isAutoDraw      Boolean  @default(true) @map("is_auto_draw")
+  autoDrawDate    Boolean  @default(true) @map("auto_draw_date")
+  autoDrawSoldOut Boolean  @default(false) @map("auto_draw_sold_out")
+
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+
+  host        HostProfile  @relation(fields: [hostId], references: [id])
+  instantWins InstantWin[]
+  tickets     Ticket[]
+  winners     Winner[]
+
+  @@map("raffles")
+}
+
+model InstantWin {
+  id           String   @id @default(uuid()) @db.VarChar(255)
+  raffleId     String   @map("raffle_id") @db.VarChar(255)
+  ticketNumber Int      @map("ticket_number")
+  prizeName    String   @map("prize_name") @db.VarChar(255)
+  image        String?  @db.VarChar(255)
+  isClaimed    Boolean  @default(false) @map("is_claimed")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  raffle Raffle @relation(fields: [raffleId], references: [id], onDelete: Cascade)
+
+  @@map("instant_wins")
+}
+
+model Transaction {
+  id                   String   @id @default(uuid()) @db.VarChar(255)
+  userId               String   @map("user_id") @db.VarChar(255)
+  type                 String   @db.VarChar(50) // TICKET_PURCHASE, SUBSCRIPTION_FEE, HOST_WITHDRAWAL
+  amount               Decimal  @db.Decimal(10, 2)
+  status               String   @default("COMPLETED") @db.VarChar(50) // PENDING, COMPLETED, FAILED, REFUNDED
+  paymentGateway       String?  @map("payment_gateway") @db.VarChar(50) // STRIPE, PAYPAL
+  gatewayTransactionId String?  @map("gateway_transaction_id") @db.VarChar(255)
+  relatedEntityId      String?  @map("related_entity_id") @db.VarChar(255) // Polymorphic ID
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  user    User     @relation(fields: [userId], references: [id])
+  tickets Ticket[]
+
+  @@map("transactions")
+}
+
+model Ticket {
+  id            String   @id @default(uuid()) @db.VarChar(255)
+  raffleId      String   @map("raffle_id") @db.VarChar(255)
+  userId        String   @map("user_id") @db.VarChar(255)
+  transactionId String   @map("transaction_id") @db.VarChar(255)
+  ticketNumber  Int      @map("ticket_number")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  raffle      Raffle      @relation(fields: [raffleId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+  transaction Transaction @relation(fields: [transactionId], references: [id])
+  winners     Winner[]
+
+  @@map("tickets")
+}
+
+model Winner {
+  id             String   @id @default(uuid()) @db.VarChar(255)
+  userId         String   @map("user_id") @db.VarChar(255)
+  raffleId       String   @map("raffle_id") @db.VarChar(255)
+  ticketId       String   @map("ticket_id") @db.VarChar(255)
+  winType        String   @map("win_type") @db.VarChar(50) // MAIN_DRAW, INSTANT_WIN
+  prizeName      String   @map("prize_name") @db.VarChar(255)
+  deliveryStatus String   @default("PENDING") @map("delivery_status") @db.VarChar(50) // PENDING, SHIPPED, DELIVERED
+  verificationStatus String @default("PENDING") @map("verification_status") @db.VarChar(50) // PENDING, VERIFIED, REJECTED
+  trackingNumber String?  @map("tracking_number") @db.VarChar(255)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  raffle Raffle @relation(fields: [raffleId], references: [id])
+  ticket Ticket @relation(fields: [ticketId], references: [id])
+
+  @@map("winners")
+}
+
+model Withdrawal {
+  id            String   @id @default(uuid()) @db.VarChar(255)
+  hostId        String   @map("host_id") @db.VarChar(255)
+  amount        Decimal  @db.Decimal(10, 2)
+  status        String   @default("PENDING") @db.VarChar(50) // PENDING, APPROVED, REJECTED, COMPLETED
+  adminNotes    String?  @map("admin_notes") @db.Text
+  payoutMethod  String?  @map("payout_method") @db.VarChar(100) // BANK_TRANSFER, PAYPAL
+  payoutDetails String?  @map("payout_details") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+
+  host HostProfile @relation(fields: [hostId], references: [id])
+
+  @@map("withdrawals")
 }
