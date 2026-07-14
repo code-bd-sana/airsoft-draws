@@ -1,15 +1,31 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import SectionHeader from "../shared/SectionHeader";
 import CategoryCard from "../shared/CategoryCard";
-import { categoriesData } from "../../../data/homepage/categories.data";
+import { categoryService, Category } from "../../../services/category.service";
 
 /**
  * Categories listing section displaying category cards in a scrollable carousel layout.
  */
 export default function CategoriesSection() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const fetched = await categoryService.getPublicCategories();
+        setCategories(fetched);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchCategories();
+  }, []);
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
@@ -63,9 +79,17 @@ export default function CategoriesSection() {
           ref={scrollContainerRef}
           className="flex overflow-x-auto gap-4 md:gap-6 pb-6 snap-x snap-mandatory scrollbar-none hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0"
         >
-          {categoriesData.map((category) => (
+          {categories.map((category) => (
             <div key={category.id} className="min-w-[160px] md:min-w-[220px] lg:min-w-[260px] snap-start shrink-0">
-              <CategoryCard category={category} />
+              <CategoryCard 
+                category={{
+                  id: category.id,
+                  title: category.name,
+                  slug: category.slug,
+                  image: category.image,
+                  drawCount: 0
+                }} 
+              />
             </div>
           ))}
         </div>

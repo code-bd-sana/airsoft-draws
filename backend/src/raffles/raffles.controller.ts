@@ -47,6 +47,12 @@ export class RafflesController {
 
   // --- PUBLIC ENDPOINTS ---
 
+  @Get('public/stats')
+  @ApiOperation({ summary: 'Get global raffle statistics (public)' })
+  getPublicStats() {
+    return this.rafflesService.getPublicStats();
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get all active raffles (public)' })
   findAllPublic(@Query() query: any) {

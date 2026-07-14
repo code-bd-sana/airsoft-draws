@@ -140,9 +140,9 @@ export class RafflesService {
 
     const now = new Date();
 
-    // Base where clause (only ACTIVE)
+    // Base where clause
     const whereClause: any = {
-      status: 'ACTIVE',
+      status: { in: ['ACTIVE', 'ENDED'] },
     };
 
     // Category filter
@@ -172,6 +172,8 @@ export class RafflesService {
       orderBy = { pricePerTicket: 'asc' };
     } else if (sort === 'Price: High to Low') {
       orderBy = { pricePerTicket: 'desc' };
+    } else if (sort === 'Most Popular') {
+      orderBy = { ticketsSold: 'desc' };
     }
 
     const [raffles, total] = await Promise.all([
@@ -509,5 +511,41 @@ export class RafflesService {
     return this.prisma.raffle.delete({
       where: { id },
     });
+  }
+
+  async getPublicStats() {
+    // 1. Draws Completed (Count of ENDED raffles)
+    const drawsCompleted = await this.prisma.raffle.count({
+      where: { status: 'ENDED' },
+    });
+
+    // 2. Minimum Entry (Lowest pricePerTicket across ACTIVE/ENDED)
+    const minEntryAgg = await this.prisma.raffle.aggregate({
+      where: { status: { in: ['ACTIVE', 'ENDED'] } },
+      _min: { pricePerTicket: true },
+    });
+    
+    // Parse the decimal value, default to 1 if none found
+    const minimumEntry = minEntryAgg._min.pricePerTicket 
+      ? Number(minEntryAgg._min.pricePerTicket)
+      : 1;
+
+    return [
+      {
+        id: 1,
+        value: `${drawsCompleted}+`,
+        label: "Draws Completed",
+      },
+      {
+        id: 2,
+        value: `£${minimumEntry}`,
+        label: "Minimum Entry",
+      },
+      {
+        id: 3,
+        value: "Verified",
+        label: "Fair Draws",
+      }
+    ];
   }
 }

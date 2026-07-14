@@ -14,6 +14,7 @@ import { RafflesModule } from './raffles/raffles.module';
 import { HostsModule } from './hosts/hosts.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { AdminModule } from './admin/admin.module';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AdminModule } from './admin/admin.module';
     TicketsModule,
     AdminModule,
     ScheduleModule.forRoot(),
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
