@@ -53,6 +53,12 @@ export class RafflesController {
     return this.rafflesService.getPublicStats();
   }
 
+  @Get('public/winner-stats')
+  @ApiOperation({ summary: 'Get stats for the winners page hero (public)' })
+  getPublicWinnerStats() {
+    return this.rafflesService.getPublicWinnerStats();
+  }
+
   @Get('public/recent-winners')
   @ApiOperation({ summary: 'Get recent winners (public)' })
   getRecentWinners() {

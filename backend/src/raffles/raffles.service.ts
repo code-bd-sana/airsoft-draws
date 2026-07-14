@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class RafflesService {
@@ -273,7 +274,7 @@ export class RafflesService {
       whereClause.winType = 'MAIN_DRAW';
     }
 
-    const orderBy = sortBy === 'oldest' ? { createdAt: 'asc' } : { createdAt: 'desc' };
+    const orderBy: Prisma.WinnerOrderByWithRelationInput = sortBy === 'oldest' ? { createdAt: 'asc' } : { createdAt: 'desc' };
 
     const [winners, total] = await Promise.all([
       this.prisma.winner.findMany({
@@ -666,5 +667,41 @@ export class RafflesService {
         label: 'Fair Draws',
       },
     ];
+  }
+
+  async getPublicWinnerStats() {
+    const totalWinners = await this.prisma.winner.count();
+    
+    // For "Verified Draws", we can count raffles with status 'ENDED' or 'COMPLETED'
+    // Since 'ENDED' is the status in the enum
+    const verifiedDraws = await this.prisma.raffle.count({
+      where: { status: 'ENDED' }
+    });
+
+    // For "Prizes Awarded" value, since we don't have a specific monetary value field,
+    // we'll calculate the total potential revenue of all ENDED draws as a proxy, 
+    // or we can sum totalTickets * pricePerTicket of ENDED draws.
+    const endedRaffles = await this.prisma.raffle.findMany({
+      where: { status: 'ENDED' },
+      select: { totalTickets: true, pricePerTicket: true }
+    });
+
+    let totalValue = 0;
+    endedRaffles.forEach(r => {
+      totalValue += (r.totalTickets * Number(r.pricePerTicket));
+    });
+
+    // Formatting currency for UK (£)
+    const formattedValue = new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP',
+      maximumFractionDigits: 0,
+    }).format(totalValue);
+
+    return {
+      prizesAwarded: formattedValue,
+      totalWinners,
+      verifiedDraws: verifiedDraws > 0 ? `${verifiedDraws}+` : '0',
+    };
   }
 }

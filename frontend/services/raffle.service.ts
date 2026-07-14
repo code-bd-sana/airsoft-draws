@@ -83,6 +83,11 @@ export const raffleService = {
     return response.data;
   },
 
+  async getPublicWinnerStats(): Promise<{ prizesAwarded: string; totalWinners: number; verifiedDraws: string }> {
+    const response = await api.get('/raffles/public/winner-stats');
+    return response.data;
+  },
+
   async getInstantWinRaffles(limit = 10): Promise<any> {
     const response = await api.get('/raffles', {
       params: { limit, hasInstantWins: 'true' },
