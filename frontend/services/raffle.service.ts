@@ -35,8 +35,38 @@ export interface Raffle {
   host?: HostProfile;
 }
 
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
+
+export interface CreateRaffleData {
+  title: string;
+  description: string;
+  prizeName?: string;
+  pricePerTicket: number | string;
+  totalTickets: number;
+  startDate: string;
+  endDate: string;
+  isAutoDraw?: boolean;
+  autoDrawDate?: boolean;
+  autoDrawSoldOut?: boolean;
+  [key: string]: unknown;
+}
+
+export interface UpdateRaffleData extends Partial<CreateRaffleData> {
+  status?: 'DRAFT' | 'PENDING_APPROVAL' | 'ACTIVE' | 'ENDED' | 'CANCELLED';
+}
+
 export const raffleService = {
-  async getPublicRaffles(params: { search?: string; page?: number; limit?: number; category?: string; statusFilter?: string; sort?: string }) {
+  async getPublicRaffles(params: { search?: string; page?: number; limit?: number; category?: string; statusFilter?: string; sort?: string }): Promise<PaginatedResponse<Raffle>> {
     const response = await api.get('/raffles', { params });
     return response.data;
   },
@@ -46,39 +76,37 @@ export const raffleService = {
     return response.data;
   },
 
-  async getMyRaffles(params?: { page?: number; limit?: number; status?: string }) {
+  async getMyRaffles(params?: { page?: number; limit?: number; status?: string }): Promise<PaginatedResponse<Raffle>> {
     const response = await api.get('/raffles/host/my-raffles', { params });
     return response.data;
   },
 
-  async getRaffleById(id: string): Promise<any> {
+  async getRaffleById(id: string): Promise<Raffle> {
     const response = await api.get(`/raffles/host/${id}`);
     return response.data;
   },
 
-  async updateRaffle(id: string, data: any): Promise<any> {
+  async updateRaffle(id: string, data: UpdateRaffleData): Promise<Raffle> {
     const response = await api.patch(`/raffles/host/${id}`, data);
     return response.data;
   },
 
-  async createRaffle(data: any): Promise<Raffle> {
+  async createRaffle(data: CreateRaffleData): Promise<Raffle> {
     const response = await api.post('/raffles', data);
     return response.data;
   },
-
-
 
   async deleteRaffle(id: string): Promise<void> {
     const response = await api.delete(`/raffles/host/${id}`);
     return response.data;
   },
 
-  async drawWinner(id: string) {
+  async drawWinner(id: string): Promise<unknown> {
     const response = await api.post(`/raffles/host/${id}/draw`);
     return response.data;
   },
 
-  async getWinners(id: string) {
+  async getWinners(id: string): Promise<unknown> {
     const response = await api.get(`/raffles/host/${id}/winners`);
     return response.data;
   },
@@ -104,7 +132,7 @@ export const raffleService = {
     return response.data;
   },
 
-  async getAdminAllRaffles(params?: { search?: string; page?: number; limit?: number; status?: string }): Promise<{ data: Raffle[], meta: any }> {
+  async getAdminAllRaffles(params?: { search?: string; page?: number; limit?: number; status?: string }): Promise<PaginatedResponse<Raffle>> {
     const response = await api.get('/raffles/admin/all', { params });
     return response.data;
   },
