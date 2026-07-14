@@ -46,6 +46,8 @@ export default function FeaturedCompetitionsSection() {
             status: (r.status === 'ACTIVE' ? 'live' : 'ended') as "live" | "ended",
             category: r.category || 'general',
             slug: r.slug,
+            instantWinsCount: r._count?.instantWins || 0,
+            isInstantWin: (r._count?.instantWins || 0) > 0,
           }));
           setDraws(mappedDraws);
         }

@@ -82,7 +82,8 @@ export default function LiveRaffleGrid() {
     search: searchQuery,
     page: currentPage,
     limit: 6,
-    // Add category/sort logic as query params later if needed, but for now we just use the backend default (active status)
+    category: activeCategory !== "all" ? activeCategory : undefined,
+    sort: sortBy,
   });
 
   const filteredRaffles = rafflesResponse?.data || [];

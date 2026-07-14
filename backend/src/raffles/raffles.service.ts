@@ -135,6 +135,7 @@ export class RafflesService {
       category,
       statusFilter,
       sort,
+      hasInstantWins,
     } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
@@ -146,8 +147,15 @@ export class RafflesService {
     };
 
     // Category filter
-    if (category && category !== 'All') {
+    if (category && category !== 'All' && category !== 'all') {
       whereClause.category = category;
+    }
+
+    // Instant Win filter
+    if (hasInstantWins === 'true') {
+      whereClause.instantWins = {
+        some: {}, // At least one instant win attached
+      };
     }
 
     // Status filter
@@ -179,7 +187,10 @@ export class RafflesService {
     const [raffles, total] = await Promise.all([
       this.prisma.raffle.findMany({
         where: whereClause,
-        include: { host: { include: { user: true } } },
+        include: { 
+          host: { include: { user: true } },
+          _count: { select: { instantWins: true } }
+        },
         skip,
         take: Number(limit),
         orderBy,
