@@ -4,25 +4,37 @@ import React, { useState } from "react";
 import DrawOverviewTab from "./DrawOverviewTab";
 import DrawEntriesTab from "./DrawEntriesTab";
 import DrawAuditLogTab from "./DrawAuditLogTab";
-
-interface DrawData {
-  id: string;
-  name: string;
-  host: string;
-  hostInitials: string;
-  type: string;
-  scheduledTime: string;
-  totalTickets: number;
-  status: string;
-}
+import { format } from "date-fns";
 
 interface DrawDetailsPanelProps {
-  draw: DrawData;
+  draw: any;
   onClose: () => void;
 }
 
 export default function DrawDetailsPanel({ draw, onClose }: DrawDetailsPanelProps) {
   const [activeTab, setActiveTab] = useState<"overview" | "entries" | "audit">("overview");
+
+  const getStatusString = (status: string) => {
+    switch (status) {
+      case "PENDING_APPROVAL": return "Pending Approval";
+      case "DRAFT": return "Draft";
+      case "ENDED": return "Completed";
+      case "ACTIVE": return "In Progress";
+      case "CANCELLED": return "Cancelled";
+      default: return status;
+    }
+  };
+
+  const getDrawType = (d: any) => {
+    if (!d.isAutoDraw) return "Manual (Host)";
+    if (d.isAutoDraw && d.autoDrawSoldOut) return "Auto (Sold Out)";
+    return "Auto (Date)";
+  };
+
+  const hostName = draw.host?.businessName || "Unknown Host";
+  const statusString = getStatusString(draw.status);
+  const drawType = getDrawType(draw);
+  const scheduledTime = draw.endDate ? format(new Date(draw.endDate), "dd MMM yyyy HH:mm") : "N/A";
 
   return (
     <div className="w-full bg-[#161810] border border-[#2D3C13] rounded-[16px] flex flex-col mt-6 animate-fadeIn overflow-hidden">
@@ -33,14 +45,14 @@ export default function DrawDetailsPanel({ draw, onClose }: DrawDetailsPanelProp
         {/* Title & Close */}
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-3">
-            <h2 className="font-heading font-bold text-[20px] text-[#E8EDD4]">{draw.name}</h2>
+            <h2 className="font-heading font-bold text-[20px] text-[#E8EDD4]">{draw.title}</h2>
             {/* Status Pills */}
             <div className="flex gap-2">
               <span className="px-3 py-1 rounded-full border border-[#D97706]/30 bg-[#78350F] text-[#F59E0B] font-sans font-medium text-[10px]">
-                {draw.status}
+                {statusString}
               </span>
               <span className="px-3 py-1 rounded-full border border-[#4ADE80]/30 bg-[#083b18] text-[#4ADE80] font-sans font-medium text-[10px]">
-                {draw.type}
+                {drawType}
               </span>
             </div>
           </div>
@@ -56,7 +68,7 @@ export default function DrawDetailsPanel({ draw, onClose }: DrawDetailsPanelProp
 
         {/* Subtitle */}
         <div className="font-sans text-[12px] text-[#72943A] mb-8">
-          Host: {draw.host} | Scheduled: {draw.scheduledTime}
+          Host: {hostName} | End Date: {scheduledTime}
         </div>
 
         {/* 4 Stat Boxes */}
@@ -66,16 +78,16 @@ export default function DrawDetailsPanel({ draw, onClose }: DrawDetailsPanelProp
             <span className="font-heading font-bold text-[20px] text-[#E8EDD4]">{draw.totalTickets}</span>
           </div>
           <div className="bg-[#111210] border border-[#2D3C13] rounded-[8px] p-4 flex flex-col gap-1">
-            <span className="font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px]">Verified Tickets</span>
-            <span className="font-heading font-bold text-[20px] text-[#4ADE80]">{draw.totalTickets}</span>
+            <span className="font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px]">Sold Tickets</span>
+            <span className="font-heading font-bold text-[20px] text-[#4ADE80]">{draw.ticketsSold || 0}</span>
           </div>
           <div className="bg-[#111210] border border-[#2D3C13] rounded-[8px] p-4 flex flex-col gap-1">
-            <span className="font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px]">Unique Entrants</span>
-            <span className="font-heading font-bold text-[20px] text-[#E8EDD4]">82</span>
+            <span className="font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px]">Price Per Ticket</span>
+            <span className="font-heading font-bold text-[20px] text-[#E8EDD4]">£{Number(draw.pricePerTicket).toFixed(2)}</span>
           </div>
           <div className="bg-[#111210] border border-[#2D3C13] rounded-[8px] p-4 flex flex-col gap-1">
             <span className="font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px]">Draw Type</span>
-            <span className="font-heading font-bold text-[20px] text-[#A0D056]">Automatic</span>
+            <span className="font-heading font-bold text-[20px] text-[#A0D056]">{drawType}</span>
           </div>
         </div>
 
