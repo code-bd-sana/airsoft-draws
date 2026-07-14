@@ -252,6 +252,70 @@ export class RafflesService {
     }));
   }
 
+  async getPublicWinnersList(query: any) {
+    const { page = 1, limit = 8, activeTab = 'all', winnerType = 'all', sortBy = 'newest' } = query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const whereClause: any = {};
+    const now = new Date();
+
+    if (activeTab === 'week') {
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      whereClause.createdAt = { gte: weekAgo };
+    } else if (activeTab === 'month') {
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      whereClause.createdAt = { gte: monthStart };
+    }
+
+    if (winnerType === 'instant') {
+      whereClause.winType = 'INSTANT_WIN';
+    } else if (winnerType === 'main_draw') {
+      whereClause.winType = 'MAIN_DRAW';
+    }
+
+    const orderBy = sortBy === 'oldest' ? { createdAt: 'asc' } : { createdAt: 'desc' };
+
+    const [winners, total] = await Promise.all([
+      this.prisma.winner.findMany({
+        where: whereClause,
+        orderBy,
+        skip,
+        take: Number(limit),
+        include: {
+          user: { select: { firstName: true, lastName: true, avatarUrl: true, location: true } },
+          raffle: { select: { title: true, mainImage: true, prizeName: true } },
+          ticket: { select: { ticketNumber: true } },
+        },
+      }),
+      this.prisma.winner.count({ where: whereClause }),
+    ]);
+
+    const data = winners.map((w) => ({
+      id: w.id,
+      name: w.user.firstName ? `${w.user.firstName} ${w.user.lastName?.charAt(0) || ''}.` : 'Anonymous',
+      location: w.user.location || 'Unknown',
+      avatar: w.user.avatarUrl || w.raffle?.mainImage || '',
+      competitionImage: w.raffle?.mainImage || '',
+      winnerType: w.winType === 'INSTANT_WIN' ? 'instant' : 'main_draw',
+      initials: w.user.firstName ? `${w.user.firstName.charAt(0)}${w.user.lastName?.charAt(0) || ''}` : 'AU',
+      prizeTitle: w.prizeName || w.raffle?.prizeName || 'Unknown Prize',
+      drawDate: w.createdAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+      dateString: w.createdAt.toISOString(),
+      ticketNumber: w.ticket?.ticketNumber?.toString() || '0000',
+      status: w.deliveryStatus?.toLowerCase() || 'pending',
+    }));
+
+    return {
+      data,
+      meta: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        lastPage: Math.ceil(total / Number(limit)),
+      },
+    };
+  }
+
   async findOnePublic(slug: string) {
     const raffle = await this.prisma.raffle.findFirst({
       where: { slug, status: 'ACTIVE' },

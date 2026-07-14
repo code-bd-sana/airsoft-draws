@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { winnersData } from "../../../data/winners/winners.data";
+import React, { useState } from "react";
+import { usePublicWinnersList } from "../../../hooks/useRaffleHooks";
 import WinnersFilterBar from "./WinnersFilterBar";
 import WinnerCard from "./WinnerCard";
 import { cn } from "../../../lib/utils";
@@ -17,58 +17,18 @@ export default function WinnersGrid() {
 
   const itemsPerPage = 8;
 
-  // Process filters, sorting, and pagination
-  const processedWinners = useMemo(() => {
-    // 1. Filter by time ranges
-    // Today is June 26, 2026 (based on local system time)
-    const today = new Date("2026-06-26");
-    
-    const filtered = winnersData.filter((winner) => {
-      if (winnerTypeFilter !== "all" && winner.winnerType !== winnerTypeFilter) {
-        return false;
-      }
+  // Use the API hook
+  const { data: winnersResponse, isLoading } = usePublicWinnersList({
+    activeTab,
+    winnerType: winnerTypeFilter,
+    sortBy,
+    page: currentPage,
+    limit: itemsPerPage,
+  });
 
-      const winDate = new Date(winner.dateString);
-      
-      if (activeTab === "week") {
-        // Within past 7 days (June 19 to June 26, 2026)
-        const sevenDaysAgo = new Date(today);
-        sevenDaysAgo.setDate(today.getDate() - 7);
-        return winDate >= sevenDaysAgo && winDate <= today;
-      }
-      
-      if (activeTab === "month") {
-        // Within active month (June 2026)
-        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-        return winDate >= monthStart && winDate <= today;
-      }
-      
-      return true; // All Time
-    });
-
-    // 2. Sort by date
-    filtered.sort((a, b) => {
-      const dateA = new Date(a.dateString).getTime();
-      const dateB = new Date(b.dateString).getTime();
-      
-      if (sortBy === "newest") {
-        return dateB - dateA;
-      } else {
-        return dateA - dateB;
-      }
-    });
-
-    return filtered;
-  }, [activeTab, sortBy, winnerTypeFilter]);
-
-  // Pagination bounds
-  const totalPages = Math.ceil(processedWinners.length / itemsPerPage) || 1;
-  
-  // Adjust page if filters shrink total items below active page index
+  const visibleWinners = winnersResponse?.data || [];
+  const totalPages = winnersResponse?.meta?.lastPage || 1;
   const activePage = currentPage > totalPages ? totalPages : currentPage;
-  
-  const startIndex = (activePage - 1) * itemsPerPage;
-  const visibleWinners = processedWinners.slice(startIndex, startIndex + itemsPerPage);
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -120,7 +80,9 @@ export default function WinnersGrid() {
           ))}
         </div>
 
-        {visibleWinners.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center h-[400px] text-primary">Loading winners...</div>
+        ) : visibleWinners.length > 0 ? (
           <>
             {/* Grid of Winner Cards: 4 columns desktop, 2 cols tablet, 1 col mobile */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">

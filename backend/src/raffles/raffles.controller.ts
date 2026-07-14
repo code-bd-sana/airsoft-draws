@@ -59,6 +59,12 @@ export class RafflesController {
     return this.rafflesService.getRecentWinners();
   }
 
+  @Get('public/winners')
+  @ApiOperation({ summary: 'Get paginated winners list (public)' })
+  getPublicWinnersList(@Query() query: any) {
+    return this.rafflesService.getPublicWinnersList(query);
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get all active raffles (public)' })
   findAllPublic(@Query() query: any) {

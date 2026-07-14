@@ -95,6 +95,17 @@ export const raffleService = {
     return response.data;
   },
 
+  async getPublicWinnersList(params: {
+    page?: number;
+    limit?: number;
+    activeTab?: string;
+    winnerType?: string;
+    sortBy?: string;
+  }): Promise<{ data: any[]; meta: PaginationMeta }> {
+    const response = await api.get('/raffles/public/winners', { params });
+    return response.data;
+  },
+
   async getPublicRaffles(params: { search?: string; page?: number; limit?: number; category?: string; statusFilter?: string; sort?: string }): Promise<PaginatedResponse<Raffle>> {
     const response = await api.get('/raffles', { params });
     return response.data;
