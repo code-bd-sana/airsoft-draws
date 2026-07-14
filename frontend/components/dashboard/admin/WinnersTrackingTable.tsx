@@ -8,12 +8,14 @@ import VerifyWinnerModal from './VerifyWinnerModal';
 
 export default function WinnersTrackingTable() {
   const [activeFilter, setActiveFilter] = useState('All');
+  const [winTypeFilter, setWinTypeFilter] = useState('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedWinner, setSelectedWinner] = useState<Winner | null>(null);
 
   const queryClient = useQueryClient();
 
   const filters = ['All', 'Pending Verification', 'Verified & Published', 'Prize Delivered'];
+  const winTypeFilters = ['All', 'Main Draw', 'Instant Win'];
 
   const getVerificationQuery = (filter: string) => {
     switch (filter) {
@@ -31,12 +33,24 @@ export default function WinnersTrackingTable() {
     return 'All';
   };
 
+  const getWinTypeQuery = (filter: string) => {
+    switch (filter) {
+      case 'Main Draw':
+        return 'MAIN_DRAW';
+      case 'Instant Win':
+        return 'INSTANT_WIN';
+      default:
+        return 'All';
+    }
+  };
+
   const { data: winnersResponse, isLoading } = useQuery({
-    queryKey: ['adminWinners', activeFilter],
+    queryKey: ['adminWinners', activeFilter, winTypeFilter],
     queryFn: () =>
       winnerService.getAdminWinners({
         verificationStatus: getVerificationQuery(activeFilter),
         status: getDeliveryQuery(activeFilter),
+        winType: getWinTypeQuery(winTypeFilter),
       }),
   });
 
@@ -73,21 +87,41 @@ export default function WinnersTrackingTable() {
 
   return (
     <div className='flex flex-col gap-6 w-full mt-4'>
-      {/* Top Filter Pills */}
-      <div className='flex items-center gap-2'>
-        {filters.map((filter) => (
-          <button
-            key={filter}
-            onClick={() => setActiveFilter(filter)}
-            className={`px-4 py-2 rounded-[8px] font-sans font-medium text-[12px] transition-colors ${
-              activeFilter === filter
-                ? 'bg-transparent border border-[#8CB34A] text-[#E8EDD4]'
-                : 'bg-transparent border border-[#2D3C13] text-[#72943A] hover:bg-[#1A230A] hover:text-[#A0D056]'
-            }`}
-          >
-            {filter}
-          </button>
-        ))}
+      {/* Filters Container */}
+      <div className='flex flex-col lg:flex-row lg:items-center justify-between gap-4'>
+        {/* Status Filters */}
+        <div className='flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0'>
+          {filters.map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setActiveFilter(filter)}
+              className={`px-4 py-2 rounded-[8px] font-sans font-medium text-[12px] whitespace-nowrap transition-colors ${
+                activeFilter === filter
+                  ? 'bg-transparent border border-[#8CB34A] text-[#E8EDD4]'
+                  : 'bg-transparent border border-[#2D3C13] text-[#72943A] hover:bg-[#1A230A] hover:text-[#A0D056]'
+              }`}
+            >
+              {filter}
+            </button>
+          ))}
+        </div>
+
+        {/* Win Type Filters */}
+        <div className='flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0'>
+          {winTypeFilters.map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setWinTypeFilter(filter)}
+              className={`px-4 py-2 rounded-[8px] font-sans font-medium text-[12px] whitespace-nowrap transition-colors ${
+                winTypeFilter === filter
+                  ? 'bg-transparent border border-[#8CB34A] text-[#E8EDD4]'
+                  : 'bg-transparent border border-[#2D3C13] text-[#72943A] hover:bg-[#1A230A] hover:text-[#A0D056]'
+              }`}
+            >
+              {filter}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Table Container */}

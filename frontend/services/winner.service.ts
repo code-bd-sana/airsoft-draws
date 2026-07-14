@@ -39,6 +39,7 @@ export const winnerService = {
     limit?: number;
     status?: string;
     verificationStatus?: string;
+    winType?: string;
   }): Promise<PaginatedResponse<Winner>> {
     const response = await api.get('/admin/winners', { params });
     return response.data;
