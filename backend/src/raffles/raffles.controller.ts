@@ -1,29 +1,29 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-  Req,
-  Query,
-  UseInterceptors,
-  UploadedFile,
   BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
   UnauthorizedException,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { RafflesService } from './raffles.service';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../common/guards/roles.guard';
-import { Roles } from '../common/decorators/roles.decorator';
-import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
+import { JwtService } from '@nestjs/jwt';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { Request } from 'express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import type { Request } from 'express';
-import { JwtService } from '@nestjs/jwt';
+import { Roles } from '../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { RafflesService } from './raffles.service';
 
 @ApiTags('Raffles')
 @Controller('api/v1/raffles')
@@ -51,6 +51,12 @@ export class RafflesController {
   @ApiOperation({ summary: 'Get global raffle statistics (public)' })
   getPublicStats() {
     return this.rafflesService.getPublicStats();
+  }
+
+  @Get('public/recent-winners')
+  @ApiOperation({ summary: 'Get recent winners (public)' })
+  getRecentWinners() {
+    return this.rafflesService.getRecentWinners();
   }
 
   @Get()

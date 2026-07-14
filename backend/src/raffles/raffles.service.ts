@@ -1,8 +1,8 @@
 import {
-  Injectable,
   BadRequestException,
-  NotFoundException,
   ForbiddenException,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -142,7 +142,7 @@ export class RafflesService {
 
     // Base where clause
     const whereClause: any = {
-      status: { in: ['ACTIVE', 'ENDED'] },
+      status: 'ACTIVE',
     };
 
     // Category filter
@@ -195,6 +195,50 @@ export class RafflesService {
         lastPage: Math.ceil(total / Number(limit)),
       },
     };
+  }
+
+  async getRecentWinners() {
+    const winners = await this.prisma.winner.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 4,
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            location: true,
+            avatarUrl: true,
+          },
+        },
+        raffle: {
+          select: {
+            title: true,
+            prizeName: true,
+          },
+        },
+      },
+    });
+
+    return winners.map((w) => ({
+      id: w.id,
+      name: w.user.firstName
+        ? `${w.user.firstName} ${w.user.lastName?.charAt(0) || ''}.`
+        : 'Anonymous User',
+      initials: w.user.firstName
+        ? `${w.user.firstName.charAt(0)}${w.user.lastName?.charAt(0) || ''}`
+        : 'AU',
+      location: w.user.location || 'Unknown Location',
+      avatarUrl: w.user.avatarUrl,
+      prizeWon: w.prizeName || w.raffle.prizeName,
+      status: w.deliveryStatus,
+      statusText:
+        w.deliveryStatus === 'DELIVERED'
+          ? 'DELIVERED'
+          : w.deliveryStatus === 'SHIPPED'
+            ? 'SHIPPED'
+            : 'VERIFIED',
+      whenWon: w.createdAt.toISOString(),
+    }));
   }
 
   async findOnePublic(slug: string) {
@@ -524,9 +568,9 @@ export class RafflesService {
       where: { status: { in: ['ACTIVE', 'ENDED'] } },
       _min: { pricePerTicket: true },
     });
-    
+
     // Parse the decimal value, default to 1 if none found
-    const minimumEntry = minEntryAgg._min.pricePerTicket 
+    const minimumEntry = minEntryAgg._min.pricePerTicket
       ? Number(minEntryAgg._min.pricePerTicket)
       : 1;
 
@@ -534,18 +578,18 @@ export class RafflesService {
       {
         id: 1,
         value: `${drawsCompleted}+`,
-        label: "Draws Completed",
+        label: 'Draws Completed',
       },
       {
         id: 2,
         value: `£${minimumEntry}`,
-        label: "Minimum Entry",
+        label: 'Minimum Entry',
       },
       {
         id: 3,
-        value: "Verified",
-        label: "Fair Draws",
-      }
+        value: 'Verified',
+        label: 'Fair Draws',
+      },
     ];
   }
 }

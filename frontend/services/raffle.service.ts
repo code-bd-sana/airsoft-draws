@@ -35,6 +35,18 @@ export interface Raffle {
   host?: HostProfile;
 }
 
+export interface RecentWinner {
+  id: string;
+  name: string;
+  initials: string;
+  location: string;
+  avatarUrl?: string;
+  prizeWon: string;
+  status: string;
+  statusText: string;
+  whenWon: string;
+}
+
 export interface PaginationMeta {
   total: number;
   page: number;
@@ -68,6 +80,11 @@ export interface UpdateRaffleData extends Partial<CreateRaffleData> {
 export const raffleService = {
   async getPublicStats(): Promise<{ id: number; value: string; label: string }[]> {
     const response = await api.get('/raffles/public/stats');
+    return response.data;
+  },
+
+  async getRecentWinners(): Promise<RecentWinner[]> {
+    const response = await api.get('/raffles/public/recent-winners');
     return response.data;
   },
 
