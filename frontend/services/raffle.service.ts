@@ -1,5 +1,19 @@
 import { api } from './api';
 
+export interface User {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  avatarUrl: string | null;
+}
+
+export interface HostProfile {
+  id: string;
+  businessName: string;
+  user?: User;
+}
+
 export interface Raffle {
   id: string;
   hostId: string;
@@ -14,8 +28,11 @@ export interface Raffle {
   startDate: string;
   endDate: string;
   status: 'DRAFT' | 'PENDING_APPROVAL' | 'ACTIVE' | 'ENDED' | 'CANCELLED';
+  isAutoDraw?: boolean;
+  autoDrawDate?: boolean;
+  autoDrawSoldOut?: boolean;
   createdAt: string;
-  host?: any;
+  host?: HostProfile;
 }
 
 export const raffleService = {
@@ -87,7 +104,7 @@ export const raffleService = {
     return response.data;
   },
 
-  async getAdminAllRaffles(params?: { search?: string; page?: number; limit?: number; status?: string }): Promise<any> {
+  async getAdminAllRaffles(params?: { search?: string; page?: number; limit?: number; status?: string }): Promise<{ data: Raffle[], meta: any }> {
     const response = await api.get('/raffles/admin/all', { params });
     return response.data;
   },

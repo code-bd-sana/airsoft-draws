@@ -5,9 +5,10 @@ import DrawOverviewTab from "./DrawOverviewTab";
 import DrawEntriesTab from "./DrawEntriesTab";
 import DrawAuditLogTab from "./DrawAuditLogTab";
 import { format } from "date-fns";
+import { Raffle } from "../../../../services/raffle.service";
 
 interface DrawDetailsPanelProps {
-  draw: any;
+  draw: Raffle;
   onClose: () => void;
 }
 
@@ -25,7 +26,7 @@ export default function DrawDetailsPanel({ draw, onClose }: DrawDetailsPanelProp
     }
   };
 
-  const getDrawType = (d: any) => {
+  const getDrawType = (d: Raffle) => {
     if (!d.isAutoDraw) return "Manual (Host)";
     if (d.isAutoDraw && d.autoDrawSoldOut) return "Auto (Sold Out)";
     return "Auto (Date)";

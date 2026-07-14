@@ -6,11 +6,11 @@ import DrawsTable from "./DrawsTable";
 import LiveDrawMonitor from "./LiveDrawMonitor";
 import DrawDetailsPanel from "./DrawDetailsPanel";
 import { useQuery } from "@tanstack/react-query";
-import { raffleService } from "../../../../services/raffle.service";
+import { raffleService, Raffle } from "../../../../services/raffle.service";
 
 export default function AdminDrawsManager() {
   const [activeFilter, setActiveFilter] = useState("All");
-  const [selectedDraw, setSelectedDraw] = useState<any | null>(null);
+  const [selectedDraw, setSelectedDraw] = useState<Raffle | null>(null);
 
   const filters = ["All", "Upcoming Draws", "In Progress", "Completed"];
 
