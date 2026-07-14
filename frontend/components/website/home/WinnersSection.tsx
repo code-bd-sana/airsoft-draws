@@ -85,12 +85,14 @@ export default function WinnersSection() {
               <div>
                 <div className='flex items-center justify-between mb-4'>
                   {winner.avatarUrl ? (
-                    <div className='w-12 h-12 rounded overflow-hidden border border-divider'>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                    <div className='relative w-12 h-12 rounded overflow-hidden border border-divider'>
+                      <Image
                         src={winner.avatarUrl}
                         alt={winner.name}
-                        className='w-full h-full object-cover'
+                        fill
+                        unoptimized
+                        sizes="(max-width: 48px) 100vw, 48px"
+                        className='object-cover'
                       />
                     </div>
                   ) : (
