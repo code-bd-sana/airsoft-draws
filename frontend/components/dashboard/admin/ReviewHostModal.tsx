@@ -33,7 +33,7 @@ export default function ReviewHostModal({ isOpen, onClose, data }: ReviewHostMod
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h2 className="font-heading font-medium text-[20px] text-[#E8EDD4]">
-            Review Host Application
+            Host Details
           </h2>
           <button 
             onClick={onClose}
@@ -84,15 +84,9 @@ export default function ReviewHostModal({ isOpen, onClose, data }: ReviewHostMod
         <div className="flex items-center gap-4 mt-10">
           <button 
             onClick={onClose}
-            className="flex-1 h-[48px] rounded-[8px] bg-transparent border border-[#7F1D1D] hover:bg-[#7F1D1D]/10 text-[#f76b6b] font-heading font-medium text-[15px] transition-colors"
+            className="w-full h-[48px] rounded-[8px] bg-[#1A230A] border border-[#2D3C13] hover:bg-[#2D3C13] text-[#E8EDD4] font-heading font-medium text-[15px] transition-colors"
           >
-            Reject
-          </button>
-          <button 
-            onClick={onClose}
-            className="flex-1 h-[48px] rounded-[8px] bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] font-heading font-medium text-[15px] transition-colors"
-          >
-            Approve Host
+            Close
           </button>
         </div>
 

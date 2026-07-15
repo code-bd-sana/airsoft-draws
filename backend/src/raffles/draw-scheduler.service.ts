@@ -9,7 +9,7 @@ export class DrawSchedulerService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly rafflesService: RafflesService
+    private readonly rafflesService: RafflesService,
   ) {}
 
   @Cron(CronExpression.EVERY_MINUTE)
@@ -23,24 +23,33 @@ export class DrawSchedulerService {
         isAutoDraw: true,
         autoDrawDate: true,
         endDate: {
-          lte: now
-        }
-      }
+          lte: now,
+        },
+      },
     });
 
     if (expiredRaffles.length === 0) {
       return;
     }
 
-    this.logger.log(`Found ${expiredRaffles.length} competition(s) to auto-draw.`);
+    this.logger.log(
+      `Found ${expiredRaffles.length} competition(s) to auto-draw.`,
+    );
 
     for (const raffle of expiredRaffles) {
       try {
-        this.logger.log(`Drawing winner for competition ID: ${raffle.id} - ${raffle.title}`);
+        this.logger.log(
+          `Drawing winner for competition ID: ${raffle.id} - ${raffle.title}`,
+        );
         await this.rafflesService.drawWinner(raffle.id);
-        this.logger.log(`Successfully drawn winner for competition ID: ${raffle.id}`);
+        this.logger.log(
+          `Successfully drawn winner for competition ID: ${raffle.id}`,
+        );
       } catch (error: any) {
-        this.logger.error(`Failed to draw winner for competition ID: ${raffle.id}`, error.stack);
+        this.logger.error(
+          `Failed to draw winner for competition ID: ${raffle.id}`,
+          error.stack,
+        );
       }
     }
   }

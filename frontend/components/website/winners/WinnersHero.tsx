@@ -1,9 +1,30 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { raffleService } from "../../../services/raffle.service";
 
 /**
  * Renders the hero block for the Winners page, including transparency key statistics.
  */
 export default function WinnersHero() {
+  const [stats, setStats] = useState({
+    prizesAwarded: "£0",
+    totalWinners: 0,
+    verifiedDraws: "0",
+  });
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const data = await raffleService.getPublicWinnerStats();
+        if (data) setStats(data);
+      } catch (error) {
+        console.error("Failed to load winner stats", error);
+      }
+    }
+    loadStats();
+  }, []);
+
   return (
     <section className="bg-surface border-b border-divider pt-32 pb-16 md:pt-36 md:pb-20 select-none">
       <div className="container-custom flex flex-col items-center text-center">
@@ -21,7 +42,7 @@ export default function WinnersHero() {
           {/* Stat 1: Prizes Awarded */}
           <div className="flex flex-col items-center text-center flex-1">
             <span className="font-heading font-bold text-3xl md:text-4xl text-text-brand">
-              £180,000+
+              {stats.prizesAwarded}
             </span>
             <span className="font-sans text-xs text-text-muted mt-2 font-medium">
               Prizes Awarded
@@ -34,7 +55,7 @@ export default function WinnersHero() {
           {/* Stat 2: Total Winners */}
           <div className="flex flex-col items-center text-center flex-1">
             <span className="font-heading font-bold text-3xl md:text-4xl text-text-brand">
-              12,400+
+              {stats.totalWinners.toLocaleString()}+
             </span>
             <span className="font-sans text-xs text-text-muted mt-2 font-medium">
               Total Winners
@@ -47,7 +68,7 @@ export default function WinnersHero() {
           {/* Stat 3: Verified Draws */}
           <div className="flex flex-col items-center text-center flex-1">
             <span className="font-heading font-bold text-3xl md:text-4xl text-text-brand">
-              100%
+              {stats.verifiedDraws}
             </span>
             <span className="font-sans text-xs text-text-muted mt-2 font-medium">
               Verified Draws

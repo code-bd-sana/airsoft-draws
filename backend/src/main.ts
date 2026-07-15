@@ -54,7 +54,7 @@ async function bootstrap() {
     .setVersion('1.0')
     .addBearerAuth()
     .build();
-  
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
@@ -63,7 +63,7 @@ async function bootstrap() {
   // Print all available API routes beautifully in the terminal
   const server = app.getHttpAdapter().getInstance();
   const endpoints = listEndpoints(server);
-  
+
   const logger = new Logger('API_ROUTES');
   logger.log('========================================================');
   logger.log('🚀 AVAILABLE API ENDPOINTS:');
@@ -71,12 +71,18 @@ async function bootstrap() {
   endpoints.forEach((endpoint) => {
     endpoint.methods.forEach((method) => {
       // Exclude Swagger internal endpoints
-      if (!endpoint.path.includes('swagger') && !endpoint.path.includes('/api/favicon') && !endpoint.path.includes('/api-json')) {
+      if (
+        !endpoint.path.includes('swagger') &&
+        !endpoint.path.includes('/api/favicon') &&
+        !endpoint.path.includes('/api-json')
+      ) {
         logger.log(`[${method.padEnd(6)}] ${endpoint.path}`);
       }
     });
   });
   logger.log('========================================================');
-  logger.log(`📝 Swagger Docs available at: http://localhost:${process.env.PORT ?? 5000}/api`);
+  logger.log(
+    `📝 Swagger Docs available at: http://localhost:${process.env.PORT ?? 5000}/api`,
+  );
 }
 bootstrap();

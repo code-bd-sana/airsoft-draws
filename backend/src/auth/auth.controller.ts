@@ -1,4 +1,14 @@
-import { Controller, Post, Get, Body, HttpCode, HttpStatus, Res, Req, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Res,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
@@ -26,10 +36,16 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login user and set cookie' })
   @ApiResponse({ status: 200, description: 'User successfully logged in' })
-  @ApiResponse({ status: 401, description: 'Invalid credentials or unverified email' })
-  async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
+  @ApiResponse({
+    status: 401,
+    description: 'Invalid credentials or unverified email',
+  })
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const result = await this.authService.login(loginDto);
-    
+
     res.cookie('accessToken', result.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -80,7 +96,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Resend verification email' })
   @ApiResponse({ status: 200, description: 'Verification email sent' })
-  async resendVerification(@Body() resendVerificationDto: ResendVerificationDto) {
+  async resendVerification(
+    @Body() resendVerificationDto: ResendVerificationDto,
+  ) {
     return this.authService.resendVerification(resendVerificationDto);
   }
 

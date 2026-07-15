@@ -1,60 +1,67 @@
 "use client";
 
 import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { adminService, HostData } from "../../../services/admin.service";
 import ReviewHostModal, { HostApplicationData } from "./ReviewHostModal";
-
-const MOCK_HOSTS = [
-  { id: "1", initials: "TG", name: "Tactical Gear UK", email: "contact@tacticaluk.com", plan: "Pro", raffles: 24, revenue: "£12,400", status: "Active" },
-  { id: "2", initials: "AW", name: "Airsoft World", email: "info@airsoftworld.co", plan: "Premium", raffles: 18, revenue: "£10,800", status: "Active" },
-  { id: "3", initials: "CZ", name: "Combat Zone Ltd", email: "admin@combatzone.io", plan: "Pending Approval", raffles: 0, revenue: "£0", status: "Pending Approval" },
-  { id: "4", initials: "ES", name: "Elite Shooters", email: "elite@shooters.co.uk", plan: "Free", raffles: 5, revenue: "£3,200", status: "Active" },
-  { id: "5", initials: "SF", name: "Strike Force Co", email: "ops@strikeforce.co", plan: "Premium", raffles: 11, revenue: "£7,800", status: "Suspended" },
-  { id: "6", initials: "AT", name: "Alpha Tactical", email: "team@alphatactical.com", plan: "Pending Approval", raffles: 0, revenue: "£0", status: "Pending Approval" },
-];
+import ConfirmBlockModal from "./ConfirmBlockModal";
 
 export default function HostsTable() {
   const [activeFilter, setActiveFilter] = useState("All");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedHost, setSelectedHost] = useState<HostApplicationData | null>(null);
+  
+  const [blockModalHost, setBlockModalHost] = useState<HostData | null>(null);
 
-  const handleReview = (host: any) => {
-    // Constructing mock detailed data for the modal based on the selected row
+  const queryClient = useQueryClient();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-hosts', page, activeFilter, search],
+    queryFn: () => adminService.getHosts({
+      page,
+      limit: 10,
+      search,
+      status: activeFilter
+    }),
+  });
+
+  const toggleBlockMutation = useMutation({
+    mutationFn: (userId: string) => adminService.toggleBlockStatus(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-hosts'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-hosts-stats'] });
+      setBlockModalHost(null);
+    },
+  });
+
+  const handleReview = (host: HostData) => {
+    // Construct detailed data for the modal based on the selected row
     setSelectedHost({
       id: host.id,
-      brandName: host.name,
+      brandName: host.businessName || "N/A",
       email: host.email,
-      bio: "Specialist airsoft retailer with 8 years experience",
-      contact: "+44 7700 900123",
-      payoutMethod: "Bank Transfer — Barclays ****4921",
-      social: "@tacticaluk on Instagram",
+      bio: "N/A", // This could be fetched from host profile if available
+      contact: "N/A", // This could be fetched from host profile if available
+      payoutMethod: "N/A",
+      social: "N/A",
     });
     setIsModalOpen(true);
   };
 
-  const getStatusPill = (status: string) => {
-    switch (status) {
-      case "Active":
-        return <span className="px-3 py-1 rounded-full border border-[#4ADE80]/30 bg-[#083b18] text-[#4ADE80] font-sans font-medium text-[10px]">Active</span>;
-      case "Pending Approval":
-        return <span className="px-3 py-1 rounded-full border border-[#D97706]/30 bg-[#78350F] text-[#F59E0B] font-sans font-medium text-[10px]">Pending Approval</span>;
-      case "Suspended":
-        return <span className="px-3 py-1 rounded-full border border-[#EF4444]/30 bg-[#7F1D1D] text-[#f76b6b] font-sans font-medium text-[10px]">Suspended</span>;
-      default:
-        return null;
+  const getStatusPill = (isBlocked: boolean) => {
+    if (isBlocked) {
+      return <span className="px-3 py-1 rounded-full border border-[#EF4444]/30 bg-[#7F1D1D] text-[#f76b6b] font-sans font-medium text-[10px]">Blocked</span>;
     }
+    return <span className="px-3 py-1 rounded-full border border-[#4ADE80]/30 bg-[#083b18] text-[#4ADE80] font-sans font-medium text-[10px]">Active</span>;
   };
 
   const getPlanPill = (plan: string) => {
-    switch (plan) {
-      case "Pro":
-      case "Premium":
-      case "Free":
-        return <span className="px-3 py-1 rounded-full border border-[#8CB34A] bg-[#1A230A] text-[#A0D056] font-sans font-medium text-[10px]">{plan}</span>;
-      case "Pending Approval":
-        return <span className="px-3 py-1 rounded-full border border-[#D97706]/30 bg-[#78350F] text-[#F59E0B] font-sans font-medium text-[10px]">{plan}</span>;
-      default:
-        return null;
+    if (plan === "Pending Approval") {
+      return <span className="px-3 py-1 rounded-full border border-[#D97706]/30 bg-[#78350F] text-[#F59E0B] font-sans font-medium text-[10px]">{plan}</span>;
     }
+    return <span className="px-3 py-1 rounded-full border border-[#8CB34A] bg-[#1A230A] text-[#A0D056] font-sans font-medium text-[10px]">{plan || 'Free'}</span>;
   };
 
   return (
@@ -73,16 +80,18 @@ export default function HostsTable() {
             <input 
               type="text" 
               placeholder="Search hosts..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               className="bg-transparent border-none outline-none text-[#E8EDD4] text-[13px] placeholder:text-[#5A752A] w-full ml-2 font-sans"
             />
           </div>
 
           {/* Filter Pills */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            {["All", "Pending", "Active", "Suspended"].map((filter) => (
+            {["All", "Active", "Blocked"].map((filter) => (
               <button
                 key={filter}
-                onClick={() => setActiveFilter(filter)}
+                onClick={() => { setActiveFilter(filter); setPage(1); }}
                 className={`px-4 py-1.5 rounded-full text-[12px] font-sans font-medium transition-colors whitespace-nowrap ${
                   activeFilter === filter 
                     ? 'border border-[#8CB34A] text-[#8CB34A]' 
@@ -111,69 +120,80 @@ export default function HostsTable() {
             </tr>
           </thead>
           <tbody>
-            {MOCK_HOSTS.map((host, i) => (
-              <tr key={host.id} className={`${i !== MOCK_HOSTS.length - 1 ? 'border-b border-[#2D3C13]' : ''} hover:bg-[#1A230A] transition-colors`}>
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#1A230A] border border-[#43581E] flex items-center justify-center shrink-0">
-                      <span className="font-sans font-medium text-[11px] text-[#8CB34A]">{host.initials}</span>
-                    </div>
-                    <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">{host.name}</span>
-                  </div>
-                </td>
-                <td className="py-4 px-6">
-                  <span className="font-sans text-[13px] text-[#72943A]">{host.email}</span>
-                </td>
-                <td className="py-4 px-6 text-center">
-                  {getPlanPill(host.plan)}
-                </td>
-                <td className="py-4 px-6 text-center">
-                  <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">{host.raffles}</span>
-                </td>
-                <td className="py-4 px-6 text-center">
-                  <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">{host.revenue}</span>
-                </td>
-                <td className="py-4 px-6 text-center">
-                  {getStatusPill(host.status)}
-                </td>
-                <td className="py-4 px-6">
-                  <div className="flex items-center justify-end gap-3">
-                    <button 
-                      onClick={() => handleReview(host)}
-                      className="text-[#5A752A] hover:text-[#8CB34A] transition-colors" 
-                      title="View details"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                      </svg>
-                    </button>
-                    
-                    {host.status === "Pending Approval" ? (
-                      <>
-                        <button 
-                          onClick={() => handleReview(host)}
-                          className="px-3 py-1 rounded-[6px] bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] font-sans font-medium text-[11px] transition-colors"
-                        >
-                          Approve
-                        </button>
-                        <button className="text-[#f76b6b] hover:text-[#ef4444] transition-colors" title="Reject">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                          </svg>
-                        </button>
-                      </>
-                    ) : (
-                      <button className="text-[#5A752A] hover:text-[#f76b6b] transition-colors" title="Suspend/Pause">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
+            {isLoading ? (
+              <tr>
+                <td colSpan={7} className="py-8 text-center text-[#5A752A] font-sans text-sm">
+                  Loading hosts...
                 </td>
               </tr>
-            ))}
+            ) : data?.hosts?.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="py-8 text-center text-[#5A752A] font-sans text-sm">
+                  No hosts found.
+                </td>
+              </tr>
+            ) : (
+              data?.hosts?.map((host: HostData, i: number) => (
+                <tr key={host.id} className={`${i !== data.hosts.length - 1 ? 'border-b border-[#2D3C13]' : ''} hover:bg-[#1A230A] transition-colors`}>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-[#1A230A] border border-[#43581E] flex items-center justify-center shrink-0">
+                        <span className="font-sans font-medium text-[11px] text-[#8CB34A]">
+                          {host.businessName?.substring(0, 2).toUpperCase() || 'NA'}
+                        </span>
+                      </div>
+                      <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">{host.businessName || 'N/A'}</span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className="font-sans text-[13px] text-[#72943A]">{host.email}</span>
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    {getPlanPill(host.plan)}
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">{host.raffles}</span>
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">£{host.revenue?.toFixed(2) || '0.00'}</span>
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    {getStatusPill(host.isBlocked)}
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center justify-end gap-3">
+                      <button 
+                        onClick={() => handleReview(host)}
+                        className="text-[#5A752A] hover:text-[#8CB34A] transition-colors" 
+                        title="View details"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                        </svg>
+                      </button>
+                      
+                      <button 
+                        onClick={() => setBlockModalHost(host)}
+                        disabled={toggleBlockMutation.isPending}
+                        className={`transition-colors ${host.isBlocked ? 'text-[#f76b6b] hover:text-[#4ADE80]' : 'text-[#5A752A] hover:text-[#f76b6b]'}`} 
+                        title={host.isBlocked ? "Unblock Host" : "Block Host"}
+                      >
+                        {host.isBlocked ? (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -182,6 +202,15 @@ export default function HostsTable() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         data={selectedHost} 
+      />
+
+      <ConfirmBlockModal 
+        isOpen={!!blockModalHost}
+        onClose={() => setBlockModalHost(null)}
+        onConfirm={() => blockModalHost && toggleBlockMutation.mutate(blockModalHost.userId)}
+        isLoading={toggleBlockMutation.isPending}
+        isBlocked={blockModalHost?.isBlocked ?? false}
+        userIdentifier={blockModalHost?.businessName || blockModalHost?.email || ""}
       />
     </div>
   );

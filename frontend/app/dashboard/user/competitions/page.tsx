@@ -219,10 +219,10 @@ export default function UserRafflesPage() {
             })}
           </div>
 
-          {meta && meta.lastPage > 1 && (
+          {meta && meta.totalPages > 1 && (
             <Pagination
               currentPage={page}
-              totalPages={meta.lastPage}
+              totalPages={meta.totalPages}
               onPageChange={(newPage) => setPage(newPage)}
             />
           )}

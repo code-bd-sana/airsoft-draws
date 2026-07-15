@@ -1,11 +1,36 @@
-import React from "react";
-import { trustStatsData, trustBenefitsData } from "../../../data/homepage/trust-benefits.data";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { trustBenefitsData } from "../../../data/homepage/trust-benefits.data";
 import StatCard from "../shared/StatCard";
+import { raffleService } from "../../../services/raffle.service";
+
+interface TrustStat {
+  id: number;
+  value: string;
+  label: string;
+}
 
 /**
  * Trust & Statistics section containing stats counters and platform benefits.
  */
 export default function TrustBenefitsSection() {
+  const [stats, setStats] = useState<TrustStat[]>([]);
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const fetchedStats = await raffleService.getPublicStats();
+        if (fetchedStats && fetchedStats.length > 0) {
+          setStats(fetchedStats);
+        }
+      } catch (error) {
+        console.error("Failed to load public stats", error);
+      }
+    }
+    loadStats();
+  }, []);
+
   // Render benefit icons
   const renderBenefitIcon = (iconName: string) => {
     const classes = "w-6 h-6 text-text-brand";
@@ -33,6 +58,9 @@ export default function TrustBenefitsSection() {
     }
   };
 
+  // Only render marquee if stats are loaded to prevent flash of empty space
+  const displayStats = stats.length > 0 ? stats : [];
+
   return (
     <section className="py-20 bg-surface border-t border-divider">
       <div className="container-custom">
@@ -42,13 +70,15 @@ export default function TrustBenefitsSection() {
           <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-bg to-transparent z-10 pointer-events-none rounded-l-card" />
           <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-bg to-transparent z-10 pointer-events-none rounded-r-card" />
 
-          <div className="flex w-max animate-marquee gap-16 md:gap-32">
-            {[...trustStatsData, ...trustStatsData, ...trustStatsData, ...trustStatsData].map((stat, index) => (
-              <div key={`${stat.id}-${index}`} className="shrink-0 min-w-[180px] md:min-w-[220px]">
-                <StatCard stat={stat} />
-              </div>
-            ))}
-          </div>
+          {displayStats.length > 0 && (
+            <div className="flex w-max animate-marquee gap-16 md:gap-32">
+              {[...displayStats, ...displayStats, ...displayStats, ...displayStats].map((stat, index) => (
+                <div key={`${stat.id}-${index}`} className="shrink-0 min-w-[180px] md:min-w-[220px]">
+                  <StatCard stat={{ ...stat, id: String(stat.id) }} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Benefits Grid */}

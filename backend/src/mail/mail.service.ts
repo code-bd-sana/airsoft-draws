@@ -21,7 +21,7 @@ export class MailService {
 
   async sendVerificationEmail(email: string, token: string) {
     const verificationUrl = `${config.frontend.url}/verify-email?token=${token}`;
-    
+
     try {
       await this.transporter.sendMail({
         from: config.mail.from,
@@ -42,14 +42,17 @@ export class MailService {
       });
       this.logger.log(`Verification email sent to ${email}`);
     } catch (error) {
-      this.logger.error(`Failed to send verification email to ${email}`, error.stack);
+      this.logger.error(
+        `Failed to send verification email to ${email}`,
+        error.stack,
+      );
       // In production, we might want to throw or handle this gracefully
     }
   }
 
   async sendPasswordResetEmail(email: string, token: string) {
     const resetUrl = `${config.frontend.url}/reset-password?token=${token}`;
-    
+
     try {
       await this.transporter.sendMail({
         from: config.mail.from,
@@ -70,7 +73,10 @@ export class MailService {
       });
       this.logger.log(`Password reset email sent to ${email}`);
     } catch (error) {
-      this.logger.error(`Failed to send password reset email to ${email}`, error.stack);
+      this.logger.error(
+        `Failed to send password reset email to ${email}`,
+        error.stack,
+      );
     }
   }
 }

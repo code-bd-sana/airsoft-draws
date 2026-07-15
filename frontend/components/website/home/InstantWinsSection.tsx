@@ -1,28 +1,63 @@
 "use client";
 
-import React, { useState } from "react";
-import { instantWinDrawsData } from "../../../data/homepage/featured-draws.data";
+import React, { useState, useEffect } from "react";
 import SectionHeader from "../shared/SectionHeader";
 import DrawCard from "../shared/DrawCard";
 import { cn } from "../../../lib/utils";
+import { raffleService } from "../../../services/raffle.service";
+import { categoryService, Category } from "../../../services/category.service";
+import type { Draw } from "../../../types/draw.types";
 
 /**
  * Instant Wins draws section with interactive client category filtering.
  */
 export default function InstantWinsSection() {
   const [activeCategory, setActiveCategory] = useState("all");
+  const [draws, setDraws] = useState<Draw[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filterTabs = [
-    { label: "All", value: "all" },
-    { label: "Gaming", value: "gaming" },
-    { label: "Tech", value: "tech" },
-    { label: "Luxury", value: "luxury" },
-  ];
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [fetchedCategories, fetchedDraws] = await Promise.all([
+          categoryService.getPublicCategories(),
+          raffleService.getInstantWinRaffles(12)
+        ]);
+        
+        setCategories(fetchedCategories);
+
+        if (fetchedDraws.data && fetchedDraws.data.length > 0) {
+          const mappedDraws: Draw[] = fetchedDraws.data.map((r: any) => ({
+            id: r.id,
+            title: r.title,
+            description: r.description,
+            image: r.mainImage || '',
+            ticketPrice: Number(r.pricePerTicket),
+            totalTickets: r.totalTickets,
+            soldTickets: r.ticketsSold,
+            endDate: new Date(r.endDate).toLocaleDateString(),
+            status: (r.status === 'ACTIVE' ? 'live' : 'ended') as "live" | "ended",
+            category: r.category || 'general',
+            slug: r.slug,
+            instantWinsCount: r._count?.instantWins || 0,
+            isInstantWin: (r._count?.instantWins || 0) > 0,
+          }));
+          setDraws(mappedDraws);
+        }
+      } catch (error) {
+        console.error("Failed to fetch instant win draws:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
   // Filter draws
   const filteredDraws = activeCategory === "all"
-    ? instantWinDrawsData
-    : instantWinDrawsData.filter((draw) => draw.category === activeCategory);
+    ? draws
+    : draws.filter((draw) => draw.category === activeCategory);
 
   return (
     <section id="instant-wins" className="py-20 bg-bg border-t border-divider">
@@ -37,54 +72,57 @@ export default function InstantWinsSection() {
 
         {/* Filter Tabs Row */}
         <div className="flex flex-wrap items-center justify-center gap-2 mb-10 max-w-xl mx-auto">
-          {filterTabs.map((tab) => (
+          <button
+            onClick={() => setActiveCategory("all")}
+            className={cn(
+              "font-sans font-semibold text-xs px-5 py-2.5 rounded-button border transition-all duration-200 cursor-pointer select-none",
+              activeCategory === "all"
+                ? "bg-primary border-primary text-primary-text hover:bg-primary-hover"
+                : "bg-surface border-border text-text-muted hover:text-text-primary hover:border-border-medium"
+            )}
+          >
+            All
+          </button>
+          {categories.map((category) => (
             <button
-              key={tab.value}
-              onClick={() => setActiveCategory(tab.value)}
+              key={category.id}
+              onClick={() => setActiveCategory(category.slug)}
               className={cn(
-                "font-sans font-semibold text-xs px-5 py-2.5 rounded-button border transition-all duration-200 cursor-pointer select-none",
-                activeCategory === tab.value
+                "font-sans font-semibold text-xs px-5 py-2.5 rounded-button border transition-all duration-200 cursor-pointer select-none capitalize",
+                activeCategory === category.slug
                   ? "bg-primary border-primary text-primary-text hover:bg-primary-hover"
                   : "bg-surface border-border text-text-muted hover:text-text-primary hover:border-border-medium"
               )}
             >
-              {tab.label}
+              {category.name}
             </button>
           ))}
         </div>
 
         {/* Competitions Grid */}
-        {filteredDraws.length > 0 ? (
+        {loading ? (
+          <div className="text-center text-text-muted py-10">Loading Instant Wins...</div>
+        ) : filteredDraws.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {filteredDraws.map((draw) => (
               <DrawCard key={draw.id} draw={draw} variant="instant" />
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 bg-surface border border-border border-dashed rounded-card max-w-md mx-auto">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-12 h-12 text-text-muted mx-auto mb-4"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-              />
-            </svg>
-            <h3 className="font-heading font-bold text-base text-text-primary mb-1">
-              No Instant Wins Available
-            </h3>
-            <p className="font-sans text-xs text-text-muted">
-              There are no active instant wins in this category right now. Check back soon!
-            </p>
+          <div className="text-center text-text-muted py-10">
+            No instant win competitions found.
           </div>
         )}
 
+        {/* View All Button */}
+        <div className="mt-12 text-center">
+          <a
+            href="/competitions"
+            className="inline-flex items-center justify-center font-sans font-bold text-sm px-8 py-3.5 rounded-button bg-surface border border-border text-text-primary transition-all duration-300 hover:border-border-medium hover:text-text-brand hover:shadow-glow focus:outline-none focus:ring-2 focus:ring-brand/50"
+          >
+            View All Competitions
+          </a>
+        </div>
       </div>
     </section>
   );

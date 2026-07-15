@@ -308,7 +308,7 @@ export default function HostRafflesTable() {
       {!isLoading && meta && meta.total > 0 && (
         <Pagination 
           currentPage={meta.page}
-          totalPages={meta.lastPage}
+          totalPages={meta.totalPages}
           onPageChange={setPage}
         />
       )}

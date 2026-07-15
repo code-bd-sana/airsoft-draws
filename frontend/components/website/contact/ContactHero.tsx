@@ -5,7 +5,7 @@ import React from "react";
  */
 export default function ContactHero() {
   return (
-    <section className="relative w-full bg-surface py-16 border-b border-divider">
+    <section className="relative w-full bg-surface pt-32 pb-16 md:pt-36 md:pb-20 border-b border-divider">
       <div className="container-custom flex flex-col items-center text-center">
         
         {/* Title */}

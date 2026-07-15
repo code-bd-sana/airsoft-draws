@@ -21,7 +21,7 @@ export default function EditRaffleForm({ raffleId }: Props) {
     if (raffle) {
       setFormData({
         title: raffle.title,
-        categoryId: raffle.categoryId,
+        category: (raffle as any).category,
         description: raffle.description,
         prizeName: raffle.prizeName,
         totalTickets: raffle.totalTickets,
@@ -31,12 +31,12 @@ export default function EditRaffleForm({ raffleId }: Props) {
         isAutoDraw: raffle.isAutoDraw,
         autoDrawDate: raffle.autoDrawDate,
         autoDrawSoldOut: raffle.autoDrawSoldOut,
-        guaranteedDraw: raffle.guaranteedDraw,
+        guaranteedDraw: (raffle as any).guaranteedDraw,
       });
     }
   }, [raffle]);
 
-  const hasSoldTickets = raffle?.ticketsSold > 0;
+  const hasSoldTickets = (raffle?.ticketsSold ?? 0) > 0;
 
   const handleChange = (field: string, value: any) => {
     setFormData((prev: any) => ({ ...prev, [field]: value }));

@@ -2,37 +2,65 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateProfileDto {
-  @ApiProperty({ example: 'John', description: 'User first name', required: false })
+  @ApiProperty({
+    example: 'John',
+    description: 'User first name',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   firstName?: string;
 
-  @ApiProperty({ example: 'Doe', description: 'User last name', required: false })
+  @ApiProperty({
+    example: 'Doe',
+    description: 'User last name',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   lastName?: string;
 
-  @ApiProperty({ example: 'New York, USA', description: 'User location', required: false })
+  @ApiProperty({
+    example: 'New York, USA',
+    description: 'User location',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   location?: string;
 
-  @ApiProperty({ example: 'Airsoft Events LLC', description: 'Business name (Hosts only)', required: false })
+  @ApiProperty({
+    example: 'Airsoft Events LLC',
+    description: 'Business name (Hosts only)',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   businessName?: string;
 
-  @ApiProperty({ example: 'We are the best airsoft hosts.', description: 'Host Bio', required: false })
+  @ApiProperty({
+    example: 'We are the best airsoft hosts.',
+    description: 'Host Bio',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   bio?: string;
 
-  @ApiProperty({ example: '+441234567890', description: 'Contact Phone', required: false })
+  @ApiProperty({
+    example: '+441234567890',
+    description: 'Contact Phone',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   phone?: string;
 
-  @ApiProperty({ example: '123 Airsoft Lane, London, UK', description: 'Business Address', required: false })
+  @ApiProperty({
+    example: '123 Airsoft Lane, London, UK',
+    description: 'Business Address',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   address?: string;

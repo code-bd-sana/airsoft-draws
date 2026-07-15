@@ -107,8 +107,8 @@ export default function CreateRaffleWizard() {
       const created = await createRaffle.mutateAsync({
         title: formData.title,
         description: formData.description,
-        ticketPrice: formData.ticketPrice,
-        totalTickets: formData.totalTickets,
+        pricePerTicket: formData.ticketPrice,
+        totalTickets: Number(formData.totalTickets) || 0,
         startDate: formData.startDate,
         endDate: formData.endDate,
         isAutoDraw: formData.isAutoDraw,

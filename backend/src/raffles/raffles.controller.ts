@@ -1,14 +1,29 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query, UseInterceptors, UploadedFile, BadRequestException, UnauthorizedException } from '@nestjs/common';
-import { RafflesService } from './raffles.service';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../common/guards/roles.guard';
-import { Roles } from '../common/decorators/roles.decorator';
-import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UnauthorizedException,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { Request } from 'express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import type { Request } from 'express';
-import { JwtService } from '@nestjs/jwt';
+import { Roles } from '../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { RafflesService } from './raffles.service';
 
 @ApiTags('Raffles')
 @Controller('api/v1/raffles')
@@ -20,8 +35,10 @@ export class RafflesController {
 
   private extractUserId(req: Request): string {
     const token = req.cookies?.accessToken;
-    if (!token) throw new UnauthorizedException('No authentication token found');
+    if (!token)
+      throw new UnauthorizedException('No authentication token found');
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const payload = this.jwtService.verify(token);
       return payload.sub;
     } catch {
@@ -30,6 +47,30 @@ export class RafflesController {
   }
 
   // --- PUBLIC ENDPOINTS ---
+
+  @Get('public/stats')
+  @ApiOperation({ summary: 'Get global raffle statistics (public)' })
+  getPublicStats() {
+    return this.rafflesService.getPublicStats();
+  }
+
+  @Get('public/winner-stats')
+  @ApiOperation({ summary: 'Get stats for the winners page hero (public)' })
+  getPublicWinnerStats() {
+    return this.rafflesService.getPublicWinnerStats();
+  }
+
+  @Get('public/recent-winners')
+  @ApiOperation({ summary: 'Get recent winners (public)' })
+  getRecentWinners() {
+    return this.rafflesService.getRecentWinners();
+  }
+
+  @Get('public/winners')
+  @ApiOperation({ summary: 'Get paginated winners list (public)' })
+  getPublicWinnersList(@Query() query: any) {
+    return this.rafflesService.getPublicWinnersList(query);
+  }
 
   @Get()
   @ApiOperation({ summary: 'Get all active raffles (public)' })
@@ -102,7 +143,9 @@ export class RafflesController {
   @Get('host/:id/winners')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
-  @ApiOperation({ summary: 'Get all winners (Instant + Main) for a competition' })
+  @ApiOperation({
+    summary: 'Get all winners (Instant + Main) for a competition',
+  })
   getWinners(@Req() req: Request, @Param('id') id: string) {
     const hostId = this.extractUserId(req);
     return this.rafflesService.getWinners(id, hostId);
@@ -113,23 +156,35 @@ export class RafflesController {
   @Roles('HOST')
   @ApiOperation({ summary: 'Upload cover image for a raffle' })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: './uploads/raffles',
-      filename: (req, file, cb) => {
-        const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
-        cb(null, `${randomName}${extname(file.originalname)}`);
-      }
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/raffles',
+        filename: (req, file, cb) => {
+          const randomName = Array(32)
+            .fill(null)
+            .map(() => Math.round(Math.random() * 16).toString(16))
+            .join('');
+          cb(null, `${randomName}${extname(file.originalname)}`);
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        if (!file.originalname.match(/\.(jpg|jpeg|png|webp)$/)) {
+          return cb(
+            new BadRequestException('Only image files are allowed!'),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
     }),
-    fileFilter: (req, file, cb) => {
-      if (!file.originalname.match(/\.(jpg|jpeg|png|webp)$/)) {
-        return cb(new BadRequestException('Only image files are allowed!'), false);
-      }
-      cb(null, true);
-    },
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
-  }))
-  async uploadImage(@Req() req: Request, @Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
+  )
+  async uploadImage(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     if (!file) throw new BadRequestException('File is required');
     const hostId = this.extractUserId(req);
     const imageUrl = `${process.env.APP_URL || 'http://127.0.0.1:5000'}/uploads/raffles/${file.filename}`;
@@ -140,23 +195,34 @@ export class RafflesController {
   @Roles('HOST')
   @ApiOperation({ summary: 'Upload a generic image for raffle or instant win' })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: './uploads/raffles',
-      filename: (req, file, cb) => {
-        const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
-        cb(null, `${randomName}${extname(file.originalname)}`);
-      }
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/raffles',
+        filename: (req, file, cb) => {
+          const randomName = Array(32)
+            .fill(null)
+            .map(() => Math.round(Math.random() * 16).toString(16))
+            .join('');
+          cb(null, `${randomName}${extname(file.originalname)}`);
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        if (!file.originalname.match(/\.(jpg|jpeg|png|webp)$/)) {
+          return cb(
+            new BadRequestException('Only image files are allowed!'),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
     }),
-    fileFilter: (req, file, cb) => {
-      if (!file.originalname.match(/\.(jpg|jpeg|png|webp)$/)) {
-        return cb(new BadRequestException('Only image files are allowed!'), false);
-      }
-      cb(null, true);
-    },
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
-  }))
-  async uploadGenericImage(@Req() req: Request, @UploadedFile() file: Express.Multer.File) {
+  )
+  async uploadGenericImage(
+    @Req() req: Request,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     if (!file) throw new BadRequestException('File is required');
     const imageUrl = `${process.env.APP_URL || 'http://127.0.0.1:5000'}/uploads/raffles/${file.filename}`;
     return { url: imageUrl };

@@ -13,12 +13,14 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { RafflesModule } from './raffles/raffles.module';
 import { HostsModule } from './hosts/hosts.module';
 import { TicketsModule } from './tickets/tickets.module';
+import { AdminModule } from './admin/admin.module';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
-    PrismaModule, 
-    MailModule, 
-    AuthModule, 
+    PrismaModule,
+    MailModule,
+    AuthModule,
     UsersModule,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
@@ -29,7 +31,9 @@ import { TicketsModule } from './tickets/tickets.module';
     RafflesModule,
     HostsModule,
     TicketsModule,
+    AdminModule,
     ScheduleModule.forRoot(),
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

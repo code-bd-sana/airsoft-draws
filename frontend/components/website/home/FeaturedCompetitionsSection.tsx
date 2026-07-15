@@ -1,31 +1,80 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { liveDrawsData } from "../../../data/homepage/featured-draws.data";
 import SectionHeader from "../shared/SectionHeader";
 import DrawCard from "../shared/DrawCard";
 import SecondaryButton from "../shared/SecondaryButton";
 import { cn } from "../../../lib/utils";
+import { raffleService } from "../../../services/raffle.service";
+import { categoryService, Category } from "../../../services/category.service";
+import type { Draw } from "../../../types/draw.types";
+
 
 /**
  * Featured Competitions grid section with client-side category filter tabs and horizontal scroll carousel.
  */
 export default function FeaturedCompetitionsSection() {
   const [activeCategory, setActiveCategory] = useState("all");
+  const [draws, setDraws] = useState<Draw[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
-  const filterTabs = [
-    { label: "All", value: "all" },
-    { label: "Rifles", value: "rifles" },
-    { label: "Pistols", value: "pistols" },
-    { label: "Accessories", value: "accessories" },
-    { label: "Cash Prizes", value: "cash" },
-    { label: "Bundles", value: "bundles" },
-  ];
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const fetchedCategories = await categoryService.getPublicCategories();
+        setCategories(fetchedCategories);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    }
+
+    async function fetchDraws() {
+      try {
+        const res = await raffleService.getPublicRaffles({ limit: 10 });
+        if (res.data && res.data.length > 0) {
+          const mappedDraws: Draw[] = res.data.map(r => ({
+            id: r.id,
+            title: r.title,
+            description: r.description,
+            image: r.mainImage || '',
+            ticketPrice: Number(r.pricePerTicket),
+            totalTickets: r.totalTickets,
+            soldTickets: r.ticketsSold,
+            endDate: new Date(r.endDate).toLocaleDateString(),
+            status: (r.status === 'ACTIVE' ? 'live' : 'ended') as "live" | "ended",
+            category: r.category || 'general',
+            slug: r.slug,
+            instantWinsCount: r._count?.instantWins || 0,
+            isInstantWin: (r._count?.instantWins || 0) > 0,
+          }));
+          setDraws(mappedDraws);
+        }
+      } catch (err) {
+        console.error("Failed to fetch featured draws:", err);
+      }
+    }
+    fetchCategories();
+    fetchDraws();
+  }, [activeCategory]);
+
+  const scrollLeft = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: -350, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: 350, behavior: 'smooth' });
+    }
+  };
 
   // Filter the draws
   const filteredDraws = activeCategory === "all"
-    ? liveDrawsData
-    : liveDrawsData.filter((draw) => draw.category === activeCategory);
+    ? draws
+    : draws.filter((draw) => draw.category === activeCategory);
 
   // Render arrow SVG icon
   const arrowIcon = (
@@ -58,30 +107,69 @@ export default function FeaturedCompetitionsSection() {
 
         {/* Filter Tabs Row */}
         <div className="flex flex-wrap items-center justify-center gap-2 mb-10 max-w-3xl mx-auto">
-          {filterTabs.map((tab) => (
+          <button
+            onClick={() => setActiveCategory("all")}
+            className={cn(
+              "font-sans font-semibold text-xs px-5 py-2.5 rounded-button border transition-all duration-200 cursor-pointer select-none",
+              activeCategory === "all"
+                ? "bg-primary border-primary text-primary-text hover:bg-primary-hover"
+                : "bg-surface border-border text-text-muted hover:text-text-primary hover:border-border-medium"
+            )}
+          >
+            All
+          </button>
+          {categories.map((category) => (
             <button
-              key={tab.value}
-              onClick={() => setActiveCategory(tab.value)}
+              key={category.id}
+              onClick={() => setActiveCategory(category.slug)}
               className={cn(
-                "font-sans font-semibold text-xs px-5 py-2.5 rounded-button border transition-all duration-200 cursor-pointer select-none",
-                activeCategory === tab.value
+                "font-sans font-semibold text-xs px-5 py-2.5 rounded-button border transition-all duration-200 cursor-pointer select-none capitalize",
+                activeCategory === category.slug
                   ? "bg-primary border-primary text-primary-text hover:bg-primary-hover"
                   : "bg-surface border-border text-text-muted hover:text-text-primary hover:border-border-medium"
               )}
             >
-              {tab.label}
+              {category.name}
             </button>
           ))}
         </div>
 
-        {/* Competitions Carousel */}
+        {/* Competitions Carousel Wrapper */}
         {filteredDraws.length > 0 ? (
-          <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 md:gap-8 mb-12 pb-6 -mx-4 px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {filteredDraws.map((draw) => (
-              <div key={draw.id} className="snap-center shrink-0 w-[85vw] sm:w-[350px] lg:w-[400px]">
-                <DrawCard draw={draw} />
-              </div>
-            ))}
+          <div className="relative group">
+            {/* Left Scroll Button */}
+            <button 
+              onClick={scrollLeft}
+              className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-surface border border-border shadow-md text-text-secondary hover:text-text-primary hover:border-border-medium hover:scale-105 transition-all focus:outline-none opacity-0 group-hover:opacity-100"
+              aria-label="Scroll left"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+
+            {/* Carousel Container */}
+            <div 
+              ref={carouselRef}
+              className="flex overflow-x-auto snap-x snap-mandatory gap-6 md:gap-8 mb-12 pb-6 -mx-4 px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth"
+            >
+              {filteredDraws.map((draw) => (
+                <div key={draw.id} className="snap-center shrink-0 w-[85vw] sm:w-[350px] lg:w-[400px]">
+                  <DrawCard draw={draw} />
+                </div>
+              ))}
+            </div>
+
+            {/* Right Scroll Button */}
+            <button 
+              onClick={scrollRight}
+              className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-surface border border-border shadow-md text-text-secondary hover:text-text-primary hover:border-border-medium hover:scale-105 transition-all focus:outline-none opacity-0 group-hover:opacity-100"
+              aria-label="Scroll right"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
           </div>
         ) : (
           <div className="text-center py-16 bg-surface border border-border border-dashed rounded-card max-w-md mx-auto">
