@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, UploadedFile, BadRequestException, Req } from '@nestjs/common';
+import type { Request } from 'express';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -95,9 +96,12 @@ export class CategoriesController {
       limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
     }),
   )
-  async uploadCategoryImage(@UploadedFile() file: Express.Multer.File) {
+  async uploadCategoryImage(@Req() req: Request, @UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException('File is required');
-    const imageUrl = `${process.env.APP_URL || 'http://127.0.0.1:5000'}/uploads/categories/${file.filename}`;
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers['x-forwarded-host'] || req.headers.host || '127.0.0.1:5000';
+    const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
+    const imageUrl = `${baseUrl}/uploads/categories/${file.filename}`;
     return { url: imageUrl };
   }
 }
