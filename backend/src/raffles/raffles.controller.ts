@@ -38,6 +38,7 @@ export class RafflesController {
     if (!token)
       throw new UnauthorizedException('No authentication token found');
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const payload = this.jwtService.verify(token);
       return payload.sub;
     } catch {

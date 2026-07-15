@@ -87,7 +87,7 @@ export default function LiveRaffleGrid() {
   });
 
   const filteredRaffles = rafflesResponse?.data || [];
-  const totalPages = rafflesResponse?.meta?.lastPage || 1;
+  const totalPages = rafflesResponse?.meta?.totalPages || 1;
 
   const resetFilters = () => {
     setSearchQuery("");

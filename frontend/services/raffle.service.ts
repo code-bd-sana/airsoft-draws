@@ -31,6 +31,9 @@ export interface Raffle {
   isAutoDraw?: boolean;
   autoDrawDate?: boolean;
   autoDrawSoldOut?: boolean;
+  category?: string;
+  guaranteedDraw?: boolean;
+  _count?: { instantWins: number; [key: string]: number };
   createdAt: string;
   host?: HostProfile;
 }

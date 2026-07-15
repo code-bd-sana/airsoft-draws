@@ -27,7 +27,7 @@ export default function WinnersGrid() {
   });
 
   const visibleWinners = winnersResponse?.data || [];
-  const totalPages = winnersResponse?.meta?.lastPage || 1;
+  const totalPages = winnersResponse?.meta?.totalPages || 1;
   const activePage = currentPage > totalPages ? totalPages : currentPage;
 
   const handlePageChange = (page: number) => {

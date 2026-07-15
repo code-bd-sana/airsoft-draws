@@ -74,7 +74,7 @@ export default function TrustBenefitsSection() {
             <div className="flex w-max animate-marquee gap-16 md:gap-32">
               {[...displayStats, ...displayStats, ...displayStats, ...displayStats].map((stat, index) => (
                 <div key={`${stat.id}-${index}`} className="shrink-0 min-w-[180px] md:min-w-[220px]">
-                  <StatCard stat={stat} />
+                  <StatCard stat={{ ...stat, id: String(stat.id) }} />
                 </div>
               ))}
             </div>

@@ -22,7 +22,7 @@ export default function InstantWinsSection() {
       try {
         const [fetchedCategories, fetchedDraws] = await Promise.all([
           categoryService.getPublicCategories(),
-          raffleService.getInstantWinRaffles({ limit: 12 })
+          raffleService.getInstantWinRaffles(12)
         ]);
         
         setCategories(fetchedCategories);

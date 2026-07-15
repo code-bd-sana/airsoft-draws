@@ -17,8 +17,8 @@ export default function WinnerDetailsModal({ isOpen, onClose, raffle }: Props) {
 
   if (!isOpen || !raffle) return null;
 
-  const mainDrawWinner = winnersData?.mainDraw?.[0];
-  const instantWins = winnersData?.instantWins || [];
+  const mainDrawWinner = (winnersData as any)?.mainDraw?.[0];
+  const instantWins = (winnersData as any)?.instantWins || [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
