@@ -187,7 +187,10 @@ export class RafflesController {
   ) {
     if (!file) throw new BadRequestException('File is required');
     const hostId = this.extractUserId(req);
-    const imageUrl = `${process.env.APP_URL || 'http://127.0.0.1:5000'}/uploads/raffles/${file.filename}`;
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers['x-forwarded-host'] || req.headers.host || '127.0.0.1:5000';
+    const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
+    const imageUrl = `${baseUrl}/uploads/raffles/${file.filename}`;
     return this.rafflesService.updateMainImage(id, hostId, imageUrl);
   }
   @Post('image')
@@ -224,7 +227,10 @@ export class RafflesController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) throw new BadRequestException('File is required');
-    const imageUrl = `${process.env.APP_URL || 'http://127.0.0.1:5000'}/uploads/raffles/${file.filename}`;
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers['x-forwarded-host'] || req.headers.host || '127.0.0.1:5000';
+    const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
+    const imageUrl = `${baseUrl}/uploads/raffles/${file.filename}`;
     return { url: imageUrl };
   }
 

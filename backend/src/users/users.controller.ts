@@ -105,8 +105,10 @@ export class UsersController {
       throw new BadRequestException('File is required');
     }
     const userId = this.extractUserId(req);
-    // Construct public URL - using 127.0.0.1 avoids Node.js IPv6 localhost resolution issues
-    const avatarUrl = `${process.env.APP_URL || 'http://127.0.0.1:5000'}/uploads/avatars/${file.filename}`;
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers['x-forwarded-host'] || req.headers.host || '127.0.0.1:5000';
+    const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
+    const avatarUrl = `${baseUrl}/uploads/avatars/${file.filename}`;
     return this.usersService.updateAvatar(userId, avatarUrl);
   }
 }
