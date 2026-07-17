@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Draw } from "../../../types/draw.types";
@@ -37,6 +39,27 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
   const soldPercent = totalTickets > 0 ? Math.min(Math.round((soldTickets / totalTickets) * 100), 100) : 0;
   
   const formattedEndDate = new Date(endDate).toLocaleDateString();
+  const hostName = raffle.host?.businessName || raffle.host?.user?.firstName || "Unknown Host";
+
+  const [timeLeft, setTimeLeft] = useState("");
+
+  useEffect(() => {
+    const calculateTime = () => {
+      const diff = new Date(endDate).getTime() - new Date().getTime();
+      if (diff <= 0) return "Ended";
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const m = Math.floor((diff / 1000 / 60) % 60);
+      const s = Math.floor((diff / 1000) % 60);
+      
+      if (d > 0) return `${d}d ${h}h ${m}m`;
+      return `${h}h ${m}m ${s}s`;
+    };
+    
+    setTimeLeft(calculateTime());
+    const interval = setInterval(() => setTimeLeft(calculateTime()), 1000);
+    return () => clearInterval(interval);
+  }, [endDate]);
 
   // SVG Icons matching Figma design
   const fireIcon = (
@@ -130,17 +153,19 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
 
           {/* Badges on Top of Image */}
           <div className="absolute inset-x-3 top-3 flex items-start justify-between pointer-events-none">
-            {badgeText ? (
-              <div className={cn("flex items-center gap-1 border px-2.5 py-1 rounded-badge text-[10px] font-semibold tracking-wider", getBadgeStyle(badgeText))}>
-                {badgeText.toUpperCase() === "ALMOST GONE" && fireIcon}
-                <span>{badgeText}</span>
-              </div>
-            ) : (
-              <div />
-            )}
+            <div className="bg-[#1a230a]/90 backdrop-blur-sm border border-[#2d3c13] px-2.5 py-1 rounded-badge text-[10px] font-semibold text-[#a0d056] shadow-md truncate max-w-[120px]">
+              By {hostName}
+            </div>
 
             <div className="bg-[#1a230a] border border-[#2d3c13] px-2.5 py-1 rounded-badge text-[10px] font-semibold text-[#72943a]">
               {categoryLabel}
+            </div>
+          </div>
+          
+          <div className="absolute inset-x-3 bottom-3 flex items-end justify-center pointer-events-none">
+            <div className="bg-[#1a230a]/90 backdrop-blur-sm border border-[#43581e] px-3 py-1.5 rounded-[8px] flex items-center gap-1.5 shadow-md">
+              {clockIcon}
+              <span className="text-[11px] font-bold text-[#e8edd4] tracking-wide">{timeLeft}</span>
             </div>
           </div>
         </div>
@@ -154,8 +179,14 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
                 <h3 className="font-heading font-bold text-lg md:text-xl text-text-primary group-hover:text-text-brand transition-colors duration-200">
                   {title}
                 </h3>
+                {badgeText && (
+                  <div className={cn("inline-flex items-center gap-1 border px-2 py-0.5 rounded-badge text-[9px] font-semibold tracking-wider mt-1.5", getBadgeStyle(badgeText))}>
+                    {badgeText.toUpperCase() === "ALMOST GONE" && fireIcon}
+                    <span>{badgeText}</span>
+                  </div>
+                )}
                 {worthPrice && (
-                  <p className="font-sans text-[11px] text-[#72943a] mt-0.5">
+                  <p className="font-sans text-[11px] text-[#72943a] mt-1.5">
                     Worth {formatCurrency(worthPrice, 0)}
                   </p>
                 )}
@@ -189,7 +220,7 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
             <div className="flex items-center gap-2 bg-[#111210] border border-[#1a230a] px-3.5 py-2 rounded-button w-full">
               {clockIcon}
               <div className="flex gap-1 text-[11px]">
-                <span className="text-text-muted">Closes in</span>
+                <span className="text-text-muted">Closes on</span>
                 <span className="font-semibold text-text-primary">{formattedEndDate}</span>
               </div>
             </div>
@@ -225,17 +256,19 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
 
         {/* Floating Badges */}
         <div className="absolute inset-x-3 top-3 flex items-start justify-between pointer-events-none">
-          {badgeText ? (
-            <div className={cn("flex items-center gap-1 border px-2.5 py-1 rounded-badge text-[10px] font-semibold tracking-wider", getBadgeStyle(badgeText))}>
-              {badgeText.toUpperCase() === "ALMOST GONE" && fireIcon}
-              <span>{badgeText}</span>
-            </div>
-          ) : (
-            <div />
-          )}
+          <div className="bg-[#1a230a]/90 backdrop-blur-sm border border-[#2d3c13] px-2.5 py-1 rounded-badge text-[10px] font-semibold text-[#a0d056] shadow-md truncate max-w-[120px]">
+            By {hostName}
+          </div>
 
           <div className="bg-[#1a230a] border border-[#2d3c13] px-2.5 py-1 rounded-badge text-[10px] font-semibold text-[#72943a]">
             {categoryLabel}
+          </div>
+        </div>
+
+        <div className="absolute inset-x-3 bottom-3 flex items-end justify-center pointer-events-none">
+          <div className="bg-[#1a230a]/90 backdrop-blur-sm border border-[#43581e] px-3 py-1.5 rounded-[8px] flex items-center gap-1.5 shadow-md">
+            {clockIcon}
+            <span className="text-[11px] font-bold text-[#e8edd4] tracking-wide">{timeLeft}</span>
           </div>
         </div>
       </div>
@@ -252,6 +285,13 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
               {formatCurrency(ticketPrice)}
             </div>
           </div>
+          
+          {badgeText && (
+            <div className={cn("inline-flex items-center gap-1 border px-2 py-0.5 rounded-badge text-[9px] font-semibold tracking-wider mb-2", getBadgeStyle(badgeText))}>
+              {badgeText.toUpperCase() === "ALMOST GONE" && fireIcon}
+              <span>{badgeText}</span>
+            </div>
+          )}
 
           {/* Worth Subheading */}
           {worthPrice && (
@@ -280,7 +320,7 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
           {/* Closes in Countdown Block */}
           <div className="flex items-center gap-1.5 bg-[#111210] border border-[#1a230a] px-3 py-2 rounded-[10px] mb-4 text-xs">
             {clockIcon}
-            <span className="text-[#5a752a]">Closes in</span>
+            <span className="text-[#5a752a]">Closes on</span>
             <span className="font-semibold text-text-primary">{formattedEndDate}</span>
           </div>
         </div>

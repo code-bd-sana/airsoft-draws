@@ -47,7 +47,7 @@ export default function LiveRaffleGrid() {
   // Filters State (activeCategory is derived from URL parameters)
   const activeCategory = searchParams.get("category") || "all";
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("ending-soon");
+  const [sortBy, setSortBy] = useState("featured");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -91,7 +91,7 @@ export default function LiveRaffleGrid() {
 
   const resetFilters = () => {
     setSearchQuery("");
-    setSortBy("ending-soon");
+    setSortBy("featured");
     setCurrentPage(1);
     router.push("?", { scroll: false });
   };

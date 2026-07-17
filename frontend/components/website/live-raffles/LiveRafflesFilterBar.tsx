@@ -42,6 +42,7 @@ export default function LiveRafflesFilterBar({
   ];
 
   const sortOptions = [
+    { label: "Featured", value: "featured" },
     { label: "Ending Soon", value: "ending-soon" },
     { label: "Price: Low to High", value: "price-asc" },
     { label: "Price: High to Low", value: "price-desc" },
