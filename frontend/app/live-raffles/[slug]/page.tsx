@@ -11,6 +11,7 @@ import RaffleDetailsEmptyState from "../../../components/website/raffle-details/
 import { raffleDetailsData } from "../../../data/raffles/raffle-details.data";
 import { liveRafflesData } from "../../../data/live-raffles.data";
 import { RaffleDetail } from "../../../types/raffle-details.types";
+import { cn } from "../../../lib/utils";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -44,6 +45,7 @@ async function getRaffle(slug: string): Promise<RaffleDetail | undefined> {
       soldTickets: draw.ticketsSold || 0,
       remainingTickets: Math.max(draw.totalTickets - (draw.ticketsSold || 0), 0),
       drawEndDate: new Date(draw.endDate).toLocaleDateString(),
+      endDate: draw.endDate,
       description: draw.description || `Enter this premium draw for a chance to win the ${draw.title}! Premium gear, fast shipping, and live draw.`,
       highlights: [
         `Main Prize: ${draw.title}`,
@@ -110,6 +112,26 @@ export default async function LiveRaffleDetailPage({ params }: PageProps) {
     );
   }
 
+  const soldPercent = raffle.totalTickets > 0 ? (raffle.soldTickets / raffle.totalTickets) : 0;
+  const badgeText = soldPercent > 0.9 ? "ALMOST GONE" : "HOT";
+
+  const getBadgeStyle = (text: string) => {
+    switch (text.toUpperCase()) {
+      case "ALMOST GONE":
+        return "bg-[#4a2e00] border-[#ef9f27]/30 text-[#ef9f27]";
+      case "HOT":
+        return "bg-red-950 border-red-800 text-red-400";
+      default:
+        return "bg-[#161810] border-[#2d3c13] text-[#5a752a]";
+    }
+  };
+
+  const fireIcon = (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-3.5 h-3.5 text-[#ef9f27]">
+      <path d="M19.43 12.98c.04-.32.07-.64.07-.98 0-3.66-2.61-6.72-6.07-7.39.37.76.57 1.62.57 2.53 0 1.95-1.07 3.65-2.67 4.54l-.06.03c.53-2.14-.17-4.47-1.78-6.1l-.32-.33c-.09.33-.14.67-.14 1.02 0 2.27 1.34 4.22 3.28 5.11l.08.04c-1.61-.31-3.23.36-4.13 1.73A7.514 7.514 0 0 0 7 17.5c0 4.14 3.36 7.5 7.5 7.5s7.5-3.36 7.5-7.5c0-1.65-.54-3.18-1.57-4.52z" />
+    </svg>
+  );
+
   // Left arrow SVG for the back link
   const backArrowIcon = (
     <svg
@@ -158,6 +180,8 @@ export default async function LiveRaffleDetailPage({ params }: PageProps) {
                   images={raffle.images}
                   title={raffle.title}
                   instantWinCount={raffle.instantWinPrizes.length}
+                  endDate={raffle.endDate}
+                  hostName={raffle.hostName}
                 />
 
                 {/* Title & Badges */}
@@ -170,14 +194,17 @@ export default async function LiveRaffleDetailPage({ params }: PageProps) {
                     <span className="bg-[#1A230A] border border-[#8CB34A] px-2.5 py-1 rounded-[6px] text-[11px] font-semibold text-[#8CB34A] tracking-wide select-none font-sans uppercase">
                       {raffle.status === 'live' ? 'LIVE' : 'ENDING SOON'}
                     </span>
+                    {badgeText && (
+                      <span className={cn("inline-flex items-center gap-1 border px-2.5 py-1 rounded-[6px] text-[11px] font-semibold tracking-wider uppercase", getBadgeStyle(badgeText))}>
+                        {badgeText === "ALMOST GONE" && fireIcon}
+                        <span>{badgeText}</span>
+                      </span>
+                    )}
                     {raffle.isAutoDraw && (
                       <span className="bg-[#1A230A] border border-[#8CB34A]/30 px-2.5 py-1 rounded-[6px] text-[11px] font-semibold text-[#8CB34A] tracking-wide select-none font-sans uppercase">
                         AUTO DRAW
                       </span>
                     )}
-                    <span className="text-[12px] font-sans text-[#72943A] select-none">
-                      Hosted by <strong className="text-[#E8EDD4] font-medium">{raffle.hostName}</strong>
-                    </span>
                     {raffle.instantWinPrizes.length > 0 && (
                       <span className="text-[12px] font-sans text-[#72943A] select-none">
                         • {raffle.instantWinPrizes.length} instant wins
