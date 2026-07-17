@@ -44,11 +44,11 @@ async function getRaffle(slug: string): Promise<RaffleDetail | undefined> {
       soldTickets: draw.ticketsSold || 0,
       remainingTickets: Math.max(draw.totalTickets - (draw.ticketsSold || 0), 0),
       drawEndDate: new Date(draw.endDate).toLocaleDateString(),
-      description: draw.description || `Enter this premium draw for a chance to win the ${draw.title}! Premium gear, fast shipping, and guaranteed live draw.`,
+      description: draw.description || `Enter this premium draw for a chance to win the ${draw.title}! Premium gear, fast shipping, and live draw.`,
       highlights: [
         `Main Prize: ${draw.title}`,
         `Ticket Price: £${Number(draw.pricePerTicket).toFixed(2)}`,
-        `Estimated Valuation: £${worth.toLocaleString()}`,
+        draw.mainPrizeValue ? `Main Prize Value: £${Number(draw.mainPrizeValue).toLocaleString()}` : `Estimated Valuation: £${worth.toLocaleString()}`,
         `Total Tickets: ${draw.totalTickets.toLocaleString()}`,
         `Fast Track Delivery: Fully tracked and insured shipping included.`,
       ],
@@ -73,6 +73,7 @@ async function getRaffle(slug: string): Promise<RaffleDetail | undefined> {
       hostLogo: draw.host?.user?.firstName?.[0] || "AD",
       hostDrawsCount: 1,
       hostVerified: true,
+      isAutoDraw: draw.isAutoDraw,
     };
   } catch (e) {
     return undefined;
@@ -169,6 +170,11 @@ export default async function LiveRaffleDetailPage({ params }: PageProps) {
                     <span className="bg-[#1A230A] border border-[#8CB34A] px-2.5 py-1 rounded-[6px] text-[11px] font-semibold text-[#8CB34A] tracking-wide select-none font-sans uppercase">
                       {raffle.status === 'live' ? 'LIVE' : 'ENDING SOON'}
                     </span>
+                    {raffle.isAutoDraw && (
+                      <span className="bg-[#1A230A] border border-[#8CB34A]/30 px-2.5 py-1 rounded-[6px] text-[11px] font-semibold text-[#8CB34A] tracking-wide select-none font-sans uppercase">
+                        AUTO DRAW
+                      </span>
+                    )}
                     <span className="text-[12px] font-sans text-[#72943A] select-none">
                       Hosted by <strong className="text-[#E8EDD4] font-medium">{raffle.hostName}</strong>
                     </span>

@@ -57,75 +57,50 @@ export default function CreateRaffleStep5({ formData, updateForm, onNext, onPrev
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-[4px]">
                 <span className="font-sans font-medium text-[14px] text-[#e8edd4]">
-                  Automated Draw
+                  Draw Type
                 </span>
                 <span className="font-sans font-normal text-[12px] text-[#5a752a]">
-                  If disabled, you must manually run the draw from your dashboard.
+                  How will the winner be selected?
                 </span>
               </div>
-              <div 
-                onClick={() => updateForm({ isAutoDraw: !formData.isAutoDraw })}
-                className={cn(
-                  "w-[40px] h-[24px] rounded-full p-[2px] transition-colors duration-200 ease-in-out shrink-0 cursor-pointer",
-                  formData.isAutoDraw ? "bg-[#8cb34a]" : "bg-[#2d3c13]"
-                )}
-              >
-                <div className={cn(
-                  "w-[20px] h-[20px] bg-[#0d0d0b] rounded-full transition-transform duration-200 ease-in-out",
-                  formData.isAutoDraw ? "translate-x-[16px]" : "translate-x-0"
-                )} />
-              </div>
             </div>
 
-            {formData.isAutoDraw && (
-              <div className="flex flex-col gap-[12px] mt-[8px] pt-[16px] border-t border-[#2d3c13]">
-                <label className="flex items-center gap-[12px] cursor-pointer">
-                  <input 
-                    type="checkbox"
-                    checked={formData.autoDrawDate}
-                    onChange={(e) => updateForm({ autoDrawDate: e.target.checked })}
-                    className="w-[16px] h-[16px] rounded-[4px] border-[#2d3c13] bg-[#161810] text-[#8cb34a] focus:ring-[#8cb34a]"
-                  />
-                  <span className="font-sans font-normal text-[13px] text-[#b3b8aa]">
-                    Run draw automatically when the <strong className="text-[#e8edd4]">Draw Date & Time</strong> ends.
+            <div className="flex flex-col gap-[12px] mt-[8px] pt-[16px] border-t border-[#2d3c13]">
+              <label className="flex items-start gap-[12px] cursor-pointer">
+                <input 
+                  type="radio"
+                  name="drawType"
+                  checked={!formData.isAutoDraw}
+                  onChange={() => updateForm({ isAutoDraw: false, autoDrawDate: false, autoDrawSoldOut: false })}
+                  className="mt-1 w-[16px] h-[16px] rounded-full border-[#2d3c13] bg-[#161810] text-[#8cb34a] focus:ring-[#8cb34a]"
+                />
+                <div className="flex flex-col gap-1">
+                  <span className="font-sans font-medium text-[14px] text-[#e8edd4]">
+                    Live Draw
                   </span>
-                </label>
-                <label className="flex items-center gap-[12px] cursor-pointer">
-                  <input 
-                    type="checkbox"
-                    checked={formData.autoDrawSoldOut}
-                    onChange={(e) => updateForm({ autoDrawSoldOut: e.target.checked })}
-                    className="w-[16px] h-[16px] rounded-[4px] border-[#2d3c13] bg-[#161810] text-[#8cb34a] focus:ring-[#8cb34a]"
-                  />
-                  <span className="font-sans font-normal text-[13px] text-[#b3b8aa]">
-                    Run draw automatically as soon as <strong className="text-[#e8edd4]">all tickets are sold</strong>.
+                  <span className="font-sans font-normal text-[12px] text-[#b3b8aa]">
+                    You will manually run the draw from your dashboard (e.g., live on Instagram).
                   </span>
-                </label>
-              </div>
-            )}
-          </div>
+                </div>
+              </label>
 
-          {/* Guaranteed Draw */}
-          <div 
-            onClick={() => updateForm({ guaranteedDraw: !formData.guaranteedDraw })}
-            className="flex items-center justify-between p-[16px] bg-[#0d0d0b] border border-[#2d3c13] rounded-[8px] cursor-pointer hover:border-[#8cb34a] transition-colors"
-          >
-            <div className="flex flex-col gap-[4px]">
-              <span className="font-sans font-medium text-[14px] text-[#e8edd4]">
-                Guaranteed Draw
-              </span>
-              <span className="font-sans font-normal text-[12px] text-[#5a752a]">
-                Draw will take place regardless of ticket sales volume.
-              </span>
-            </div>
-            <div className={cn(
-              "w-[40px] h-[24px] rounded-full p-[2px] transition-colors duration-200 ease-in-out shrink-0",
-              formData.guaranteedDraw ? "bg-[#8cb34a]" : "bg-[#2d3c13]"
-            )}>
-              <div className={cn(
-                "w-[20px] h-[20px] bg-[#0d0d0b] rounded-full transition-transform duration-200 ease-in-out",
-                formData.guaranteedDraw ? "translate-x-[16px]" : "translate-x-0"
-              )} />
+              <label className="flex items-start gap-[12px] cursor-pointer">
+                <input 
+                  type="radio"
+                  name="drawType"
+                  checked={formData.isAutoDraw}
+                  onChange={() => updateForm({ isAutoDraw: true, autoDrawDate: true, autoDrawSoldOut: true })}
+                  className="mt-1 w-[16px] h-[16px] rounded-full border-[#2d3c13] bg-[#161810] text-[#8cb34a] focus:ring-[#8cb34a]"
+                />
+                <div className="flex flex-col gap-1">
+                  <span className="font-sans font-medium text-[14px] text-[#e8edd4]">
+                    Automatic Draw
+                  </span>
+                  <span className="font-sans font-normal text-[12px] text-[#b3b8aa]">
+                    System automatically draws a winner when all tickets are sold out OR the end time expires.
+                  </span>
+                </div>
+              </label>
             </div>
           </div>
         </div>

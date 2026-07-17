@@ -18,7 +18,7 @@ export default function CreateRaffleStep4({ formData, updateForm, onNext, onPrev
     updateForm({ hasInstantWins });
     if (hasInstantWins && formData.instantWins.length === 0) {
       updateForm({
-        instantWins: Array(parseInt(numInstantWins) || 1).fill({ prizeName: "", imageFile: null, imageUrl: null })
+        instantWins: Array(parseInt(numInstantWins) || 1).fill({ prizeName: "", imageFile: null, imageUrl: null, rrpValue: "" })
       });
     }
   };
@@ -32,7 +32,7 @@ export default function CreateRaffleStep4({ formData, updateForm, onNext, onPrev
       const currentLength = formData.instantWins.length;
       if (num > currentLength) {
         // add more
-        const toAdd = Array(num - currentLength).fill({ prizeName: "", imageFile: null, imageUrl: null });
+        const toAdd = Array(num - currentLength).fill({ prizeName: "", imageFile: null, imageUrl: null, rrpValue: "" });
         updateForm({ instantWins: [...formData.instantWins, ...toAdd] });
       } else if (num < currentLength) {
         // remove some
@@ -59,6 +59,7 @@ export default function CreateRaffleStep4({ formData, updateForm, onNext, onPrev
       prizeName: source.prizeName,
       imageFile: source.imageFile,
       imageUrl: source.imageUrl,
+      rrpValue: source.rrpValue,
     }));
     updateForm({ instantWins: updated });
   };
@@ -71,6 +72,7 @@ export default function CreateRaffleStep4({ formData, updateForm, onNext, onPrev
       prizeName: source.prizeName,
       imageFile: source.imageFile,
       imageUrl: source.imageUrl,
+      rrpValue: source.rrpValue,
     };
     updateForm({ instantWins: updated });
   };
@@ -146,7 +148,19 @@ export default function CreateRaffleStep4({ formData, updateForm, onNext, onPrev
                       type="text"
                       value={iw.prizeName}
                       onChange={(e) => updateInstantWin(idx, "prizeName", e.target.value)}
-                      placeholder="e.g. £50 Site Credit"
+                      placeholder="e.g. TM Hi-Capa 5.1"
+                      className="w-full h-[40px] bg-[#1a230a] border border-[#2d3c13] rounded-[8px] px-[12px] text-[#e8edd4] font-sans text-[14px] focus:outline-none focus:border-[#8cb34a] transition-colors"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[12px] text-[#e8edd4]">RRP Value (£)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={iw.rrpValue}
+                      onChange={(e) => updateInstantWin(idx, "rrpValue", e.target.value)}
+                      placeholder="e.g. 150.00"
                       className="w-full h-[40px] bg-[#1a230a] border border-[#2d3c13] rounded-[8px] px-[12px] text-[#e8edd4] font-sans text-[14px] focus:outline-none focus:border-[#8cb34a] transition-colors"
                     />
                   </div>

@@ -35,6 +35,7 @@ export interface RaffleDetail {
   hostLogo?: string;
   hostDrawsCount?: number;
   hostVerified?: boolean;
+  isAutoDraw?: boolean;
 }
 
 export interface RaffleTab {

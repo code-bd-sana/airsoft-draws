@@ -21,10 +21,10 @@ export class DrawSchedulerService {
       where: {
         status: 'ACTIVE',
         isAutoDraw: true,
-        autoDrawDate: true,
-        endDate: {
-          lte: now,
-        },
+        OR: [
+          { endDate: { lte: now } },
+          { ticketsSold: { gte: this.prisma.raffle.fields.totalTickets } }
+        ]
       },
     });
 

@@ -65,6 +65,7 @@ export class RafflesService {
         title: data.title,
         slug,
         description: data.description || '',
+        mainPrizeValue: data.mainPrizeValue ? Number(data.mainPrizeValue) : null,
         pricePerTicket: data.ticketPrice || 0,
         totalTickets,
         startDate,
@@ -97,6 +98,7 @@ export class RafflesService {
             raffleId: raffle.id,
             ticketNumber: ticketNumbers[index],
             prizeName: iw.prizeName,
+            rrpValue: iw.rrpValue ? Number(iw.rrpValue) : null,
             image: iw.image || null,
           }),
         );
@@ -189,7 +191,7 @@ export class RafflesService {
     } else if (sort === 'featured') {
       orderBy = { createdAt: 'desc' };
     }
-    }
+
 
     const [raffles, total] = await Promise.all([
       this.prisma.raffle.findMany({

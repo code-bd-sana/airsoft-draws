@@ -27,6 +27,8 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
     endDate,
     prizeName,
     slug,
+    host,
+    isAutoDraw,
   } = raffle as any;
 
   const image = mainImage || "https://placehold.co/800x600/1a230a/8cb34a?text=No+Image";
@@ -39,7 +41,7 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
   const soldPercent = totalTickets > 0 ? Math.min(Math.round((soldTickets / totalTickets) * 100), 100) : 0;
   
   const formattedEndDate = new Date(endDate).toLocaleDateString();
-  const hostName = raffle.host?.businessName || raffle.host?.user?.firstName || "Unknown Host";
+  const hostName = host?.businessName || host?.user?.firstName || "Unknown Host";
 
   const [timeLeft, setTimeLeft] = useState("");
 
@@ -179,12 +181,19 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
                 <h3 className="font-heading font-bold text-lg md:text-xl text-text-primary group-hover:text-text-brand transition-colors duration-200">
                   {title}
                 </h3>
-                {badgeText && (
-                  <div className={cn("inline-flex items-center gap-1 border px-2 py-0.5 rounded-badge text-[9px] font-semibold tracking-wider mt-1.5", getBadgeStyle(badgeText))}>
-                    {badgeText.toUpperCase() === "ALMOST GONE" && fireIcon}
-                    <span>{badgeText}</span>
-                  </div>
-                )}
+                <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                  {badgeText && (
+                    <div className={cn("inline-flex items-center gap-1 border px-2 py-0.5 rounded-badge text-[9px] font-semibold tracking-wider", getBadgeStyle(badgeText))}>
+                      {badgeText.toUpperCase() === "ALMOST GONE" && fireIcon}
+                      <span>{badgeText}</span>
+                    </div>
+                  )}
+                  {isAutoDraw && (
+                    <div className="inline-flex items-center gap-1 border border-[#8cb34a]/30 bg-[#1a230a] px-2 py-0.5 rounded-badge text-[9px] font-semibold text-[#8cb34a] tracking-wider">
+                      AUTO DRAW
+                    </div>
+                  )}
+                </div>
                 {worthPrice && (
                   <p className="font-sans text-[11px] text-[#72943a] mt-1.5">
                     Worth {formatCurrency(worthPrice, 0)}
@@ -286,12 +295,19 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
             </div>
           </div>
           
-          {badgeText && (
-            <div className={cn("inline-flex items-center gap-1 border px-2 py-0.5 rounded-badge text-[9px] font-semibold tracking-wider mb-2", getBadgeStyle(badgeText))}>
-              {badgeText.toUpperCase() === "ALMOST GONE" && fireIcon}
-              <span>{badgeText}</span>
-            </div>
-          )}
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            {badgeText && (
+              <div className={cn("inline-flex items-center gap-1 border px-2 py-0.5 rounded-badge text-[9px] font-semibold tracking-wider", getBadgeStyle(badgeText))}>
+                {badgeText.toUpperCase() === "ALMOST GONE" && fireIcon}
+                <span>{badgeText}</span>
+              </div>
+            )}
+            {isAutoDraw && (
+              <div className="inline-flex items-center gap-1 border border-[#8cb34a]/30 bg-[#1a230a] px-2 py-0.5 rounded-badge text-[9px] font-semibold text-[#8cb34a] tracking-wider">
+                AUTO DRAW
+              </div>
+            )}
+          </div>
 
           {/* Worth Subheading */}
           {worthPrice && (
