@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { RaffleDetail } from "../../../types/raffle-details.types";
 import { usePurchaseTicketsMutation } from "../../../hooks/useTicketHooks";
 import { useAuth } from "../../../features/auth/AuthContext";
@@ -15,6 +15,7 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
   const [quantity, setQuantity] = useState(1);
   const [statusMessage, setStatusMessage] = useState<{type: 'success'|'error'|'info', text: string} | null>(null);
   const [instantWinData, setInstantWinData] = useState<Array<{title: string, ticketNumber: number}> | null>(null);
+  const [timeLeft, setTimeLeft] = useState("");
 
   const { isAuthenticated } = useAuth();
   const router = useRouter();
@@ -27,7 +28,31 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
     worthPrice,
     totalTickets,
     soldTickets,
+    endDate,
   } = raffle;
+
+  useEffect(() => {
+    if (!endDate) {
+      setTimeLeft("Ended");
+      return;
+    }
+    const calc = () => {
+      const diff = new Date(endDate).getTime() - Date.now();
+      if (diff <= 0) return "Ended";
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const m = Math.floor((diff / 1000 / 60) % 60);
+      const s = Math.floor((diff / 1000) % 60);
+      
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      
+      if (d > 0) return `${d}d ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+      return `${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+    };
+    setTimeLeft(calc());
+    const interval = setInterval(() => setTimeLeft(calc()), 1000);
+    return () => clearInterval(interval);
+  }, [endDate]);
 
   const soldPercent = Math.min(Math.round((soldTickets / totalTickets) * 100), 100);
   const remainingTickets = Math.max(totalTickets - soldTickets, 0);
@@ -94,7 +119,9 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
       <div className="flex flex-col gap-3 mb-6">
         <div className="flex items-center justify-between pb-3 border-b border-[#2D3C13]/50">
           <span className="font-sans text-[12px] text-[#72943A]">End Date</span>
-          <span className="font-heading font-semibold text-[13px] text-[#E8EDD4]">22h 15m 12s</span>
+          <span className="font-heading font-semibold text-[13px] text-[#8cb34a] tabular-nums tracking-wider animate-pulse">
+            {timeLeft || "Ended"}
+          </span>
         </div>
         <div className="flex items-center justify-between pb-3 border-b border-[#2D3C13]/50">
           <span className="font-sans text-[12px] text-[#72943A]">Ticket Price</span>
