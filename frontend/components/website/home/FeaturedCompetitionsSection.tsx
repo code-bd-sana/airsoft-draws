@@ -15,12 +15,13 @@ import type { Draw } from "../../../types/draw.types";
  */
 export default function FeaturedCompetitionsSection() {
   const [draws, setDraws] = useState<Draw[]>([]);
+  const [loading, setLoading] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchDraws() {
       try {
-        const res = await raffleService.getPublicRaffles({ limit: 10 });
+        const res = await raffleService.getPublicRaffles({ limit: 10, statusFilter: 'Live' });
         if (res.data && res.data.length > 0) {
           const mappedDraws: Draw[] = res.data.map(r => ({
             id: r.id,
@@ -41,6 +42,8 @@ export default function FeaturedCompetitionsSection() {
         }
       } catch (err) {
         console.error("Failed to fetch featured draws:", err);
+      } finally {
+        setLoading(false);
       }
     }
     fetchDraws();
@@ -91,7 +94,12 @@ export default function FeaturedCompetitionsSection() {
         />
 
         {/* Competitions Carousel Wrapper */}
-        {filteredDraws.length > 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-text-muted gap-4">
+            <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
+            <p className="font-sans font-medium text-sm">Loading Competitions...</p>
+          </div>
+        ) : draws.length > 0 ? (
           <div className="relative group">
             {/* Left Scroll Button */}
             <button 

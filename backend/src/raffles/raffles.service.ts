@@ -175,6 +175,8 @@ export class RafflesService {
       whereClause.OR = [
         { title: { contains: search, mode: 'insensitive' } },
         { host: { businessName: { contains: search, mode: 'insensitive' } } },
+        { host: { user: { firstName: { contains: search, mode: 'insensitive' } } } },
+        { host: { user: { lastName: { contains: search, mode: 'insensitive' } } } },
       ];
     }
 

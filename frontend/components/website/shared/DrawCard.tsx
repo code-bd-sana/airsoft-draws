@@ -154,11 +154,6 @@ export default function DrawCard({ draw, variant = "grid" }: DrawCardProps) {
             className="object-cover opacity-75"
             unoptimized
           />
-          {instantWinsCount && (
-            <div className="absolute top-4 left-4 bg-accent-bg border border-primary px-3 py-1 rounded-badge text-[9px] font-bold text-text-brand uppercase tracking-wider shadow-md">
-              {instantWinsCount} INSTANT WINS
-            </div>
-          )}
         </div>
 
         {/* Card Content */}
@@ -185,21 +180,30 @@ export default function DrawCard({ draw, variant = "grid" }: DrawCardProps) {
             </div>
           </div>
 
-          {/* Countdown timer & Starts At */}
+          {/* Countdown timer */}
+          <div className="flex items-center gap-1.5 text-xs text-text-muted mb-5 bg-bg/50 px-2.5 py-1.5 rounded-button border border-divider w-fit">
+            {clockIcon}
+            <span>{endDate}</span>
+          </div>
+
+          {/* Pricing & CTA Row */}
           <div className="flex items-center justify-between pt-4 border-t border-divider mt-auto gap-4">
             <div className="flex flex-col">
               <span className="text-[9px] text-text-muted uppercase tracking-wider font-semibold">
                 Entry from
               </span>
-              <span className="text-sm font-bold text-text-brand">
+              <span className="text-base font-bold text-text-brand">
                 {formatCurrency(ticketPrice)}
               </span>
             </div>
             
-            <div className="flex items-center gap-1 text-xs text-text-muted font-medium bg-bg/50 px-2.5 py-1.5 rounded-button border border-divider">
-              {clockIcon}
-              <span>{endDate}</span>
-            </div>
+            <PrimaryButton
+              href={`/live-raffles/${draw.slug || draw.id}`}
+              className="px-4 py-2 text-xs"
+              icon={arrowIcon}
+            >
+              Enter Draw
+            </PrimaryButton>
           </div>
         </div>
       </div>

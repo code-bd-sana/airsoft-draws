@@ -24,28 +24,29 @@ export default function RaffleImageGallery({
   hostName,
 }: RaffleImageGalleryProps) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState("");
+  const [timeData, setTimeData] = useState<{ ended: boolean; d?: number; h?: string; m?: string; s?: string } | null>(null);
 
   useEffect(() => {
     if (!endDate) {
-      setTimeLeft("Ended");
+      setTimeData({ ended: true });
       return;
     }
     
     const calculateTime = () => {
       const diff = new Date(endDate).getTime() - new Date().getTime();
-      if (diff <= 0) return "Ended";
+      if (diff <= 0) return { ended: true };
       const d = Math.floor(diff / (1000 * 60 * 60 * 24));
       const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const m = Math.floor((diff / 1000 / 60) % 60);
       const s = Math.floor((diff / 1000) % 60);
       
-      if (d > 0) return `${d}d ${h}h ${m}m ${s}s`;
-      return `${h}h ${m}m ${s}s`;
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      
+      return { ended: false, d, h: pad(h), m: pad(m), s: pad(s) };
     };
     
-    setTimeLeft(calculateTime());
-    const interval = setInterval(() => setTimeLeft(calculateTime()), 1000);
+    setTimeData(calculateTime());
+    const interval = setInterval(() => setTimeData(calculateTime()), 1000);
     return () => clearInterval(interval);
   }, [endDate]);
 
@@ -97,15 +98,42 @@ export default function RaffleImageGallery({
           </div>
         )}
 
-        {/* Floating Ends In Badge (Bottom Left) */}
-        {timeLeft && timeLeft !== "Ended" && (
-          <div className="absolute left-4 bottom-4 bg-[#1A230A]/90 backdrop-blur-sm border border-[#43581E] flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] select-none shadow-md pointer-events-none z-20">
-            <svg className="w-3.5 h-3.5 text-[#8CB34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-            </svg>
-            <span className="text-[12px] font-bold text-[#e8edd4] tracking-wide uppercase">
-              {timeLeft}
-            </span>
+        {/* Floating WOW Countdown Badge (Bottom Center) */}
+        {timeData && !timeData.ended && (
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-6 bg-[#0a0e04]/85 backdrop-blur-md border border-[#8cb34a]/30 flex flex-col items-center justify-center gap-1.5 px-6 py-3 rounded-2xl select-none shadow-[0_4px_30px_rgba(140,179,74,0.15)] pointer-events-none z-20 transition-all duration-300">
+            <div className="flex items-center gap-1.5 text-[#8cb34a]">
+              <svg className="w-3.5 h-3.5 animate-[spin_3s_linear_infinite]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+              <span className="text-[9px] font-bold tracking-widest uppercase">Ends In</span>
+            </div>
+            
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              {timeData.d! > 0 && (
+                <div className="flex flex-col items-center min-w-[36px]">
+                  <span className="text-xl sm:text-2xl font-heading font-bold text-white tabular-nums tracking-tight">{timeData.d}</span>
+                  <span className="text-[9px] text-[#a0d056] font-semibold uppercase tracking-wider">Days</span>
+                </div>
+              )}
+              {timeData.d! > 0 && <span className="text-[#8cb34a]/30 text-xl font-light mb-2.5">:</span>}
+
+              <div className="flex flex-col items-center min-w-[36px]">
+                <span className="text-xl sm:text-2xl font-heading font-bold text-white tabular-nums tracking-tight">{timeData.h}</span>
+                <span className="text-[9px] text-[#a0d056] font-semibold uppercase tracking-wider">Hrs</span>
+              </div>
+              <span className="text-[#8cb34a]/30 text-xl font-light mb-2.5">:</span>
+
+              <div className="flex flex-col items-center min-w-[36px]">
+                <span className="text-xl sm:text-2xl font-heading font-bold text-white tabular-nums tracking-tight">{timeData.m}</span>
+                <span className="text-[9px] text-[#a0d056] font-semibold uppercase tracking-wider">Mins</span>
+              </div>
+              <span className="text-[#8cb34a]/30 text-xl font-light mb-2.5">:</span>
+
+              <div className="flex flex-col items-center min-w-[36px]">
+                <span className="text-xl sm:text-2xl font-heading font-bold text-[#8cb34a] tabular-nums tracking-tight drop-shadow-[0_0_12px_rgba(140,179,74,0.5)] animate-pulse">{timeData.s}</span>
+                <span className="text-[9px] text-[#8cb34a] font-semibold uppercase tracking-wider">Secs</span>
+              </div>
+            </div>
           </div>
         )}
 
