@@ -74,6 +74,6 @@ export const hostSteps: HowItWorksStep[] = [
     id: "host-step-6",
     stepNumber: 6,
     title: "Manage Tickets & Payout",
-    description: "Monitor sales from your host dashboard. When the draw closes, select the winner and receive your payout within 3–5 business days.",
+    description: "Monitor sales from your host dashboard. When the draw closes, Airsoft Draws will conduct the draw live and provide you with the winners details and receive your payout the next working day.",
   },
 ];
