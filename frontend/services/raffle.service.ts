@@ -93,7 +93,7 @@ export const raffleService = {
 
   async getInstantWinRaffles(limit = 10): Promise<any> {
     const response = await api.get('/raffles', {
-      params: { limit, hasInstantWins: 'true' },
+      params: { limit, hasInstantWins: 'true', statusFilter: 'Live' },
     });
     return response.data;
   },

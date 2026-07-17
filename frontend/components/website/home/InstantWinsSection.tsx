@@ -101,7 +101,10 @@ export default function InstantWinsSection() {
 
         {/* Competitions Grid */}
         {loading ? (
-          <div className="text-center text-text-muted py-10">Loading Instant Wins...</div>
+          <div className="flex flex-col items-center justify-center py-20 text-text-muted gap-4">
+            <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
+            <p className="font-sans font-medium text-sm">Loading Instant Wins...</p>
+          </div>
         ) : filteredDraws.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {filteredDraws.map((draw) => (
