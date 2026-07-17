@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { cn } from "../../../lib/utils";
 
@@ -8,6 +8,8 @@ interface RaffleImageGalleryProps {
   images: string[];
   title: string;
   instantWinCount?: number;
+  endDate?: string;
+  hostName?: string;
 }
 
 /**
@@ -18,8 +20,34 @@ export default function RaffleImageGallery({
   images,
   title,
   instantWinCount = 0,
+  endDate,
+  hostName,
 }: RaffleImageGalleryProps) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState("");
+
+  useEffect(() => {
+    if (!endDate) {
+      setTimeLeft("Ended");
+      return;
+    }
+    
+    const calculateTime = () => {
+      const diff = new Date(endDate).getTime() - new Date().getTime();
+      if (diff <= 0) return "Ended";
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const m = Math.floor((diff / 1000 / 60) % 60);
+      const s = Math.floor((diff / 1000) % 60);
+      
+      if (d > 0) return `${d}d ${h}h ${m}m`;
+      return `${h}h ${m}m ${s}s`;
+    };
+    
+    setTimeLeft(calculateTime());
+    const interval = setInterval(() => setTimeLeft(calculateTime()), 1000);
+    return () => clearInterval(interval);
+  }, [endDate]);
 
   // Present/Gift icon for the instant win badge
   const giftIcon = (
@@ -74,10 +102,17 @@ export default function RaffleImageGallery({
           <svg className="w-3.5 h-3.5 text-[#8CB34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
           </svg>
-          <span className="text-[11px] font-semibold text-[#8CB34A] tracking-wide">
-            Ends in 22h 15m
+          <span className="text-[11px] font-bold text-[#e8edd4] tracking-wide">
+            {timeLeft}
           </span>
         </div>
+
+        {/* Floating Host Name Badge (Top Left) */}
+        {hostName && (
+          <div className="absolute left-4 top-4 bg-[#1a230a]/90 backdrop-blur-sm border border-[#2d3c13] px-2.5 py-1 rounded-[6px] text-[10px] font-semibold text-[#a0d056] shadow-md truncate max-w-[200px] pointer-events-none">
+            By {hostName}
+          </div>
+        )}
       </div>
 
       {/* Thumbnails Row */}
