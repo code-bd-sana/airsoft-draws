@@ -40,7 +40,7 @@ export default function RaffleImageGallery({
       const m = Math.floor((diff / 1000 / 60) % 60);
       const s = Math.floor((diff / 1000) % 60);
       
-      if (d > 0) return `${d}d ${h}h ${m}m`;
+      if (d > 0) return `${d}d ${h}h ${m}m ${s}s`;
       return `${h}h ${m}m ${s}s`;
     };
     
@@ -98,18 +98,20 @@ export default function RaffleImageGallery({
         )}
 
         {/* Floating Ends In Badge (Bottom Left) */}
-        <div className="absolute left-4 bottom-4 bg-[#1A230A]/90 backdrop-blur-sm border border-[#43581E] flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] select-none shadow-md pointer-events-none">
-          <svg className="w-3.5 h-3.5 text-[#8CB34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-          </svg>
-          <span className="text-[11px] font-bold text-[#e8edd4] tracking-wide">
-            {timeLeft}
-          </span>
-        </div>
+        {timeLeft && timeLeft !== "Ended" && (
+          <div className="absolute left-4 bottom-4 bg-[#1A230A]/90 backdrop-blur-sm border border-[#43581E] flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] select-none shadow-md pointer-events-none z-20">
+            <svg className="w-3.5 h-3.5 text-[#8CB34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            <span className="text-[12px] font-bold text-[#e8edd4] tracking-wide uppercase">
+              {timeLeft}
+            </span>
+          </div>
+        )}
 
         {/* Floating Host Name Badge (Top Left) */}
         {hostName && (
-          <div className="absolute left-4 top-4 bg-[#1a230a]/90 backdrop-blur-sm border border-[#2d3c13] px-2.5 py-1 rounded-[6px] text-[10px] font-semibold text-[#a0d056] shadow-md truncate max-w-[200px] pointer-events-none">
+          <div className="absolute left-4 top-4 bg-[#1a230a]/90 backdrop-blur-sm border border-[#2d3c13] px-3 py-1.5 rounded-[6px] text-[11px] font-bold text-[#a0d056] shadow-md truncate max-w-[200px] pointer-events-none z-20">
             By {hostName}
           </div>
         )}
