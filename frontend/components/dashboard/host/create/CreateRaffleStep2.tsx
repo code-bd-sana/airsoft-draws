@@ -21,6 +21,26 @@ export default function CreateRaffleStep2({ formData, updateForm, onNext, onPrev
       </div>
 
       <div className="flex flex-col gap-[24px]">
+        {/* Main Prize Value */}
+        <div className="flex flex-col gap-[8px]">
+          <label className="font-sans font-medium text-[13px] text-[#e8edd4]">
+            Main Prize Value (£)
+          </label>
+          <div className="relative">
+            <span className="absolute left-[16px] top-1/2 -translate-y-1/2 font-sans font-normal text-[14px] text-[#5a752a]">
+              £
+            </span>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.mainPrizeValue}
+              onChange={(e) => updateForm({ mainPrizeValue: e.target.value })}
+              placeholder="e.g. 1500.00"
+              className="w-full h-[48px] pl-[32px] pr-[16px] bg-[#0d0d0b] border border-[#2d3c13] rounded-[8px] font-sans font-normal text-[14px] text-[#e8edd4] placeholder:text-[#5a752a] outline-none focus:border-[#8cb34a] transition-colors"
+            />
+          </div>
+        </div>
+
         {/* Total Tickets */}
         <div className="flex flex-col gap-[8px]">
           <label className="font-sans font-medium text-[13px] text-[#e8edd4]">

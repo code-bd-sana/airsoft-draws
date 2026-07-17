@@ -87,7 +87,7 @@ export default function CreateRaffleStep3({ formData, updateForm, onNext, onPrev
                   Click to upload cover image
                 </span>
                 <span className="font-sans font-normal text-[12px] text-[#5a752a] mt-1">
-                  SVG, PNG, JPG or GIF (max. 800x400px)
+                  SVG, PNG, JPG or GIF (Recommended image size: 800x600px, 4:3 aspect ratio for best display)
                 </span>
               </>
             )}

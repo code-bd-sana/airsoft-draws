@@ -1,0 +1,12 @@
+Here is a summary of the changes made to fulfill your requests for the Competitions page:
+
+1. Competitions Page Sorting & Search (Frontend + Backend)
+   - Updated `LiveRafflesFilterBar.tsx` to add "Featured" to the sort dropdown options.
+   - Updated `LiveRaffleGrid.tsx` to set "Featured" as the default sorting view on page load.
+   - Updated the backend API (`raffles.service.ts`) to recognize the "Featured" sort (which falls back to the latest additions for now) and also updated the backend search logic to match both the raffle title AND the host's business name.
+
+2. Draw Card Layout & Features (LiveRaffleCard.tsx)
+   - Host Name on Image: Added a small badge overlay on the top left of the card image that displays "By [Host Name]".
+   - Live Countdown on Image: Added a dynamic, ticking countdown on the bottom left of the image (e.g., "2d 4h 12m").
+   - Moved HOT Badge: Lowered the "HOT" and "ALMOST GONE" badges so they sit neatly under the competition title in the card content block, instead of floating over the image.
+   - Text Fix: Changed the label "Closes in" to "Closes on" for the static end date displayed at the bottom of the card, since it is a date and not a countdown.

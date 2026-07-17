@@ -65,6 +65,7 @@ export class RafflesService {
         title: data.title,
         slug,
         description: data.description || '',
+        mainPrizeValue: data.mainPrizeValue ? Number(data.mainPrizeValue) : null,
         pricePerTicket: data.ticketPrice || 0,
         totalTickets,
         startDate,
@@ -97,6 +98,7 @@ export class RafflesService {
             raffleId: raffle.id,
             ticketNumber: ticketNumbers[index],
             prizeName: iw.prizeName,
+            rrpValue: iw.rrpValue ? Number(iw.rrpValue) : null,
             image: iw.image || null,
           }),
         );
@@ -170,20 +172,26 @@ export class RafflesService {
     }
 
     if (search) {
-      whereClause.title = { contains: search, mode: 'insensitive' };
+      whereClause.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { host: { businessName: { contains: search, mode: 'insensitive' } } },
+      ];
     }
 
     // Sort logic
     let orderBy: any = { createdAt: 'desc' }; // default Latest
-    if (sort === 'Ending Soon') {
+    if (sort === 'Ending Soon' || sort === 'ending-soon') {
       orderBy = { endDate: 'asc' };
-    } else if (sort === 'Price: Low to High') {
+    } else if (sort === 'Price: Low to High' || sort === 'price-asc') {
       orderBy = { pricePerTicket: 'asc' };
-    } else if (sort === 'Price: High to Low') {
+    } else if (sort === 'Price: High to Low' || sort === 'price-desc') {
       orderBy = { pricePerTicket: 'desc' };
-    } else if (sort === 'Most Popular') {
+    } else if (sort === 'Most Popular' || sort === 'popular') {
       orderBy = { ticketsSold: 'desc' };
+    } else if (sort === 'featured') {
+      orderBy = { createdAt: 'desc' };
     }
+
 
     const [raffles, total] = await Promise.all([
       this.prisma.raffle.findMany({
