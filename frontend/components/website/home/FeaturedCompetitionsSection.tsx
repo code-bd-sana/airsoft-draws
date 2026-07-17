@@ -7,7 +7,6 @@ import DrawCard from "../shared/DrawCard";
 import SecondaryButton from "../shared/SecondaryButton";
 import { cn } from "../../../lib/utils";
 import { raffleService } from "../../../services/raffle.service";
-import { categoryService, Category } from "../../../services/category.service";
 import type { Draw } from "../../../types/draw.types";
 
 
@@ -15,21 +14,10 @@ import type { Draw } from "../../../types/draw.types";
  * Featured Competitions grid section with client-side category filter tabs and horizontal scroll carousel.
  */
 export default function FeaturedCompetitionsSection() {
-  const [activeCategory, setActiveCategory] = useState("all");
   const [draws, setDraws] = useState<Draw[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const fetchedCategories = await categoryService.getPublicCategories();
-        setCategories(fetchedCategories);
-      } catch (error) {
-        console.error("Failed to fetch categories:", error);
-      }
-    }
-
     async function fetchDraws() {
       try {
         const res = await raffleService.getPublicRaffles({ limit: 10 });
@@ -55,9 +43,8 @@ export default function FeaturedCompetitionsSection() {
         console.error("Failed to fetch featured draws:", err);
       }
     }
-    fetchCategories();
     fetchDraws();
-  }, [activeCategory]);
+  }, []);
 
   const scrollLeft = () => {
     if (carouselRef.current) {
@@ -72,9 +59,7 @@ export default function FeaturedCompetitionsSection() {
   };
 
   // Filter the draws
-  const filteredDraws = activeCategory === "all"
-    ? draws
-    : draws.filter((draw) => draw.category === activeCategory);
+  const filteredDraws = draws;
 
   // Render arrow SVG icon
   const arrowIcon = (
@@ -102,37 +87,8 @@ export default function FeaturedCompetitionsSection() {
         <SectionHeader
           badgeText="LIVE NOW"
           headingText="Featured Competitions"
-          paragraphText="Browse all active gear competitions. New competitions added daily by verified hosts with secure escrow delivery."
+          paragraphText="Browse all our featured competitions. Hosted by Verified Airsoft Businesses."
         />
-
-        {/* Filter Tabs Row */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-10 max-w-3xl mx-auto">
-          <button
-            onClick={() => setActiveCategory("all")}
-            className={cn(
-              "font-sans font-semibold text-xs px-5 py-2.5 rounded-button border transition-all duration-200 cursor-pointer select-none",
-              activeCategory === "all"
-                ? "bg-primary border-primary text-primary-text hover:bg-primary-hover"
-                : "bg-surface border-border text-text-muted hover:text-text-primary hover:border-border-medium"
-            )}
-          >
-            All
-          </button>
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => setActiveCategory(category.slug)}
-              className={cn(
-                "font-sans font-semibold text-xs px-5 py-2.5 rounded-button border transition-all duration-200 cursor-pointer select-none capitalize",
-                activeCategory === category.slug
-                  ? "bg-primary border-primary text-primary-text hover:bg-primary-hover"
-                  : "bg-surface border-border text-text-muted hover:text-text-primary hover:border-border-medium"
-              )}
-            >
-              {category.name}
-            </button>
-          ))}
-        </div>
 
         {/* Competitions Carousel Wrapper */}
         {filteredDraws.length > 0 ? (
@@ -196,10 +152,9 @@ export default function FeaturedCompetitionsSection() {
           </div>
         )}
 
-        {/* View All Button */}
         <div className="flex justify-center mt-6">
           <SecondaryButton href="/live-raffles" icon={arrowIcon} className="px-8 py-3.5">
-            View All Competitions
+            See All Competitions
           </SecondaryButton>
         </div>
 
