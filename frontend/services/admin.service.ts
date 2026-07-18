@@ -91,6 +91,29 @@ export interface OrderStats {
 }
 
 
+export interface LogData {
+  id: string;
+  timestamp: string;
+  actor: {
+    name: string;
+    initials: string;
+    type: "admin" | "system" | "user";
+  };
+  description: string;
+  ip: string;
+  status: "Success" | "Failed";
+}
+
+export interface GetLogsResponse {
+  logs: LogData[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 export interface AdminDashboardOverview {
   stats: {
     totalUsers: number;
@@ -154,6 +177,11 @@ export const adminService = {
 
   async getOverviewStats(): Promise<AdminDashboardOverview> {
     const { data } = await api.get('/admin/dashboard/stats');
+    return data;
+  },
+
+  async getSystemLogs(params: { page?: number; limit?: number; search?: string; filter?: string }): Promise<GetLogsResponse> {
+    const { data } = await api.get('/admin/dashboard/logs', { params });
     return data;
   },
 

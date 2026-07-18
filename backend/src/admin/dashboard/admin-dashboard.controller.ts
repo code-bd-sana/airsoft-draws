@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AdminDashboardService } from './admin-dashboard.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -20,5 +20,19 @@ export class AdminDashboardController {
   @ApiResponse({ status: 403, description: 'Forbidden' })
   async getOverviewStats() {
     return this.adminDashboardService.getOverviewStats();
+  }
+
+  @Get('logs')
+  @ApiOperation({ summary: 'Get administrative system logs (Admin only)' })
+  @ApiResponse({ status: 200, description: 'List of system logs' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  async getSystemLogs(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('search') search?: string,
+    @Query('filter') filter?: string,
+  ) {
+    return this.adminDashboardService.getSystemLogs({ page, limit, search, filter });
   }
 }

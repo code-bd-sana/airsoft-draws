@@ -69,3 +69,10 @@ export const useAdminOverviewStats = (options?: any) => {
     ...options,
   });
 };
+
+export const useAdminLogs = (params: { page?: number; limit?: number; search?: string; filter?: string }) => {
+  return useQuery({
+    queryKey: ['admin', 'logs', params],
+    queryFn: () => adminService.getSystemLogs(params),
+  });
+};
