@@ -52,51 +52,55 @@ export default function CreateRaffleStep5({ formData, updateForm, onNext, onPrev
 
         {/* Toggles */}
         <div className="flex flex-col gap-[16px] mt-[16px]">
-          {/* Auto Draw */}
-          <div 
-            onClick={() => updateForm({ autoDraw: !formData.autoDraw })}
-            className="flex items-center justify-between p-[16px] bg-[#0d0d0b] border border-[#2d3c13] rounded-[8px] cursor-pointer hover:border-[#8cb34a] transition-colors"
-          >
-            <div className="flex flex-col gap-[4px]">
-              <span className="font-sans font-medium text-[14px] text-[#e8edd4]">
-                Auto Draw
-              </span>
-              <span className="font-sans font-normal text-[12px] text-[#5a752a]">
-                Automatically pick a winner when the draw date is reached.
-              </span>
+          {/* Draw Strategy: Manual vs Auto */}
+          <div className="flex flex-col gap-[16px] p-[16px] bg-[#0d0d0b] border border-[#2d3c13] rounded-[8px]">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-[4px]">
+                <span className="font-sans font-medium text-[14px] text-[#e8edd4]">
+                  Draw Type
+                </span>
+                <span className="font-sans font-normal text-[12px] text-[#5a752a]">
+                  How will the winner be selected?
+                </span>
+              </div>
             </div>
-            <div className={cn(
-              "w-[40px] h-[24px] rounded-full p-[2px] transition-colors duration-200 ease-in-out shrink-0",
-              formData.autoDraw ? "bg-[#8cb34a]" : "bg-[#2d3c13]"
-            )}>
-              <div className={cn(
-                "w-[20px] h-[20px] bg-[#0d0d0b] rounded-full transition-transform duration-200 ease-in-out",
-                formData.autoDraw ? "translate-x-[16px]" : "translate-x-0"
-              )} />
-            </div>
-          </div>
 
-          {/* Guaranteed Draw */}
-          <div 
-            onClick={() => updateForm({ guaranteedDraw: !formData.guaranteedDraw })}
-            className="flex items-center justify-between p-[16px] bg-[#0d0d0b] border border-[#2d3c13] rounded-[8px] cursor-pointer hover:border-[#8cb34a] transition-colors"
-          >
-            <div className="flex flex-col gap-[4px]">
-              <span className="font-sans font-medium text-[14px] text-[#e8edd4]">
-                Guaranteed Draw
-              </span>
-              <span className="font-sans font-normal text-[12px] text-[#5a752a]">
-                Draw will take place regardless of ticket sales volume.
-              </span>
-            </div>
-            <div className={cn(
-              "w-[40px] h-[24px] rounded-full p-[2px] transition-colors duration-200 ease-in-out shrink-0",
-              formData.guaranteedDraw ? "bg-[#8cb34a]" : "bg-[#2d3c13]"
-            )}>
-              <div className={cn(
-                "w-[20px] h-[20px] bg-[#0d0d0b] rounded-full transition-transform duration-200 ease-in-out",
-                formData.guaranteedDraw ? "translate-x-[16px]" : "translate-x-0"
-              )} />
+            <div className="flex flex-col gap-[12px] mt-[8px] pt-[16px] border-t border-[#2d3c13]">
+              <label className="flex items-start gap-[12px] cursor-pointer">
+                <input 
+                  type="radio"
+                  name="drawType"
+                  checked={!formData.isAutoDraw}
+                  onChange={() => updateForm({ isAutoDraw: false, autoDrawDate: false, autoDrawSoldOut: false })}
+                  className="mt-1 w-[16px] h-[16px] rounded-full border-[#2d3c13] bg-[#161810] text-[#8cb34a] focus:ring-[#8cb34a]"
+                />
+                <div className="flex flex-col gap-1">
+                  <span className="font-sans font-medium text-[14px] text-[#e8edd4]">
+                    Live Draw
+                  </span>
+                  <span className="font-sans font-normal text-[12px] text-[#b3b8aa]">
+                    You will manually run the draw from your dashboard (e.g., live on Instagram).
+                  </span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-[12px] cursor-pointer">
+                <input 
+                  type="radio"
+                  name="drawType"
+                  checked={formData.isAutoDraw}
+                  onChange={() => updateForm({ isAutoDraw: true, autoDrawDate: true, autoDrawSoldOut: true })}
+                  className="mt-1 w-[16px] h-[16px] rounded-full border-[#2d3c13] bg-[#161810] text-[#8cb34a] focus:ring-[#8cb34a]"
+                />
+                <div className="flex flex-col gap-1">
+                  <span className="font-sans font-medium text-[14px] text-[#e8edd4]">
+                    Automatic Draw
+                  </span>
+                  <span className="font-sans font-normal text-[12px] text-[#b3b8aa]">
+                    System automatically draws a winner when all tickets are sold out OR the end time expires.
+                  </span>
+                </div>
+              </label>
             </div>
           </div>
         </div>

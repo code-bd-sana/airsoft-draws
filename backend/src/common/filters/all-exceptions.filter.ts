@@ -21,13 +21,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
-      
+
       // If the exception response is an object (like validation errors)
       if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
         message = (exceptionResponse as any).message || message;
         errors = (exceptionResponse as any).error || null;
       } else {
-        message = exceptionResponse as string;
+        message = exceptionResponse;
       }
     } else {
       // Log unexpected errors
@@ -38,6 +38,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       success: false,
       message: Array.isArray(message) ? message[0] : message, // take the first message if it's an array
       errors: Array.isArray(message) ? message : errors, // if message is an array, it's likely validation errors
+      debug_error: exception.message,
+      debug_stack: exception.stack,
       path: request.url,
       timestamp: new Date().toISOString(),
     });

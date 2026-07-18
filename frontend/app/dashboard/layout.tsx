@@ -16,14 +16,14 @@ export default function DashboardLayout({
     id: user.id,
     name: `${user.firstName} ${user.lastName}`.trim() || user.email,
     email: user.email,
-    role: (user.role === 'CLIENT' ? 'user' : user.role.toLowerCase()) as "user" | "host" | "admin",
+    role: (user.role === 'CLIENT' || user.role === 'USER' ? 'user' : user.role.toLowerCase()) as "user" | "host" | "admin",
     avatar: user.avatarUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + user.id,
     joinDate: "2024-01-01",
     status: "active" as const,
   } : null;
 
   return (
-    <ProtectedRoute allowedRoles={['CLIENT', 'HOST', 'ADMIN']}>
+    <ProtectedRoute allowedRoles={['CLIENT', 'USER', 'HOST', 'ADMIN']}>
       {account ? (
         <DashboardShell account={account}>{children}</DashboardShell>
       ) : (

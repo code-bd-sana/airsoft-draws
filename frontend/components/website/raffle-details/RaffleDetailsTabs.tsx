@@ -5,6 +5,7 @@ import Link from "next/link";
 import { RaffleDetail, RaffleTabId, RaffleTab } from "../../../types/raffle-details.types";
 import { formatCurrency } from "../../../lib/utils";
 import { cn } from "../../../lib/utils";
+import { useAuth } from "../../../features/auth/AuthContext";
 
 interface RaffleDetailsTabsProps {
   raffle: RaffleDetail;
@@ -12,6 +13,7 @@ interface RaffleDetailsTabsProps {
 
 export default function RaffleDetailsTabs({ raffle }: RaffleDetailsTabsProps) {
   const [activeTab, setActiveTab] = useState<RaffleTabId>("details");
+  const { user } = useAuth();
 
   const tabs: RaffleTab[] = [
     { id: "details", label: "Description" },
@@ -144,7 +146,9 @@ export default function RaffleDetailsTabs({ raffle }: RaffleDetailsTabsProps) {
                   )}
                   <div className="flex flex-col">
                     <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">{prize.title}</span>
-                    <span className="font-sans text-[11px] text-[#72943A]">Ticket #{prize.ticketNumber}</span>
+                    <span className="font-sans text-[11px] text-[#72943A]">
+                      {user?.role === 'ADMIN' || user?.role === 'HOST' ? `Ticket #${prize.ticketNumber}` : "Ticket #???"}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-4 text-right">

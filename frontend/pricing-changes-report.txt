@@ -1,0 +1,16 @@
+Here is a summary of the recent changes made to the How It Works and Pricing data:
+
+1. How It Works (Host Steps)
+   - Step 6 ("Manage Tickets & Payout"): Updated text to "Monitor sales from your host dashboard. When the draw closes, Airsoft Draws will conduct the draw live and provide you with the winners details and receive your payout the next working day."
+
+2. Pricing Plans (Pricing Cards)
+   - Free Plan (£0): 
+     - Reduced active draws from "Up to 3" to "1 active draw".
+     - Added a feature line item: "Access to Instant Wins" (set to excluded/false).
+   - Premium Plan (£29/month):
+     - Reduced active draws from "Unlimited" to "5 active draws".
+     - Added a feature line item: "Access to Instant Wins" (set to included/true).
+
+3. Pricing Comparison (Matrix Table)
+   - Updated the "Active draws" row values to reflect the new plan limits (Free: 1, Premium: 5).
+   - Added a brand new row for "Access to Instant Wins" to visually indicate that it is only available to Premium and Pro hosts.

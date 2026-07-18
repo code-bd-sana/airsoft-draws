@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -14,7 +19,10 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    const isPasswordValid = await bcrypt.compare(changePasswordDto.currentPassword, user.passwordHash);
+    const isPasswordValid = await bcrypt.compare(
+      changePasswordDto.currentPassword,
+      user.passwordHash,
+    );
     if (!isPasswordValid) {
       throw new BadRequestException('Invalid current password');
     }
@@ -33,42 +41,57 @@ export class UsersService {
   async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: { hostProfile: true }
+      include: { hostProfile: true },
     });
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    const { businessName, ...userData } = updateProfileDto;
+    const { businessName, bio, ...userData } = updateProfileDto;
 
     const updatedUser = await this.prisma.$transaction(async (prisma) => {
       const u = await prisma.user.update({
         where: { id: userId },
         data: userData,
-        include: { hostProfile: true }
+        include: { hostProfile: true },
       });
 
-      if (u.role === 'HOST' && businessName !== undefined) {
-        if (u.hostProfile) {
-          await prisma.hostProfile.update({
-            where: { userId },
-            data: { businessName }
-          });
-        } else {
-          await prisma.hostProfile.create({
-            data: { userId, businessName }
-          });
+      if (u.role === 'HOST') {
+        const hostProfileData: any = {};
+        if (businessName !== undefined)
+          hostProfileData.businessName = businessName;
+        if (bio !== undefined) hostProfileData.bio = bio;
+        if (userData.phone !== undefined)
+          hostProfileData.phone = userData.phone;
+        if (userData.address !== undefined)
+          hostProfileData.address = userData.address;
+
+        if (Object.keys(hostProfileData).length > 0) {
+          if (u.hostProfile) {
+            await prisma.hostProfile.update({
+              where: { userId },
+              data: hostProfileData,
+            });
+          } else if (businessName !== undefined) {
+            // Need businessName at minimum to create
+            await prisma.hostProfile.create({
+              data: { userId, ...hostProfileData },
+            });
+          }
         }
       }
       return prisma.user.findUnique({
         where: { id: userId },
-        include: { hostProfile: true }
+        include: { hostProfile: true },
       });
     });
 
     const { passwordHash, ...userWithoutPassword } = updatedUser!;
-    return { message: 'Profile updated successfully', user: userWithoutPassword };
+    return {
+      message: 'Profile updated successfully',
+      user: userWithoutPassword,
+    };
   }
 
   async updateAvatar(userId: string, avatarUrl: string) {
@@ -83,6 +106,9 @@ export class UsersService {
     });
 
     const { passwordHash, ...userWithoutPassword } = updatedUser;
-    return { message: 'Avatar updated successfully', user: userWithoutPassword };
+    return {
+      message: 'Avatar updated successfully',
+      user: userWithoutPassword,
+    };
   }
 }

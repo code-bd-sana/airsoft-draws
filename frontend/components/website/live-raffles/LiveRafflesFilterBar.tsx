@@ -35,13 +35,14 @@ export default function LiveRafflesFilterBar({
     { label: "All", value: "all" },
     { label: "Rifles", value: "rifles" },
     { label: "Pistols", value: "pistols" },
-    { label: "Snipers", value: "snipers" },
+    { label: "Snipers", value: "sniper-rifles" },
     { label: "Accessories", value: "accessories" },
-    { label: "Apparel", value: "apparel" },
-    { label: "Cash Prizes", value: "cash" },
+    { label: "Apparel", value: "gear-and-apparel" },
+    { label: "Cash Prizes", value: "cash-prizes" },
   ];
 
   const sortOptions = [
+    { label: "Featured", value: "featured" },
     { label: "Ending Soon", value: "ending-soon" },
     { label: "Price: Low to High", value: "price-asc" },
     { label: "Price: High to Low", value: "price-desc" },

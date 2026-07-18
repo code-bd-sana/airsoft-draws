@@ -6,6 +6,7 @@ import CurrentPlanCard from "../../../../components/dashboard/host/billing/Curre
 import PaymentMethodCard from "../../../../components/dashboard/host/billing/PaymentMethodCard";
 import BillingHistoryTable from "../../../../components/dashboard/host/billing/BillingHistoryTable";
 import { useMyBillingHistory } from "../../../../hooks/useSubscriptionHooks";
+import { toast } from "sonner";
 
 export default function SubscriptionBillingPage() {
   const searchParams = useSearchParams();
@@ -14,10 +15,9 @@ export default function SubscriptionBillingPage() {
   useEffect(() => {
     const status = searchParams.get("status");
     if (status === "success") {
-      alert("Payment successful! Your subscription is now active.");
-      // In a real app, replace with a nice toast notification
+      toast.success("Payment successful! Your subscription is now active.");
     } else if (status === "cancel") {
-      alert("Payment was cancelled.");
+      toast.error("Payment was cancelled.");
     }
   }, [searchParams]);
 

@@ -22,7 +22,7 @@ export default function ContactPage() {
       {/* Sticky top navbar */}
       <WebsiteNavbar />
 
-      <main className="min-h-screen flex flex-col bg-bg pt-20 lg:pt-[66px]">
+      <main className="min-h-screen flex flex-col bg-bg">
         {/* Page Hero subheaders */}
         <ContactHero />
 

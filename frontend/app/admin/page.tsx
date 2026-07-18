@@ -39,18 +39,18 @@ export default async function AdminPage() {
   let leads: LeadItem[] = [];
   if (isAuthenticated) {
     try {
-      const dbLeads = await prisma.lead.findMany({
+      const dbUsers = await prisma.user.findMany({
         orderBy: {
           createdAt: "desc",
         },
       });
 
-      leads = dbLeads.map((lead) => ({
-        id: lead.id,
-        fullName: lead.fullName,
-        email: lead.email,
-        role: lead.role,
-        createdAt: lead.createdAt.toISOString(),
+      leads = dbUsers.map((user) => ({
+        id: user.id,
+        fullName: [user.firstName, user.lastName].filter(Boolean).join(" ") || "Unknown",
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt.toISOString(),
       }));
     } catch (err) {
       console.error("Failed to load leads from database:", err);

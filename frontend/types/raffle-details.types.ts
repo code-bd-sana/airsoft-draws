@@ -26,6 +26,7 @@ export interface RaffleDetail {
   soldTickets: number;
   remainingTickets: number;
   drawEndDate: string;
+  endDate?: string;
   description: string;
   highlights: string[];
   terms: string[];
@@ -35,6 +36,7 @@ export interface RaffleDetail {
   hostLogo?: string;
   hostDrawsCount?: number;
   hostVerified?: boolean;
+  isAutoDraw?: boolean;
 }
 
 export interface RaffleTab {

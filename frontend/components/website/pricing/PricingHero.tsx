@@ -12,7 +12,7 @@ export default function PricingHero() {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
 
   return (
-    <section className="relative w-full bg-[#111210] pt-16 pb-20 md:pt-20 md:pb-28 border-b border-divider">
+    <section className="relative w-full bg-[#111210] pt-32 pb-20 md:pt-36 md:pb-28 border-b border-divider">
       {/* Decorative Top Radial Glow */}
       <div className="absolute inset-x-0 top-0 h-64 bg-radial-gradient from-primary/5 to-transparent pointer-events-none" />
 

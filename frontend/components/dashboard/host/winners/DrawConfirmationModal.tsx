@@ -1,15 +1,66 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { HostDrawItem } from "../../../../types/host-dashboard.types";
 
 interface Props {
   draw: HostDrawItem;
   isOpen: boolean;
+  isDrawing: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }
 
-export default function DrawConfirmationModal({ draw, isOpen, onClose, onConfirm }: Props) {
+export default function DrawConfirmationModal({ draw, isOpen, isDrawing, onClose, onConfirm }: Props) {
+  const [loadingText, setLoadingText] = useState("Mixing Tickets...");
+  const [randomNumber, setRandomNumber] = useState("00000");
+
+  useEffect(() => {
+    if (isDrawing) {
+      const texts = ["Mixing Tickets...", "Generating Random Seed...", "Selecting Winner...", "Verifying Result..."];
+      let i = 0;
+      const textInterval = setInterval(() => {
+        i = (i + 1) % texts.length;
+        setLoadingText(texts[i]);
+      }, 800);
+      
+      const numInterval = setInterval(() => {
+        setRandomNumber(Math.floor(10000 + Math.random() * 90000).toString());
+      }, 50);
+
+      return () => {
+        clearInterval(textInterval);
+        clearInterval(numInterval);
+      };
+    }
+  }, [isDrawing]);
+
   if (!isOpen) return null;
+
+  if (isDrawing) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d0d0b]/90 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="flex flex-col items-center">
+          {/* Glowing spinning ring with numbers inside */}
+          <div className="relative flex items-center justify-center w-[160px] h-[160px] mb-[32px]">
+            <div className="absolute inset-0 rounded-full border-[2px] border-[#8cb34a]/30 animate-ping" style={{ animationDuration: '2s' }}></div>
+            <div className="absolute inset-0 rounded-full border-[4px] border-transparent border-t-[#8cb34a] border-r-[#8cb34a] animate-spin" style={{ animationDuration: '0.8s' }}></div>
+            <div className="absolute inset-2 rounded-full shadow-[0_0_40px_rgba(140,179,74,0.4)]"></div>
+            {/* Random changing number */}
+            <span className="font-heading font-bold text-[32px] text-[#e8edd4] tracking-widest tabular-nums z-10 drop-shadow-[0_0_10px_rgba(140,179,74,0.8)]">
+              {randomNumber}
+            </span>
+          </div>
+
+          <h2 className="font-heading font-medium text-[28px] text-[#8cb34a] mb-[12px] text-center animate-pulse drop-shadow-[0_0_8px_rgba(140,179,74,0.5)]">
+            DRAW IN PROGRESS
+          </h2>
+          
+          <p className="font-sans font-medium text-[16px] text-[#b3b8aa] text-center w-[280px] h-[24px]">
+            {loadingText}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d0d0b]/80 backdrop-blur-sm animate-in fade-in duration-200">
@@ -33,7 +84,8 @@ export default function DrawConfirmationModal({ draw, isOpen, onClose, onConfirm
         <div className="flex flex-col w-full gap-[12px]">
           <button 
             onClick={onConfirm}
-            className="w-full h-[48px] bg-[#8cb34a] hover:bg-[#72943a] transition-colors rounded-[8px] flex items-center justify-center"
+            disabled={isDrawing}
+            className="w-full h-[48px] bg-[#8cb34a] hover:bg-[#72943a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-[8px] flex items-center justify-center"
           >
             <span className="font-heading font-medium text-[15px] text-[#0d0d0b]">
               Confirm & Draw Winner
@@ -42,7 +94,8 @@ export default function DrawConfirmationModal({ draw, isOpen, onClose, onConfirm
           
           <button 
             onClick={onClose}
-            className="w-full h-[48px] bg-transparent border border-[#2d3c13] hover:bg-[#1a230a] transition-colors rounded-[8px] flex items-center justify-center"
+            disabled={isDrawing}
+            className="w-full h-[48px] bg-transparent border border-[#2d3c13] hover:bg-[#1a230a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-[8px] flex items-center justify-center"
           >
             <span className="font-heading font-medium text-[15px] text-[#e8edd4]">
               Cancel
