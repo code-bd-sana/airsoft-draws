@@ -112,8 +112,37 @@ export default function UserRafflesPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-20">
-          <p className="text-[#72943A]">Loading competitions...</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full mt-2">
+          {Array.from({ length: 8 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="bg-[#161810] border border-[#2D3C13] rounded-[16px] overflow-hidden flex flex-col gap-4 pb-5"
+            >
+              <div className="w-full aspect-square bg-[#0D0D0B] animate-pulse flex items-center justify-center relative p-0 overflow-hidden">
+                <div className="absolute top-4 left-4 w-16 h-5 bg-[#1C2012] rounded-[14px]" />
+                <div className="absolute top-4 right-4 w-20 h-5 bg-[#1C2012] rounded-[14px]" />
+              </div>
+              <div className="px-5 flex flex-col gap-4 flex-1">
+                <div className="flex flex-col gap-2">
+                  <div className="h-4.5 w-full bg-[#1C2012] rounded animate-pulse" />
+                  <div className="h-4.5 w-3/4 bg-[#1C2012] rounded animate-pulse" />
+                </div>
+                <div className="flex flex-col gap-2 mt-2">
+                  <div className="flex justify-between items-center w-full">
+                    <div className="h-3 w-10 bg-[#1C2012] rounded animate-pulse" />
+                    <div className="h-3 w-10 bg-[#1C2012] rounded animate-pulse" />
+                  </div>
+                  <div className="w-full h-[4px] bg-[#1A230A] rounded-full overflow-hidden animate-pulse">
+                    <div className="h-full bg-[#1C2012] rounded-full w-1/4" />
+                  </div>
+                </div>
+                <div className="flex justify-between items-center w-full mt-2">
+                  <div className="h-3.5 w-28 bg-[#1C2012] rounded animate-pulse" />
+                  <div className="h-5 w-12 bg-[#1C2012] rounded animate-pulse" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : isError ? (
         <div className="flex justify-center py-20">
