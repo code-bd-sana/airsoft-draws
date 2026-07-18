@@ -142,11 +142,38 @@ export default function HostsTable() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr>
-                <td colSpan={7} className="py-8 text-center text-[#5A752A] font-sans text-sm">
-                  Loading hosts...
-                </td>
-              </tr>
+              Array.from({ length: 5 }).map((_, idx) => (
+                <tr key={idx} className="border-b border-[#2D3C13] last:border-b-0">
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3 animate-pulse">
+                      <div className="w-8 h-8 rounded-full bg-[#1C2012] shrink-0" />
+                      <div className="h-4 w-28 bg-[#1C2012] rounded" />
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="h-4 w-40 bg-[#1C2012] rounded animate-pulse" />
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <div className="h-6 w-24 bg-[#1C2012] rounded-full animate-pulse mx-auto" />
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <div className="h-4 w-10 bg-[#1C2012] rounded animate-pulse mx-auto" />
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <div className="h-4 w-16 bg-[#1C2012] rounded animate-pulse mx-auto" />
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <div className="h-6 w-16 bg-[#1C2012] rounded-full animate-pulse mx-auto" />
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center justify-end gap-3">
+                      <div className="w-4.5 h-4.5 bg-[#1C2012] rounded animate-pulse" />
+                      <div className="w-4.5 h-4.5 bg-[#1C2012] rounded animate-pulse" />
+                      <div className="w-4.5 h-4.5 bg-[#1C2012] rounded animate-pulse" />
+                    </div>
+                  </td>
+                </tr>
+              ))
             ) : data?.hosts?.length === 0 ? (
               <tr>
                 <td colSpan={7} className="py-8 text-center text-[#5A752A] font-sans text-sm">

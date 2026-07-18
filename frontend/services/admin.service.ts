@@ -91,6 +91,31 @@ export interface OrderStats {
 }
 
 
+export interface AdminDashboardOverview {
+  stats: {
+    totalUsers: number;
+    activeHosts: number;
+    liveRaffles: number;
+    totalRevenue: number;
+  };
+  awaitingReview: {
+    count: number;
+    list: {
+      id: string;
+      title: string;
+      sub: string;
+      icon: string;
+    }[];
+  };
+  recentActivity: {
+    text: string;
+    time: string;
+    highlight: boolean;
+    alert: boolean;
+  }[];
+}
+
+
 export const adminService = {
   async getUsers(params: { page?: number; limit?: number; search?: string; role?: string }): Promise<GetUsersResponse> {
     const { data } = await api.get('/admin/users', { params });
@@ -124,6 +149,11 @@ export const adminService = {
 
   async rejectHost(hostId: string): Promise<any> {
     const { data } = await api.patch(`/admin/hosts/${hostId}/reject`);
+    return data;
+  },
+
+  async getOverviewStats(): Promise<AdminDashboardOverview> {
+    const { data } = await api.get('/admin/dashboard/stats');
     return data;
   },
 

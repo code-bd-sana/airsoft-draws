@@ -117,18 +117,47 @@ export default function UsersTable() {
             </tr>
           </thead>
           <tbody>
-            {isLoading && (
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, idx) => (
+                <tr key={idx} className="border-b border-[#2D3C13] last:border-b-0">
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3 animate-pulse">
+                      <div className="w-8 h-8 rounded-full bg-[#1C2012] shrink-0" />
+                      <div className="flex flex-col gap-1.5">
+                        <div className="h-4.5 w-28 bg-[#1C2012] rounded" />
+                        <div className="h-3.5 w-36 bg-[#1C2012] rounded" />
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="h-4 w-24 bg-[#1C2012] rounded animate-pulse" />
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <div className="h-4 w-8 bg-[#1C2012] rounded animate-pulse mx-auto" />
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <div className="h-4 w-12 bg-[#1C2012] rounded animate-pulse mx-auto" />
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="h-6 w-16 bg-[#1C2012] rounded-full animate-pulse" />
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center justify-end gap-3">
+                      <div className="w-4.5 h-4.5 bg-[#1C2012] rounded animate-pulse" />
+                      <div className="w-4.5 h-4.5 bg-[#1C2012] rounded animate-pulse" />
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : filteredUsers.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-8 text-center text-[#72943A]">Loading users...</td>
+                <td colSpan={6} className="py-8 text-center text-[#72943A] font-sans text-sm">
+                  No users found.
+                </td>
               </tr>
-            )}
-            {!isLoading && filteredUsers.length === 0 && (
-              <tr>
-                <td colSpan={6} className="py-8 text-center text-[#72943A]">No users found.</td>
-              </tr>
-            )}
-            {!isLoading && filteredUsers.map((user, i) => (
-              <tr key={user.id} className={`${i !== filteredUsers.length - 1 ? 'border-b border-[#2D3C13]' : ''} hover:bg-[#1A230A] transition-colors`}>
+            ) : (
+              filteredUsers.map((user, i) => (
+                <tr key={user.id} className={`${i !== filteredUsers.length - 1 ? 'border-b border-[#2D3C13]' : ''} hover:bg-[#1A230A] transition-colors`}>
                 <td className="py-4 px-6">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-[#0D0D0B] border border-[#43581E] flex items-center justify-center shrink-0">
@@ -196,7 +225,7 @@ export default function UsersTable() {
                   </div>
                 </td>
               </tr>
-            ))}
+            )))}
           </tbody>
         </table>
       </div>
