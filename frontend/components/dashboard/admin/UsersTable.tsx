@@ -24,6 +24,39 @@ export default function UsersTable() {
   const { data, isLoading, isError } = useAdminUsers({ page, limit, search });
   const toggleBlock = useToggleUserBlockMutation();
 
+  const handleExportCSV = () => {
+    if (filteredUsers.length === 0) {
+      return;
+    }
+    const headers = ["ID", "First Name", "Last Name", "Email", "Role", "Joined Date", "Tickets Count", "Total Spent (£)", "Status"];
+    const rows = filteredUsers.map(user => [
+      user.id,
+      user.firstName || "",
+      user.lastName || "",
+      user.email,
+      user.role,
+      user.createdAt,
+      user.ticketsCount || 0,
+      user.totalSpent.toFixed(2),
+      user.isBlocked ? "Blocked" : "Active"
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `users_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     setPage(1); // Reset to page 1 on search
@@ -94,7 +127,11 @@ export default function UsersTable() {
         </div>
 
         {/* Right: Export CSV */}
-        <button className="h-[40px] px-4 bg-transparent border border-[#2D3C13] hover:bg-[#1A230A] rounded-[8px] flex items-center justify-center gap-2 transition-colors shrink-0">
+        <button 
+          onClick={handleExportCSV}
+          disabled={filteredUsers.length === 0}
+          className="h-[40px] px-4 bg-transparent border border-[#2D3C13] hover:bg-[#1A230A] rounded-[8px] flex items-center justify-center gap-2 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
           <svg className="w-4 h-4 text-[#8CB34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
           </svg>
