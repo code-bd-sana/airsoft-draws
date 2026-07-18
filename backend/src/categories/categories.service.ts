@@ -8,8 +8,13 @@ export class CategoriesService {
   constructor(private readonly prisma: PrismaService) {}
 
   create(createCategoryDto: CreateCategoryDto) {
-    const slug = createCategoryDto.slug || createCategoryDto.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-    
+    const slug =
+      createCategoryDto.slug ||
+      createCategoryDto.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+
     return this.prisma.category.create({
       data: {
         ...createCategoryDto,
@@ -43,7 +48,10 @@ export class CategoriesService {
     await this.findOne(id); // verify existence
 
     if (updateCategoryDto.name && !updateCategoryDto.slug) {
-      updateCategoryDto.slug = updateCategoryDto.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      updateCategoryDto.slug = updateCategoryDto.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
     }
 
     return this.prisma.category.update({
@@ -59,4 +67,3 @@ export class CategoriesService {
     });
   }
 }
-

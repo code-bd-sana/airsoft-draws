@@ -6,7 +6,12 @@ import {
   UseGuards,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { SubscriptionsService } from './subscriptions.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -36,6 +41,10 @@ export class SubscriptionsController {
 
   @Get('plans')
   @ApiOperation({ summary: 'Get all active subscription plans' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of subscription plans successfully retrieved',
+  })
   async getPlans() {
     return this.subscriptionsService.getPlans();
   }
@@ -43,7 +52,14 @@ export class SubscriptionsController {
   @Get('my')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get the current host subscription' })
+  @ApiResponse({
+    status: 200,
+    description: 'Current active subscription details',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - host role required' })
   async getMySubscription(@Req() req: Request) {
     const hostId = this.extractUserId(req);
     return this.subscriptionsService.getMySubscription(hostId);
@@ -52,7 +68,14 @@ export class SubscriptionsController {
   @Get('history')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get the current host billing history' })
+  @ApiResponse({
+    status: 200,
+    description: 'Host billing history transactions',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - host role required' })
   async getMyBillingHistory(@Req() req: Request) {
     const hostId = this.extractUserId(req);
     return this.subscriptionsService.getMyBillingHistory(hostId);
@@ -61,7 +84,15 @@ export class SubscriptionsController {
   @Post('cancel')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Cancel the current active subscription' })
+  @ApiResponse({
+    status: 200,
+    description: 'Subscription cancelled successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - host role required' })
+  @ApiResponse({ status: 404, description: 'No active subscription found' })
   async cancelSubscription(@Req() req: Request) {
     const hostId = this.extractUserId(req);
     return this.subscriptionsService.cancelSubscription(hostId);
@@ -70,7 +101,11 @@ export class SubscriptionsController {
   @Get('admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all subscriptions for admin' })
+  @ApiResponse({ status: 200, description: 'List of all subscriptions' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin only access' })
   async getAllSubscriptions() {
     return this.subscriptionsService.getAllSubscriptions();
   }
@@ -78,7 +113,11 @@ export class SubscriptionsController {
   @Get('admin/stats')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get subscription stats for admin dashboard' })
+  @ApiResponse({ status: 200, description: 'Subscription stats object' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin only access' })
   async getAdminStats() {
     return this.subscriptionsService.getAdminStats();
   }

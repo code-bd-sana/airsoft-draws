@@ -36,6 +36,16 @@ export default function HostsTable() {
     },
   });
 
+  const approveHostMutation = useMutation({
+    mutationFn: (hostId: string) => adminService.approveHost(hostId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-hosts'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-hosts-stats'] });
+      setIsModalOpen(false);
+      setSelectedHost(null);
+    },
+  });
+
   const handleReview = (host: HostData) => {
     // Construct detailed data for the modal based on the selected row
     setSelectedHost({
@@ -46,6 +56,7 @@ export default function HostsTable() {
       contact: "N/A", // This could be fetched from host profile if available
       payoutMethod: "N/A",
       social: "N/A",
+      isVerified: host.isVerified,
     });
     setIsModalOpen(true);
   };
@@ -88,7 +99,7 @@ export default function HostsTable() {
 
           {/* Filter Pills */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            {["All", "Active", "Blocked"].map((filter) => (
+            {["All", "Active", "Blocked", "Pending"].map((filter) => (
               <button
                 key={filter}
                 onClick={() => { setActiveFilter(filter); setPage(1); }}
@@ -161,7 +172,20 @@ export default function HostsTable() {
                     {getStatusPill(host.isBlocked)}
                   </td>
                   <td className="py-4 px-6">
-                    <div className="flex items-center justify-end gap-3">
+                    <div className="flex items-center justify-end gap-3 font-sans">
+                      {!host.isVerified && (
+                        <button 
+                          onClick={() => approveHostMutation.mutate(host.id)}
+                          disabled={approveHostMutation.isPending}
+                          className="text-[#4ADE80] hover:text-[#32b25e] transition-colors mr-1" 
+                          title="Approve Host"
+                        >
+                          <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                          </svg>
+                        </button>
+                      )}
+
                       <button 
                         onClick={() => handleReview(host)}
                         className="text-[#5A752A] hover:text-[#8CB34A] transition-colors" 
@@ -202,6 +226,8 @@ export default function HostsTable() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         data={selectedHost} 
+        onApprove={(hostId) => approveHostMutation.mutate(hostId)}
+        isApproveLoading={approveHostMutation.isPending}
       />
 
       <ConfirmBlockModal 

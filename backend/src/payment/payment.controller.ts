@@ -8,11 +8,18 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiHeader,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { PaymentService } from './payment.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import type { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
+import { CheckoutSubscriptionDto } from './dto/checkout-subscription.dto';
 
 @ApiTags('Payment')
 @Controller('api/v1/payment')
@@ -35,12 +42,20 @@ export class PaymentController {
   }
 
   @Post('checkout/subscription')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Create Stripe checkout session for a subscription plan',
   })
+  @ApiResponse({
+    status: 200,
+    description: 'Checkout session created successfully, returns checkout URL',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid planId' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async createSubscriptionCheckout(
     @Req() req: Request,
-    @Body() body: { planId: string },
+    @Body() body: CheckoutSubscriptionDto,
   ) {
     if (!body.planId) throw new BadRequestException('planId is required');
     const hostId = this.extractUserId(req);
@@ -49,6 +64,16 @@ export class PaymentController {
 
   @Post('webhook')
   @ApiOperation({ summary: 'Cashflow Webhook Endpoint' })
+  @ApiHeader({
+    name: 'cashflow-signature',
+    description: 'Secure signature for verifying payment gateway events',
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhook events processed successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Missing or invalid signature' })
   async handleWebhook(
     @Headers('cashflow-signature') signature: string,
     @Req() req: any,

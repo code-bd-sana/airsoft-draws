@@ -23,8 +23,8 @@ export class DrawSchedulerService {
         isAutoDraw: true,
         OR: [
           { endDate: { lte: now } },
-          { ticketsSold: { gte: this.prisma.raffle.fields.totalTickets } }
-        ]
+          { ticketsSold: { gte: this.prisma.raffle.fields.totalTickets } },
+        ],
       },
     });
 

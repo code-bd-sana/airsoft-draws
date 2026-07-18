@@ -118,6 +118,12 @@ export class AuthService {
       );
     }
 
+    if (user.role === 'HOST' && user.hostProfile && !user.hostProfile.isVerified) {
+      throw new UnauthorizedException(
+        'Your host account is pending admin approval.',
+      );
+    }
+
     const payload = { sub: user.id, email: user.email, role: user.role };
 
     // Auth token (expires in 7d as requested)
@@ -146,6 +152,12 @@ export class AuthService {
       if (user.isBlocked) {
         throw new UnauthorizedException(
           'Your account has been suspended. Please contact support.',
+        );
+      }
+
+      if (user.role === 'HOST' && user.hostProfile && !user.hostProfile.isVerified) {
+        throw new UnauthorizedException(
+          'Your host account is pending admin approval.',
         );
       }
 

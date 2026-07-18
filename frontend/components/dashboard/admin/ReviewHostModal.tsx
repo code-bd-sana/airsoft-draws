@@ -10,15 +10,18 @@ export interface HostApplicationData {
   contact: string;
   payoutMethod: string;
   social: string;
+  isVerified?: boolean;
 }
 
 interface ReviewHostModalProps {
   isOpen: boolean;
   onClose: () => void;
   data: HostApplicationData | null;
+  onApprove?: (hostId: string) => void;
+  isApproveLoading?: boolean;
 }
 
-export default function ReviewHostModal({ isOpen, onClose, data }: ReviewHostModalProps) {
+export default function ReviewHostModal({ isOpen, onClose, data, onApprove, isApproveLoading }: ReviewHostModalProps) {
   if (!isOpen || !data) return null;
 
   return (
@@ -82,6 +85,15 @@ export default function ReviewHostModal({ isOpen, onClose, data }: ReviewHostMod
 
         {/* Footer Actions */}
         <div className="flex items-center gap-4 mt-10">
+          {!data.isVerified && onApprove && (
+            <button 
+              onClick={() => onApprove(data.id)}
+              disabled={isApproveLoading}
+              className="w-full h-[48px] rounded-[8px] bg-[#8CB34A] hover:bg-[#a1cf52] text-[#111210] font-heading font-medium text-[15px] transition-colors flex items-center justify-center gap-2"
+            >
+              {isApproveLoading ? "Approving..." : "Approve Host"}
+            </button>
+          )}
           <button 
             onClick={onClose}
             className="w-full h-[48px] rounded-[8px] bg-[#1A230A] border border-[#2D3C13] hover:bg-[#2D3C13] text-[#E8EDD4] font-heading font-medium text-[15px] transition-colors"

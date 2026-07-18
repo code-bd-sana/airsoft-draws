@@ -13,9 +13,16 @@ import { TicketsService } from './tickets.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiParam,
+  ApiResponse,
+} from '@nestjs/swagger';
 import type { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
+import { PurchaseTicketsDto } from './dto/purchase-tickets.dto';
 
 @ApiTags('Tickets')
 @Controller('api/v1/tickets')
@@ -40,11 +47,23 @@ export class TicketsController {
   @Post('purchase/:raffleId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('CLIENT', 'USER', 'HOST', 'ADMIN') // Allow any logged-in user to buy
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Purchase tickets for a competition' })
+  @ApiParam({
+    name: 'raffleId',
+    description: 'The unique ID of the raffle/competition',
+  })
+  @ApiResponse({ status: 201, description: 'Tickets successfully purchased' })
+  @ApiResponse({
+    status: 400,
+    description: 'Insufficient tickets or invalid quantity',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Raffle not found' })
   async purchaseTickets(
     @Req() req: Request,
     @Param('raffleId') raffleId: string,
-    @Body() body: { quantity: number },
+    @Body() body: PurchaseTicketsDto,
   ) {
     if (!body.quantity || body.quantity < 1) {
       throw new BadRequestException(
@@ -57,7 +76,10 @@ export class TicketsController {
 
   @Get('my-tickets')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all tickets purchased by the current user' })
+  @ApiResponse({ status: 200, description: 'List of purchased tickets' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getMyTickets(@Req() req: Request) {
     const userId = this.extractUserId(req);
     return this.ticketsService.getUserTickets(userId);

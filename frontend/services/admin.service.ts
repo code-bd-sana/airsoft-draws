@@ -35,6 +35,7 @@ export interface HostData {
   businessName: string;
   email: string;
   isBlocked: boolean;
+  isVerified: boolean;
   plan: string;
   raffles: number;
   revenue: number;
@@ -53,6 +54,7 @@ export interface HostStats {
   totalHosts: number;
   activeHosts: number;
   blockedHosts: number;
+  pendingHosts?: number;
 }
 
 export interface OrderData {
@@ -107,6 +109,11 @@ export const adminService = {
 
   async getHostStats(): Promise<HostStats> {
     const { data } = await api.get('/admin/hosts/stats');
+    return data;
+  },
+
+  async approveHost(hostId: string): Promise<any> {
+    const { data } = await api.patch(`/admin/hosts/${hostId}/approve`);
     return data;
   },
 
