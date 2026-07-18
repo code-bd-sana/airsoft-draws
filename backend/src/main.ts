@@ -67,6 +67,7 @@ async function bootstrap() {
       description: 'Enter your JWT token to authorize protected API endpoints',
       in: 'header',
     })
+    .addSecurityRequirements('bearer')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

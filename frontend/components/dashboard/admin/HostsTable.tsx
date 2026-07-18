@@ -46,6 +46,16 @@ export default function HostsTable() {
     },
   });
 
+  const rejectHostMutation = useMutation({
+    mutationFn: (hostId: string) => adminService.rejectHost(hostId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-hosts'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-hosts-stats'] });
+      setIsModalOpen(false);
+      setSelectedHost(null);
+    },
+  });
+
   const handleReview = (host: HostData) => {
     // Construct detailed data for the modal based on the selected row
     setSelectedHost({
@@ -174,16 +184,37 @@ export default function HostsTable() {
                   <td className="py-4 px-6">
                     <div className="flex items-center justify-end gap-3 font-sans">
                       {!host.isVerified && (
-                        <button 
-                          onClick={() => approveHostMutation.mutate(host.id)}
-                          disabled={approveHostMutation.isPending}
-                          className="text-[#4ADE80] hover:text-[#32b25e] transition-colors mr-1" 
-                          title="Approve Host"
-                        >
-                          <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                          </svg>
-                        </button>
+                        <>
+                          <button 
+                            onClick={() => approveHostMutation.mutate(host.id)}
+                            disabled={approveHostMutation.isPending || rejectHostMutation.isPending}
+                            className="text-[#4ADE80] hover:text-[#22c55e] hover:scale-125 active:scale-95 transition-all duration-200 mr-1 flex items-center justify-center shrink-0" 
+                            title="Approve Host"
+                          >
+                            {approveHostMutation.isPending && approveHostMutation.variables === host.id ? (
+                              <div className="w-4.5 h-4.5 border-2 border-[#4ADE80] border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                              </svg>
+                            )}
+                          </button>
+
+                          <button 
+                            onClick={() => rejectHostMutation.mutate(host.id)}
+                            disabled={approveHostMutation.isPending || rejectHostMutation.isPending}
+                            className="text-[#EF4444] hover:text-[#dc2626] hover:scale-125 active:scale-95 transition-all duration-200 mr-2 flex items-center justify-center shrink-0" 
+                            title="Reject Host"
+                          >
+                            {rejectHostMutation.isPending && rejectHostMutation.variables === host.id ? (
+                              <div className="w-4.5 h-4.5 border-2 border-[#EF4444] border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                              </svg>
+                            )}
+                          </button>
+                        </>
                       )}
 
                       <button 
@@ -228,6 +259,8 @@ export default function HostsTable() {
         data={selectedHost} 
         onApprove={(hostId) => approveHostMutation.mutate(hostId)}
         isApproveLoading={approveHostMutation.isPending}
+        onReject={(hostId) => rejectHostMutation.mutate(hostId)}
+        isRejectLoading={rejectHostMutation.isPending}
       />
 
       <ConfirmBlockModal 

@@ -115,4 +115,29 @@ export class AdminHostsService {
       data: { isVerified: true },
     });
   }
+
+  async rejectHost(id: string) {
+    const hostProfile = await this.prisma.hostProfile.findUnique({
+      where: { id },
+    });
+    if (!hostProfile) {
+      throw new NotFoundException('Host profile not found');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // Delete subscriptions if any exist
+      await tx.hostSubscription.deleteMany({
+        where: { hostId: id },
+      });
+      // Delete host profile
+      await tx.hostProfile.delete({
+        where: { id },
+      });
+      // Reset user role to CLIENT
+      await tx.user.update({
+        where: { id: hostProfile.userId },
+        data: { role: 'CLIENT' },
+      });
+    });
+  }
 }

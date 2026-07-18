@@ -16,6 +16,11 @@ export interface User {
   lastName: string | null;
   role: string;
   isBlocked: boolean;
+  isEmailVerified: boolean;
+  avatarUrl: string | null;
+  location: string | null;
+  phone: string | null;
+  address: string | null;
   createdAt: string;
   ticketsCount: number;
   totalSpent: number;
@@ -114,6 +119,11 @@ export const adminService = {
 
   async approveHost(hostId: string): Promise<any> {
     const { data } = await api.patch(`/admin/hosts/${hostId}/approve`);
+    return data;
+  },
+
+  async rejectHost(hostId: string): Promise<any> {
+    const { data } = await api.patch(`/admin/hosts/${hostId}/reject`);
     return data;
   },
 

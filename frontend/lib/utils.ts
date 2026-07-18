@@ -46,16 +46,26 @@ export function extractApiError(error: any, defaultMessage: string = "An error o
   
   if (!responseData) return error?.message || defaultMessage;
 
-  // Handle NestJS validation array format: { error: [{ field: "email", errors: ["email must be valid"] }] }
-  if (Array.isArray(responseData.error)) {
-    const errorMessages = responseData.error
+  // Handle NestJS validation array format (both error and errors keys)
+  const validationErrors = responseData.errors || responseData.error;
+  if (Array.isArray(validationErrors)) {
+    const errorMessages = validationErrors
       .map((err: any) => {
         if (err.errors && Array.isArray(err.errors)) {
-          return `${err.field}: ${err.errors.join(", ")}`;
+          // If the message contains the field name (e.g. "email must be an email"), return it.
+          // Otherwise, return the field prefix for context.
+          const joinedErrors = err.errors.join(", ");
+          if (joinedErrors.toLowerCase().includes(err.field?.toLowerCase() || '')) {
+            return joinedErrors;
+          }
+          return `${err.field}: ${joinedErrors}`;
+        }
+        if (typeof err === "string") {
+          return err;
         }
         return err.field || JSON.stringify(err);
       });
-    return `Validation Error - ${errorMessages.join(" | ")}`;
+    return errorMessages.join(" | ");
   }
 
   // Handle standard { message: "Error string" } format
@@ -70,3 +80,4 @@ export function extractApiError(error: any, defaultMessage: string = "An error o
 
   return defaultMessage;
 }
+

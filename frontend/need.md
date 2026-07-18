@@ -1,0 +1,2 @@
+- Terms and conditon
+  -Host guide and platform roles

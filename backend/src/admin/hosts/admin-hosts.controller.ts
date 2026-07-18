@@ -57,5 +57,16 @@ export class AdminHostsController {
   async approveHost(@Param('id') id: string) {
     return this.adminHostsService.approveHost(id);
   }
+
+  @Patch(':id/reject')
+  @ApiOperation({ summary: 'Reject a host profile application (Admin only)' })
+  @ApiParam({ name: 'id', description: 'The unique ID of the host profile' })
+  @ApiResponse({ status: 200, description: 'Host successfully rejected' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Host profile not found' })
+  async rejectHost(@Param('id') id: string) {
+    return this.adminHostsService.rejectHost(id);
+  }
 }
 

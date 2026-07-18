@@ -54,6 +54,8 @@ export class AuthService {
           firstName: registerDto.firstName,
           lastName: registerDto.lastName,
           location: registerDto.location,
+          phone: registerDto.phone,
+          address: registerDto.address,
           role,
         },
       });
@@ -63,6 +65,9 @@ export class AuthService {
           data: {
             userId: newUser.id,
             businessName: registerDto.businessName!,
+            bio: registerDto.bio,
+            phone: registerDto.phone,
+            address: registerDto.address,
           },
         });
       }
