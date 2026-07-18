@@ -9,6 +9,7 @@ import { cn } from "../../lib/utils";
 import Image from "next/image";
 import logo from '../../public/logo2.png';
 import { useLogout } from "../../hooks/useAuthHooks";
+import { useAdminOverviewStats } from "../../hooks/useAdminHooks";
 
 interface DashboardSidebarProps {
   account: DashboardAccount;
@@ -20,6 +21,10 @@ export default function DashboardSidebar({ account }: DashboardSidebarProps) {
 
   // Filter nav items by role
   const navItems = dashboardNavigation.filter(item => item.roles.includes(account.role));
+
+  const { data: overviewStats } = useAdminOverviewStats({
+    enabled: account.role === "admin",
+  });
 
   const logout = useLogout();
 
@@ -51,6 +56,11 @@ export default function DashboardSidebar({ account }: DashboardSidebarProps) {
             ? pathname === item.href
             : pathname.startsWith(item.href);
 
+          let displayBadge = item.badge;
+          if (item.href === "/dashboard/admin/approvals" && overviewStats?.awaitingReview.count !== undefined) {
+            displayBadge = overviewStats.awaitingReview.count > 0 ? overviewStats.awaitingReview.count : undefined;
+          }
+
           return (
             <Link
               key={item.label}
@@ -70,15 +80,15 @@ export default function DashboardSidebar({ account }: DashboardSidebarProps) {
                 {item.label}
               </span>
 
-              {item.badge && (
-                item.badge === true ? (
+              {displayBadge !== undefined && (
+                displayBadge === true ? (
                   <span className="ml-auto w-2 h-2 rounded-full bg-[#f76b6b]" />
                 ) : (
                   <span className={cn(
                     "ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-badge min-w-[20px] text-center",
                     isActive ? "bg-primary text-[#0D0D0B]" : "bg-[#2D3C13] text-[#A0D056]"
                   )}>
-                    {item.badge}
+                    {displayBadge}
                   </span>
                 )
               )}

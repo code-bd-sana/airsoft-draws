@@ -135,12 +135,21 @@ export const raffleService = {
   },
 
   async updateRaffle(id: string, data: UpdateRaffleData): Promise<Raffle> {
-    const response = await api.patch(`/raffles/host/${id}`, data);
+    const { pricePerTicket, ...rest } = data;
+    const payload: any = { ...rest };
+    if (pricePerTicket !== undefined) {
+      payload.ticketPrice = typeof pricePerTicket === 'string' ? Number(pricePerTicket) : pricePerTicket;
+    }
+    const response = await api.patch(`/raffles/host/${id}`, payload);
     return response.data;
   },
 
   async createRaffle(data: CreateRaffleData): Promise<Raffle> {
-    const response = await api.post('/raffles', data);
+    const { pricePerTicket, ...rest } = data;
+    const response = await api.post('/raffles', {
+      ...rest,
+      ticketPrice: typeof pricePerTicket === 'string' ? Number(pricePerTicket) : pricePerTicket,
+    });
     return response.data;
   },
 
