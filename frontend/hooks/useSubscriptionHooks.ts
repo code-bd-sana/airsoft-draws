@@ -44,3 +44,10 @@ export const useMyBillingHistory = () => {
     queryFn: subscriptionService.getMyBillingHistory,
   });
 };
+
+export const useAdminSubscriptionStats = () => {
+  return useQuery({
+    queryKey: ['adminSubscriptionStats'],
+    queryFn: subscriptionService.getAdminSubscriptionStats,
+  });
+};

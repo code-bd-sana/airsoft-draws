@@ -47,7 +47,7 @@ export default function LiveRaffleGrid() {
   // Filters State (activeCategory is derived from URL parameters)
   const activeCategory = searchParams.get("category") || "all";
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("ending-soon");
+  const [sortBy, setSortBy] = useState("featured");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -82,15 +82,16 @@ export default function LiveRaffleGrid() {
     search: searchQuery,
     page: currentPage,
     limit: 6,
-    // Add category/sort logic as query params later if needed, but for now we just use the backend default (active status)
+    category: activeCategory !== "all" ? activeCategory : undefined,
+    sort: sortBy,
   });
 
   const filteredRaffles = rafflesResponse?.data || [];
-  const totalPages = rafflesResponse?.meta?.lastPage || 1;
+  const totalPages = rafflesResponse?.meta?.totalPages || 1;
 
   const resetFilters = () => {
     setSearchQuery("");
-    setSortBy("ending-soon");
+    setSortBy("featured");
     setCurrentPage(1);
     router.push("?", { scroll: false });
   };

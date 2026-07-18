@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { NAV_LINKS } from "../../../lib/constants";
-import PrimaryButton from "../shared/PrimaryButton";
-import { cn } from "../../../lib/utils";
+import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useAuthUser } from '../../../hooks/useAuthHooks';
+import { NAV_LINKS } from '../../../lib/constants';
+import { cn } from '../../../lib/utils';
 import logo from '../../../public/logo3.png';
-import { useAuthUser } from "../../../hooks/useAuthHooks";
+import PrimaryButton from '../shared/PrimaryButton';
 
 /**
  * Global website navigation navbar with sticky backdrop blur and responsive mobile slide-out sidebar y.
@@ -28,8 +28,8 @@ export default function WebsiteNavbar() {
         setScrolled(false);
       }
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const toggleMobileMenu = () => {
@@ -40,39 +40,40 @@ export default function WebsiteNavbar() {
     <>
       <header
         className={cn(
-          "fixed top-0 left-0 w-full z-45 transition-all duration-300 border-b",
+          'fixed top-0 left-0 w-full z-45 transition-all duration-300 border-b',
           scrolled
-            ? "bg-bg/90 backdrop-blur-md border-divider/80 py-3"
-            : "bg-transparent border-transparent py-5"
+            ? 'bg-bg/90 backdrop-blur-md border-divider/80 py-3'
+            : 'bg-transparent border-transparent py-5',
         )}
       >
-        <div className="container-custom flex items-center justify-between">
+        <div className='container-custom flex items-center justify-between'>
           {/* Branding Logo */}
-          <Link href="/" className="flex items-center gap-2 select-none group py-0.5">
+          <Link href='/' className='flex items-center gap-2 select-none group py-0.5'>
             <Image
-              alt="Airsoft Draws Logo"
+              alt='Airsoft Draws Logo'
               src={logo}
               height={150}
               width={150}
               priority
-              className="w-20 sm:w-24 md:w-[130px] h-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-md brightness-110 contrast-125"
+              className='w-20 sm:w-24 md:w-[130px] h-auto object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-md brightness-110 contrast-125'
             />
-            <span className="font-sans font-bold text-sm sm:text-lg md:text-xl tracking-[0.1em] sm:tracking-[0.2em] md:tracking-[0.3em] uppercase text-[#a8b488] whitespace-nowrap">
+            <span className='font-sans font-bold text-sm sm:text-lg md:text-xl tracking-[0.1em] sm:tracking-[0.2em] md:tracking-[0.3em] uppercase text-[#a8b488] whitespace-nowrap'>
               Airsoft Draws
             </span>
           </Link>
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-8">
+          <nav className='hidden xl:flex items-center gap-8'>
             {NAV_LINKS.map((link) => {
-              const isActive = pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href));
+              const isActive =
+                pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href));
 
               return (
                 <Link
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "font-sans text-xs font-semibold uppercase tracking-wider transition-colors duration-200",
-                    isActive ? "text-text-brand" : "text-text-muted hover:text-text-brand"
+                    'font-sans text-xs font-semibold uppercase tracking-wider transition-colors duration-200',
+                    isActive ? 'text-text-brand' : 'text-text-muted hover:text-text-brand',
                   )}
                 >
                   {link.label}
@@ -82,20 +83,20 @@ export default function WebsiteNavbar() {
           </nav>
 
           {/* Auth Buttons */}
-          <div className="hidden lg:flex items-center gap-4">
+          <div className='hidden xl:flex items-center gap-4'>
             {user ? (
-              <PrimaryButton href="/dashboard" className="px-5 py-2 text-xs">
+              <PrimaryButton href='/dashboard' className='px-5 py-2 text-xs'>
                 Dashboard
               </PrimaryButton>
             ) : (
               <>
                 <Link
-                  href="/login"
-                  className="font-sans text-xs font-semibold text-text-primary hover:text-text-brand uppercase tracking-wider transition-colors duration-200 px-3 py-2"
+                  href='/login'
+                  className='font-sans text-xs font-semibold text-text-primary hover:text-text-brand uppercase tracking-wider transition-colors duration-200 px-3 py-2'
                 >
                   Log In
                 </Link>
-                <PrimaryButton href="/host/register" className="px-5 py-2 text-xs">
+                <PrimaryButton href='/host/register' className='px-5 py-2 text-xs'>
                   Start Hosting
                 </PrimaryButton>
               </>
@@ -105,18 +106,22 @@ export default function WebsiteNavbar() {
           {/* Hamburger Mobile Menu Toggle */}
           <button
             onClick={toggleMobileMenu}
-            className="lg:hidden flex items-center justify-center p-2 text-text-primary hover:text-text-brand transition-colors duration-200 cursor-pointer"
-            aria-label="Toggle Navigation Menu"
+            className='xl:hidden flex items-center justify-center p-2 text-text-primary hover:text-text-brand transition-colors duration-200 cursor-pointer'
+            aria-label='Toggle Navigation Menu'
           >
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
+              xmlns='http://www.w3.org/2000/svg'
+              fill='none'
+              viewBox='0 0 24 24'
               strokeWidth={2}
-              stroke="currentColor"
-              className="w-6 h-6"
+              stroke='currentColor'
+              className='w-6 h-6'
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                d='M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5'
+              />
             </svg>
           </button>
         </div>
@@ -125,7 +130,7 @@ export default function WebsiteNavbar() {
       {/* Mobile Menu Backdrop */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-45 lg:hidden transition-opacity duration-300"
+          className='fixed inset-0 bg-black/60 backdrop-blur-sm z-45 xl:hidden transition-opacity duration-300'
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
@@ -133,38 +138,39 @@ export default function WebsiteNavbar() {
       {/* Mobile Sidebar Slide-out Drawer Panel */}
       <div
         className={cn(
-          "fixed top-0 right-0 h-full w-[280px] max-w-[80vw] bg-surface z-50 lg:hidden shadow-card transition-transform duration-300 ease-in-out border-l border-divider flex flex-col justify-between p-6",
-          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          'fixed top-0 right-0 h-full w-[280px] max-w-[80vw] bg-surface z-50 xl:hidden shadow-card transition-transform duration-300 ease-in-out border-l border-divider flex flex-col justify-between p-6',
+          mobileMenuOpen ? 'translate-x-0' : 'translate-x-full',
         )}
       >
         <div>
           {/* Header Inside Sidebar */}
-          <div className="flex items-center justify-between pb-5 border-b border-divider mb-6">
-            <span className="font-heading font-bold text-xs text-text-muted uppercase tracking-wider">
+          <div className='flex items-center justify-between pb-5 border-b border-divider mb-6'>
+            <span className='font-heading font-bold text-xs text-text-muted uppercase tracking-wider'>
               Navigation Menu
             </span>
             <button
               onClick={() => setMobileMenuOpen(false)}
-              className="p-1.5 text-text-muted hover:text-text-primary hover:bg-bg rounded-button transition-all duration-200 cursor-pointer"
-              aria-label="Close Menu"
+              className='p-1.5 text-text-muted hover:text-text-primary hover:bg-bg rounded-button transition-all duration-200 cursor-pointer'
+              aria-label='Close Menu'
             >
               <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
+                xmlns='http://www.w3.org/2000/svg'
+                fill='none'
+                viewBox='0 0 24 24'
                 strokeWidth={2.5}
-                stroke="currentColor"
-                className="w-5 h-5"
+                stroke='currentColor'
+                className='w-5 h-5'
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                <path strokeLinecap='round' strokeLinejoin='round' d='M6 18 18 6M6 6l12 12' />
               </svg>
             </button>
           </div>
 
           {/* Links list */}
-          <nav className="flex flex-col gap-4">
+          <nav className='flex flex-col gap-4'>
             {NAV_LINKS.map((link) => {
-              const isActive = pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href));
+              const isActive =
+                pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href));
 
               return (
                 <Link
@@ -172,8 +178,8 @@ export default function WebsiteNavbar() {
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
-                    "font-heading font-bold text-sm uppercase tracking-wider transition-colors duration-200 py-1.5 border-b border-divider/20",
-                    isActive ? "text-text-brand" : "text-text-primary hover:text-text-brand"
+                    'font-heading font-bold text-sm uppercase tracking-wider transition-colors duration-200 py-1.5 border-b border-divider/20',
+                    isActive ? 'text-text-brand' : 'text-text-primary hover:text-text-brand',
                   )}
                 >
                   {link.label}
@@ -184,28 +190,28 @@ export default function WebsiteNavbar() {
         </div>
 
         {/* Bottom Login and Host Buttons */}
-        <div className="flex flex-col gap-3.5 pt-6 border-t border-divider mt-auto">
+        <div className='flex flex-col gap-3.5 pt-6 border-t border-divider mt-auto'>
           {user ? (
             <PrimaryButton
-              href="/dashboard"
+              href='/dashboard'
               onClick={() => setMobileMenuOpen(false)}
-              className="py-3 text-xs"
+              className='py-3 text-xs'
             >
               Dashboard
             </PrimaryButton>
           ) : (
             <>
               <Link
-                href="/login"
+                href='/login'
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center font-sans font-semibold text-xs text-text-primary hover:text-text-brand uppercase tracking-wider py-3 border border-border rounded-button transition-colors duration-200"
+                className='flex items-center justify-center font-sans font-semibold text-xs text-text-primary hover:text-text-brand uppercase tracking-wider py-3 border border-border rounded-button transition-colors duration-200'
               >
                 Log In
               </Link>
               <PrimaryButton
-                href="/host/register"
+                href='/host/register'
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-3 text-xs"
+                className='py-3 text-xs'
               >
                 Start Hosting
               </PrimaryButton>

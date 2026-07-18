@@ -187,6 +187,12 @@ export const dashboardNavigation: DashboardNavItem[] = [
     roles: ["admin"],
   },
   {
+    label: "Categories",
+    href: "/dashboard/admin/categories",
+    icon: Icons.Competitions,
+    roles: ["admin"],
+  },
+  {
     label: "Withdraw Requests",
     href: "/dashboard/admin/withdrawals",
     icon: Icons.Wallet,

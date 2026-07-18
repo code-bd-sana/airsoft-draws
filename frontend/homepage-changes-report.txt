@@ -1,0 +1,16 @@
+# Home Page Changes Report
+
+The following changes were implemented based on your request:
+
+1. **Featured Competitions Section (`frontend/components/website/home/FeaturedCompetitionsSection.tsx`)**:
+   - Updated the paragraph text to: "Browse all our featured competitions. Hosted by Verified Airsoft Businesses."
+   - Removed the categories filtering tabs, as this area is strictly for high-tier businesses to promote their competitions.
+   - Renamed the "View All Competitions" button to "See All Competitions".
+
+2. **Removed Categories Section (`frontend/app/page.tsx`)**:
+   - Removed the `<CategoriesSection />` entirely from the Home Page layout to match the design changes for the Featured Competitions area.
+
+3. **Removed "Escrow" Mentions (Replaced with "Fast Payouts")**:
+   - **`frontend/data/homepage/trust-benefits.data.ts`**: Replaced "Escrow-Protected Payouts" with "Fast Host Payouts" and updated the description to: "Hosts are paid next working day after the live draw."
+   - **`frontend/data/homepage/hero.data.ts`**: Removed the word "escrow-protected" from the hero paragraph.
+   - **`frontend/data/homepage/testimonials.data.ts`**: Removed the word "escrow" from the first testimonial to keep the messaging consistent.

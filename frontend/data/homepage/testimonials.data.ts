@@ -6,7 +6,7 @@ export const testimonialsData: Testimonial[] = [
     name: "David K.",
     role: "Player & Winner",
     rating: 5,
-    quote: "Outstanding service! I won a Krytac Trident AEG within my first three entries. The escrow delivery process was smooth, and the gun arrived in perfect condition. Super pleased!",
+    quote: "Outstanding service! I won a Krytac Trident AEG within my first three entries. The delivery process was smooth, and the gun arrived in perfect condition. Super pleased!",
     location: "Bristol, UK",
   },
   {

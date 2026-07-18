@@ -13,8 +13,8 @@ export async function POST(req: NextRequest) {
     // 1. Basic sanitization
     const cleanName = fullName?.trim() || "";
     const cleanEmail = email?.trim()?.toLowerCase() || "";
-    const rawRole = role?.trim()?.toUpperCase() || "CUSTOMER";
-    const cleanRole = ["HOST", "CUSTOMER"].includes(rawRole) ? rawRole : "CUSTOMER";
+    const rawRole = role?.trim()?.toUpperCase() || "CLIENT";
+    const cleanRole = ["HOST", "CLIENT"].includes(rawRole) ? rawRole : (rawRole === "CUSTOMER" ? "CLIENT" : "CLIENT");
 
     // 2. Server-side validations
     if (!cleanName) {
@@ -31,24 +31,30 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Duplicate checks
-    const existingLead = await prisma.lead.findUnique({
+    const existingUser = await prisma.user.findUnique({
       where: { email: cleanEmail },
     });
 
-    if (existingLead) {
+    if (existingUser) {
       return NextResponse.json({ error: "This email is already registered." }, { status: 400 });
     }
 
+    const nameParts = cleanName.split(" ");
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
+
     // 4. Save to database
-    const lead = await prisma.lead.create({
+    const user = await prisma.user.create({
       data: {
-        fullName: cleanName,
+        firstName,
+        lastName,
         email: cleanEmail,
         role: cleanRole,
+        passwordHash: "LEAD_NO_PASSWORD", // Dummy value for early access lead
       },
     });
 
-    return NextResponse.json({ success: true, lead: { id: lead.id } }, { status: 201 });
+    return NextResponse.json({ success: true, lead: { id: user.id } }, { status: 201 });
   } catch (err) {
     console.error("Error creating lead:", err);
     

@@ -8,6 +8,13 @@ export const usePublicRaffles = (params: { search?: string; page?: number; limit
   });
 };
 
+export const usePublicWinnersList = (params: { activeTab?: string; winnerType?: string; sortBy?: string; page?: number; limit?: number }) => {
+  return useQuery({
+    queryKey: ['publicWinnersList', params],
+    queryFn: () => raffleService.getPublicWinnersList(params),
+  });
+};
+
 export const usePublicRaffleDetail = (slug: string) => {
   return useQuery({
     queryKey: ['publicRaffle', slug],

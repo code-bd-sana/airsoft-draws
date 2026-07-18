@@ -21,7 +21,7 @@ export default function EditRaffleForm({ raffleId }: Props) {
     if (raffle) {
       setFormData({
         title: raffle.title,
-        categoryId: raffle.categoryId,
+        category: (raffle as any).category,
         description: raffle.description,
         prizeName: raffle.prizeName,
         totalTickets: raffle.totalTickets,
@@ -31,12 +31,11 @@ export default function EditRaffleForm({ raffleId }: Props) {
         isAutoDraw: raffle.isAutoDraw,
         autoDrawDate: raffle.autoDrawDate,
         autoDrawSoldOut: raffle.autoDrawSoldOut,
-        guaranteedDraw: raffle.guaranteedDraw,
       });
     }
   }, [raffle]);
 
-  const hasSoldTickets = raffle?.ticketsSold > 0;
+  const hasSoldTickets = (raffle?.ticketsSold ?? 0) > 0;
 
   const handleChange = (field: string, value: any) => {
     setFormData((prev: any) => ({ ...prev, [field]: value }));
@@ -171,45 +170,40 @@ export default function EditRaffleForm({ raffleId }: Props) {
           <div className="flex flex-col gap-[16px] p-[16px] bg-[#0d0d0b] border border-[#2d3c13] rounded-[8px]">
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-[4px]">
-                <span className="font-sans font-medium text-[14px] text-[#e8edd4]">Automated Draw</span>
-                <span className="font-sans font-normal text-[12px] text-[#5a752a]">If disabled, you must manually run the draw.</span>
-              </div>
-              <div 
-                onClick={() => handleChange("isAutoDraw", !formData.isAutoDraw)}
-                className={cn(
-                  "w-[40px] h-[24px] rounded-full p-[2px] transition-colors duration-200 cursor-pointer shrink-0",
-                  formData.isAutoDraw ? "bg-[#8cb34a]" : "bg-[#2d3c13]"
-                )}
-              >
-                <div className={cn(
-                  "w-[20px] h-[20px] bg-[#0d0d0b] rounded-full transition-transform duration-200",
-                  formData.isAutoDraw ? "translate-x-[16px]" : "translate-x-0"
-                )} />
+                <span className="font-sans font-medium text-[14px] text-[#e8edd4]">Draw Type</span>
+                <span className="font-sans font-normal text-[12px] text-[#5a752a]">How will the winner be selected?</span>
               </div>
             </div>
 
-            {formData.isAutoDraw && (
-              <div className="flex flex-col gap-[12px] mt-[8px] pt-[16px] border-t border-[#2d3c13]">
-                <label className="flex items-center gap-[12px] cursor-pointer">
-                  <input 
-                    type="checkbox"
-                    checked={formData.autoDrawDate || false}
-                    onChange={(e) => handleChange("autoDrawDate", e.target.checked)}
-                    className="w-[16px] h-[16px] rounded-[4px] border-[#2d3c13] bg-[#161810] text-[#8cb34a]"
-                  />
-                  <span className="font-sans text-[13px] text-[#b3b8aa]">Run draw automatically when the Draw Date & Time ends.</span>
-                </label>
-                <label className="flex items-center gap-[12px] cursor-pointer">
-                  <input 
-                    type="checkbox"
-                    checked={formData.autoDrawSoldOut || false}
-                    onChange={(e) => handleChange("autoDrawSoldOut", e.target.checked)}
-                    className="w-[16px] h-[16px] rounded-[4px] border-[#2d3c13] bg-[#161810] text-[#8cb34a]"
-                  />
-                  <span className="font-sans text-[13px] text-[#b3b8aa]">Run draw automatically as soon as all tickets are sold.</span>
-                </label>
-              </div>
-            )}
+            <div className="flex flex-col gap-[12px] mt-[8px] pt-[16px] border-t border-[#2d3c13]">
+              <label className="flex items-start gap-[12px] cursor-pointer">
+                <input 
+                  type="radio"
+                  name="drawType"
+                  checked={!formData.isAutoDraw}
+                  onChange={() => setFormData((prev: any) => ({ ...prev, isAutoDraw: false, autoDrawDate: false, autoDrawSoldOut: false }))}
+                  className="mt-1 w-[16px] h-[16px] rounded-full border-[#2d3c13] bg-[#161810] text-[#8cb34a] focus:ring-[#8cb34a]"
+                />
+                <div className="flex flex-col gap-1">
+                  <span className="font-sans font-medium text-[14px] text-[#e8edd4]">Live Draw</span>
+                  <span className="font-sans font-normal text-[12px] text-[#b3b8aa]">You will manually run the draw from your dashboard (e.g., live on Instagram).</span>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-[12px] cursor-pointer">
+                <input 
+                  type="radio"
+                  name="drawType"
+                  checked={formData.isAutoDraw}
+                  onChange={() => setFormData((prev: any) => ({ ...prev, isAutoDraw: true, autoDrawDate: true, autoDrawSoldOut: true }))}
+                  className="mt-1 w-[16px] h-[16px] rounded-full border-[#2d3c13] bg-[#161810] text-[#8cb34a] focus:ring-[#8cb34a]"
+                />
+                <div className="flex flex-col gap-1">
+                  <span className="font-sans font-medium text-[14px] text-[#e8edd4]">Automatic Draw</span>
+                  <span className="font-sans font-normal text-[12px] text-[#b3b8aa]">System automatically draws a winner when all tickets are sold out OR the end time expires.</span>
+                </div>
+              </label>
+            </div>
           </div>
         </div>
 

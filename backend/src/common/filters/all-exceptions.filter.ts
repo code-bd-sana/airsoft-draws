@@ -21,13 +21,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
-      
+
       // If the exception response is an object (like validation errors)
       if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
         message = (exceptionResponse as any).message || message;
         errors = (exceptionResponse as any).error || null;
       } else {
-        message = exceptionResponse as string;
+        message = exceptionResponse;
       }
     } else {
       // Log unexpected errors

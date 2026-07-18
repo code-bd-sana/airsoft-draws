@@ -26,6 +26,16 @@ export interface HostSubscription {
   };
 }
 
+export interface AdminSubscriptionStats {
+  mrr: number;
+  totalActive: number;
+  planDistribution: {
+    name: string;
+    value: number;
+    percentage: string;
+  }[];
+}
+
 export const subscriptionService = {
   async getPlans(): Promise<SubscriptionPlan[]> {
     const response = await api.get('/subscriptions/plans');
@@ -54,6 +64,11 @@ export const subscriptionService = {
 
   async getMyBillingHistory(): Promise<any[]> {
     const response = await api.get('/subscriptions/history');
+    return response.data;
+  },
+
+  async getAdminSubscriptionStats(): Promise<AdminSubscriptionStats> {
+    const response = await api.get('/subscriptions/admin/stats');
     return response.data;
   }
 };

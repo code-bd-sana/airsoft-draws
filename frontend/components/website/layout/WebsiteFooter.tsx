@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { FOOTER_SECTIONS, BRAND_NAME } from "../../../lib/constants";
+import { FOOTER_SECTIONS, BRAND_NAME, SOCIAL_LINKS } from "../../../lib/constants";
 import Image from 'next/image';
 import logo from '../../../public/logo3.png';
 
@@ -59,21 +59,21 @@ export default function WebsiteFooter() {
           </Link>
 
             <p className="font-sans text-xs text-text-muted leading-relaxed max-w-sm">
-              The premier marketplace for airsoft gear prize competitions. Win top-tier replicas, tactical loadouts, and cash prizes from just £1. Transparent escrow payouts for secure hosting.
+              The premier marketplace for airsoft gear prize competitions. Win top-tier replicas, tactical loadouts, and cash prizes.
             </p>
 
             {/* Social Icons row */}
             <div className="flex items-center gap-3.5 mt-2">
-              {["Facebook", "Twitter", "Instagram", "Discord"].map((platform) => (
+              {SOCIAL_LINKS.map((link) => (
                 <a
-                  key={platform}
-                  href={`https://${platform.toLowerCase()}.com`}
+                  key={link.platform}
+                  href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center w-9 h-9 rounded bg-accent-bg border border-divider text-text-muted hover:text-text-brand hover:border-primary transition-all duration-200"
-                  aria-label={`${platform} Profile`}
+                  aria-label={`${link.platform} Profile`}
                 >
-                  {renderSocialIcon(platform)}
+                  {renderSocialIcon(link.platform)}
                 </a>
               ))}
             </div>
@@ -108,13 +108,13 @@ export default function WebsiteFooter() {
               © {new Date().getFullYear()} {BRAND_NAME}. All rights reserved. Registered in England & Wales.
             </p>
             <p>
-              Prize draws are operated in accordance with the UK Gambling Act 2005 as compliant prize competitions. Participation is limited to individuals aged 18 or older resident in eligible jurisdictions. Ticket purchases are final and escrowed securely.
+              Prize draws are operated in accordance with the UK Gambling Act 2005 as compliant prize competitions. Participation is limited to individuals aged 18 or older resident in eligible jurisdictions. Ticket purchases are final.
             </p>
           </div>
 
           <div className="flex items-center gap-4 self-start lg:self-center bg-accent-bg border border-divider px-4 py-2.5 rounded-button text-[10px] text-text-brand font-semibold whitespace-nowrap">
             <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-            100% Secure SSL Escrow Payments
+            100% Secure SSL Payments
           </div>
         </div>
       </div>

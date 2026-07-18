@@ -64,7 +64,7 @@ export default function AccordionItem({
         )}
       >
         <div className="overflow-hidden">
-          <p>{answer}</p>
+          <p dangerouslySetInnerHTML={{ __html: answer }} />
         </div>
       </div>
     </div>

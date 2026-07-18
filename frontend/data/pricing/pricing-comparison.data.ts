@@ -3,8 +3,8 @@ import { ComparisonRow } from "../../types/pricing.types";
 export const COMPARISON_ROWS: ComparisonRow[] = [
   {
     featureName: "Active draws",
-    freeValue: "Up to 3",
-    premiumValue: "Unlimited",
+    freeValue: "1",
+    premiumValue: "5",
     proValue: "Unlimited",
   },
   {
@@ -24,6 +24,12 @@ export const COMPARISON_ROWS: ComparisonRow[] = [
     freeValue: false,
     premiumValue: "3/month",
     proValue: "Unlimited",
+  },
+  {
+    featureName: "Access to Instant Wins",
+    freeValue: false,
+    premiumValue: true,
+    proValue: true,
   },
   {
     featureName: "Priority payout",

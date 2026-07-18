@@ -8,6 +8,32 @@ interface WinAnimationModalProps {
   prizes: Array<{ title: string; ticketNumber: number }>;
 }
 
+function FastRollingNumbers() {
+  const [numbers, setNumbers] = useState(["0", "0", "0", "0"]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNumbers([
+        Math.floor(Math.random() * 10).toString(),
+        Math.floor(Math.random() * 10).toString(),
+        Math.floor(Math.random() * 10).toString(),
+        Math.floor(Math.random() * 10).toString(),
+      ]);
+    }, 40);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex gap-2 items-center justify-center font-heading text-[40px] text-[#8CB34A] blur-[0.5px] opacity-80">
+      {numbers.map((num, i) => (
+        <div key={i} className="w-[50px] text-center bg-[#1A230A] rounded-lg py-2 border border-[#8CB34A]/30 shadow-inner">
+          {num}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function WinAnimationModal({ isOpen, onClose, prizes }: WinAnimationModalProps) {
   const [stage, setStage] = useState<"rolling" | "revealed">("rolling");
 
@@ -53,9 +79,8 @@ export default function WinAnimationModal({ isOpen, onClose, prizes }: WinAnimat
             
             {/* The Slot Machine "Spinning" Effect */}
             {stage === "rolling" ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center animate-[pulse_0.5s_ease-in-out_infinite] opacity-50">
-                <div className="text-[#8CB34A] font-heading text-4xl blur-[1px]">???</div>
-                <div className="text-[#8CB34A] font-heading text-4xl blur-[2px] mt-4">???</div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <FastRollingNumbers />
               </div>
             ) : (
               <div className="w-full flex flex-col gap-3 max-h-[100px] overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom-4 duration-500 fade-in">

@@ -11,7 +11,6 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   const salt = await bcrypt.genSalt(10);
-  
   // 1. Admin
   const adminPassword = await bcrypt.hash('admin@gmail.com', salt);
   await prisma.user.upsert({
@@ -21,7 +20,7 @@ async function main() {
       role: 'ADMIN',
       isEmailVerified: true,
       firstName: 'Demo',
-      lastName: 'Admin'
+      lastName: 'Admin',
     },
     create: {
       email: 'admin@gmail.com',
@@ -29,7 +28,7 @@ async function main() {
       role: 'ADMIN',
       isEmailVerified: true,
       firstName: 'Demo',
-      lastName: 'Admin'
+      lastName: 'Admin',
     },
   });
 
@@ -42,7 +41,7 @@ async function main() {
       role: 'HOST',
       isEmailVerified: true,
       firstName: 'Demo',
-      lastName: 'Host'
+      lastName: 'Host',
     },
     create: {
       email: 'host@airsoftdraw.demo',
@@ -50,19 +49,21 @@ async function main() {
       role: 'HOST',
       isEmailVerified: true,
       firstName: 'Demo',
-      lastName: 'Host'
+      lastName: 'Host',
     },
   });
-  
+
   // Create host profile if missing
-  const hostProfile = await prisma.hostProfile.findUnique({ where: { userId: hostUser.id } });
+  const hostProfile = await prisma.hostProfile.findUnique({
+    where: { userId: hostUser.id },
+  });
   if (!hostProfile) {
     await prisma.hostProfile.create({
       data: {
         userId: hostUser.id,
         businessName: 'Demo Host Business',
         isVerified: true,
-      }
+      },
     });
   }
 
@@ -75,7 +76,7 @@ async function main() {
       role: 'CLIENT',
       isEmailVerified: true,
       firstName: 'Demo',
-      lastName: 'User'
+      lastName: 'User',
     },
     create: {
       email: 'user@airsoftdraw.demo',
@@ -83,7 +84,7 @@ async function main() {
       role: 'CLIENT',
       isEmailVerified: true,
       firstName: 'Demo',
-      lastName: 'User'
+      lastName: 'User',
     },
   });
 

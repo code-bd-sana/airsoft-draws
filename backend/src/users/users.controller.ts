@@ -1,5 +1,23 @@
-import { Controller, Patch, Post, Body, Req, UseInterceptors, UploadedFile, BadRequestException, UnauthorizedException } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiConsumes } from '@nestjs/swagger';
+import {
+  Controller,
+  Patch,
+  Post,
+  Body,
+  Req,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiConsumes,
+  ApiBearerAuth,
+  ApiBody,
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
 import { diskStorage } from 'multer';
@@ -8,8 +26,12 @@ import { UsersService } from './users.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtService } from '@nestjs/jwt';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { FileUploadDto } from '../common/dto/file-upload.dto';
 
 @ApiTags('Users')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('api/v1/users')
 export class UsersController {
   constructor(
@@ -33,7 +55,15 @@ export class UsersController {
   @Patch('change-password')
   @ApiOperation({ summary: 'Change user password' })
   @ApiResponse({ status: 200, description: 'Password changed successfully' })
-  async changePassword(@Req() req: Request, @Body() changePasswordDto: ChangePasswordDto) {
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid current password or new password criteria',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async changePassword(
+    @Req() req: Request,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
     const userId = this.extractUserId(req);
     return this.usersService.changePassword(userId, changePasswordDto);
   }
@@ -41,7 +71,12 @@ export class UsersController {
   @Patch('profile')
   @ApiOperation({ summary: 'Update user profile' })
   @ApiResponse({ status: 200, description: 'Profile updated successfully' })
-  async updateProfile(@Req() req: Request, @Body() updateProfileDto: UpdateProfileDto) {
+  @ApiResponse({ status: 400, description: 'Invalid data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async updateProfile(
+    @Req() req: Request,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
     const userId = this.extractUserId(req);
     return this.usersService.updateProfile(userId, updateProfileDto);
   }
@@ -49,32 +84,49 @@ export class UsersController {
   @Post('avatar')
   @ApiOperation({ summary: 'Upload user avatar' })
   @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: FileUploadDto })
   @ApiResponse({ status: 200, description: 'Avatar uploaded successfully' })
-  @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: './uploads/avatars',
-      filename: (req, file, cb) => {
-        const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
-        cb(null, `${randomName}${extname(file.originalname)}`);
-      }
+  @ApiResponse({ status: 400, description: 'Invalid file or file missing' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/avatars',
+        filename: (req, file, cb) => {
+          const randomName = Array(32)
+            .fill(null)
+            .map(() => Math.round(Math.random() * 16).toString(16))
+            .join('');
+          cb(null, `${randomName}${extname(file.originalname)}`);
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        if (!file.originalname.match(/\.(jpg|jpeg|png|webp)$/)) {
+          return cb(
+            new BadRequestException('Only image files are allowed!'),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5 MB
+      },
     }),
-    fileFilter: (req, file, cb) => {
-      if (!file.originalname.match(/\.(jpg|jpeg|png|webp)$/)) {
-        return cb(new BadRequestException('Only image files are allowed!'), false);
-      }
-      cb(null, true);
-    },
-    limits: {
-      fileSize: 5 * 1024 * 1024, // 5 MB
-    },
-  }))
-  async uploadAvatar(@Req() req: Request, @UploadedFile() file: Express.Multer.File) {
+  )
+  async uploadAvatar(
+    @Req() req: Request,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     if (!file) {
       throw new BadRequestException('File is required');
     }
     const userId = this.extractUserId(req);
-    // Construct public URL - using 127.0.0.1 avoids Node.js IPv6 localhost resolution issues
-    const avatarUrl = `${process.env.APP_URL || 'http://127.0.0.1:5000'}/uploads/avatars/${file.filename}`;
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host =
+      req.headers['x-forwarded-host'] || req.headers.host || '127.0.0.1:5000';
+    const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
+    const avatarUrl = `${baseUrl}/uploads/avatars/${file.filename}`;
     return this.usersService.updateAvatar(userId, avatarUrl);
   }
 }

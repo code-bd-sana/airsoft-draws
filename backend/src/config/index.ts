@@ -32,13 +32,15 @@ export interface AppConfig {
 
 /**
  * Global Configuration Object.
- * 
+ *
  * Provides strict TypeScript typings and autocomplete anywhere in the backend codebase.
  * Simply type `config.` to see the available options.
  */
 export const config: AppConfig = {
   database: {
-    url: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/airsoft_draws?schema=public',
+    url:
+      process.env.DATABASE_URL ||
+      'postgresql://postgres:password@localhost:5432/airsoft_draws?schema=public',
   },
   security: {
     jwtSecret: process.env.JWT_SECRET || 'super-secret-default',

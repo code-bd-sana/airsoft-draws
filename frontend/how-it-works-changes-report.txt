@@ -1,0 +1,11 @@
+Here is a summary of the changes made to the "How it works" content:
+
+1. Entrant Steps ("How it works")
+   - Step 2 (Browse Live Draws): Updated text to "Explore the competitions. Filter by your favourite host, category, price, or closing time to find the draw that's right for you."
+   - Step 3 (Select Your Tickets): Updated text to "Choose your quantity, use quick-select buttons for 5, 10, or 25 tickets." (Removed mention of skill questions).
+   - Step 4 (Complete Secure Payment): Updated text to "Pay safely via Visa, Mastercard. All payments are encrypted and processed through our 3DS payment platform."
+   - Step 5 (Await the Draw Result): Updated text to "Once the draw closes, the winner is selected live on Airsoft Draws Instagram. You'll be notified by email instantly if you win."
+
+2. Host Steps ("Hosts part")
+   - Step 4 (Submit Competition for Admin Review): Updated text to "Fill in the draw details: prize, ticket price, total tickets, closing date. Our team reviews within 24h." (Removed mention of skill questions).
+   - Step 5 (Go Live on the Public Board): Updated text to "Once approved, your draw is published to the competition board and visible to all users immediately. Then you can promote this on our own social medias/website."
