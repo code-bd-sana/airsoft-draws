@@ -19,9 +19,12 @@ export class AdminHostsService {
     }
 
     if (status === 'Active') {
+      where.isVerified = true;
       where.user = { isBlocked: false };
     } else if (status === 'Blocked') {
       where.user = { isBlocked: true };
+    } else if (status === 'Pending') {
+      where.isVerified = false;
     }
 
     const [hosts, total] = await Promise.all([
@@ -66,7 +69,8 @@ export class AdminHostsService {
         businessName: host.businessName,
         email: host.user.email,
         isBlocked: host.user.isBlocked,
-        plan: activePlan,
+        isVerified: host.isVerified,
+        plan: !host.isVerified ? 'Pending Approval' : activePlan,
         raffles: host._count.raffles,
         revenue: revenue,
         createdAt: host.createdAt,
@@ -83,16 +87,57 @@ export class AdminHostsService {
   }
 
   async getStats() {
-    const [totalHosts, activeHosts, blockedHosts] = await Promise.all([
+    const [totalHosts, activeHosts, blockedHosts, pendingHosts] = await Promise.all([
       this.prisma.hostProfile.count(),
-      this.prisma.hostProfile.count({ where: { user: { isBlocked: false } } }),
+      this.prisma.hostProfile.count({ where: { isVerified: true, user: { isBlocked: false } } }),
       this.prisma.hostProfile.count({ where: { user: { isBlocked: true } } }),
+      this.prisma.hostProfile.count({ where: { isVerified: false } }),
     ]);
 
     return {
       totalHosts,
       activeHosts,
       blockedHosts,
+      pendingHosts,
     };
+  }
+
+  async approveHost(id: string) {
+    const hostProfile = await this.prisma.hostProfile.findUnique({
+      where: { id },
+    });
+    if (!hostProfile) {
+      throw new NotFoundException('Host profile not found');
+    }
+
+    return this.prisma.hostProfile.update({
+      where: { id },
+      data: { isVerified: true },
+    });
+  }
+
+  async rejectHost(id: string) {
+    const hostProfile = await this.prisma.hostProfile.findUnique({
+      where: { id },
+    });
+    if (!hostProfile) {
+      throw new NotFoundException('Host profile not found');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // Delete subscriptions if any exist
+      await tx.hostSubscription.deleteMany({
+        where: { hostId: id },
+      });
+      // Delete host profile
+      await tx.hostProfile.delete({
+        where: { id },
+      });
+      // Reset user role to CLIENT
+      await tx.user.update({
+        where: { id: hostProfile.userId },
+        data: { role: 'CLIENT' },
+      });
+    });
   }
 }

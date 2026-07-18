@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -41,26 +45,35 @@ export class AdminOrdersService {
 
     const mappedOrders = transactions.map((tx) => {
       const ticketsCount = tx.tickets?.length || 0;
-      const competitionName = ticketsCount > 0 ? tx.tickets[0].raffle.title : 'Unknown Competition';
-      
+      const competitionName =
+        ticketsCount > 0 ? tx.tickets[0].raffle.title : 'Unknown Competition';
+
       let buyerName = 'Unknown Buyer';
       let buyerInitials = 'U';
-      
+
       if (tx.user) {
-        buyerName = `${tx.user.firstName || ''} ${tx.user.lastName || ''}`.trim() || tx.user.email;
+        buyerName =
+          `${tx.user.firstName || ''} ${tx.user.lastName || ''}`.trim() ||
+          tx.user.email;
         buyerInitials = buyerName.substring(0, 2).toUpperCase();
       }
 
       return {
         id: tx.id,
-        orderId: tx.gatewayTransactionId?.substring(0, 8) || tx.id.substring(0, 8),
+        orderId:
+          tx.gatewayTransactionId?.substring(0, 8) || tx.id.substring(0, 8),
         buyerName,
         buyerInitials,
         competition: competitionName,
         tickets: ticketsCount,
         amount: Number(tx.amount),
         payment: tx.paymentGateway || 'Card',
-        status: tx.status === 'COMPLETED' ? 'Paid' : tx.status === 'REFUNDED' ? 'Refunded' : 'Failed',
+        status:
+          tx.status === 'COMPLETED'
+            ? 'Paid'
+            : tx.status === 'REFUNDED'
+              ? 'Refunded'
+              : 'Failed',
         date: tx.createdAt.toISOString(),
       };
     });
@@ -84,14 +97,14 @@ export class AdminOrdersService {
       },
     });
 
-    let totalOrders = ticketTransactions.length;
+    const totalOrders = ticketTransactions.length;
     let totalTicketsSold = 0;
     let totalOrderValue = 0;
     let refundedOrders = 0;
 
     for (const tx of ticketTransactions) {
       totalTicketsSold += tx._count.tickets;
-      
+
       if (tx.status === 'COMPLETED') {
         totalOrderValue += Number(tx.amount);
       } else if (tx.status === 'REFUNDED') {
@@ -125,7 +138,9 @@ export class AdminOrdersService {
     }
 
     if (transaction.status !== 'COMPLETED') {
-      throw new BadRequestException(`Cannot refund a transaction with status ${transaction.status}`);
+      throw new BadRequestException(
+        `Cannot refund a transaction with status ${transaction.status}`,
+      );
     }
 
     // In a real application, we would call Stripe or PayPal API here to process the actual refund.

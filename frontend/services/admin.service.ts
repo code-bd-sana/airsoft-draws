@@ -16,6 +16,11 @@ export interface User {
   lastName: string | null;
   role: string;
   isBlocked: boolean;
+  isEmailVerified: boolean;
+  avatarUrl: string | null;
+  location: string | null;
+  phone: string | null;
+  address: string | null;
   createdAt: string;
   ticketsCount: number;
   totalSpent: number;
@@ -35,6 +40,7 @@ export interface HostData {
   businessName: string;
   email: string;
   isBlocked: boolean;
+  isVerified: boolean;
   plan: string;
   raffles: number;
   revenue: number;
@@ -53,6 +59,7 @@ export interface HostStats {
   totalHosts: number;
   activeHosts: number;
   blockedHosts: number;
+  pendingHosts?: number;
 }
 
 export interface OrderData {
@@ -84,6 +91,31 @@ export interface OrderStats {
 }
 
 
+export interface AdminDashboardOverview {
+  stats: {
+    totalUsers: number;
+    activeHosts: number;
+    liveRaffles: number;
+    totalRevenue: number;
+  };
+  awaitingReview: {
+    count: number;
+    list: {
+      id: string;
+      title: string;
+      sub: string;
+      icon: string;
+    }[];
+  };
+  recentActivity: {
+    text: string;
+    time: string;
+    highlight: boolean;
+    alert: boolean;
+  }[];
+}
+
+
 export const adminService = {
   async getUsers(params: { page?: number; limit?: number; search?: string; role?: string }): Promise<GetUsersResponse> {
     const { data } = await api.get('/admin/users', { params });
@@ -107,6 +139,21 @@ export const adminService = {
 
   async getHostStats(): Promise<HostStats> {
     const { data } = await api.get('/admin/hosts/stats');
+    return data;
+  },
+
+  async approveHost(hostId: string): Promise<any> {
+    const { data } = await api.patch(`/admin/hosts/${hostId}/approve`);
+    return data;
+  },
+
+  async rejectHost(hostId: string): Promise<any> {
+    const { data } = await api.patch(`/admin/hosts/${hostId}/reject`);
+    return data;
+  },
+
+  async getOverviewStats(): Promise<AdminDashboardOverview> {
+    const { data } = await api.get('/admin/dashboard/stats');
     return data;
   },
 

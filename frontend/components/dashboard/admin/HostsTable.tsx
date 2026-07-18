@@ -36,6 +36,26 @@ export default function HostsTable() {
     },
   });
 
+  const approveHostMutation = useMutation({
+    mutationFn: (hostId: string) => adminService.approveHost(hostId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-hosts'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-hosts-stats'] });
+      setIsModalOpen(false);
+      setSelectedHost(null);
+    },
+  });
+
+  const rejectHostMutation = useMutation({
+    mutationFn: (hostId: string) => adminService.rejectHost(hostId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-hosts'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-hosts-stats'] });
+      setIsModalOpen(false);
+      setSelectedHost(null);
+    },
+  });
+
   const handleReview = (host: HostData) => {
     // Construct detailed data for the modal based on the selected row
     setSelectedHost({
@@ -46,6 +66,7 @@ export default function HostsTable() {
       contact: "N/A", // This could be fetched from host profile if available
       payoutMethod: "N/A",
       social: "N/A",
+      isVerified: host.isVerified,
     });
     setIsModalOpen(true);
   };
@@ -88,7 +109,7 @@ export default function HostsTable() {
 
           {/* Filter Pills */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            {["All", "Active", "Blocked"].map((filter) => (
+            {["All", "Active", "Blocked", "Pending"].map((filter) => (
               <button
                 key={filter}
                 onClick={() => { setActiveFilter(filter); setPage(1); }}
@@ -121,11 +142,38 @@ export default function HostsTable() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr>
-                <td colSpan={7} className="py-8 text-center text-[#5A752A] font-sans text-sm">
-                  Loading hosts...
-                </td>
-              </tr>
+              Array.from({ length: 5 }).map((_, idx) => (
+                <tr key={idx} className="border-b border-[#2D3C13] last:border-b-0">
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3 animate-pulse">
+                      <div className="w-8 h-8 rounded-full bg-[#1C2012] shrink-0" />
+                      <div className="h-4 w-28 bg-[#1C2012] rounded" />
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="h-4 w-40 bg-[#1C2012] rounded animate-pulse" />
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <div className="h-6 w-24 bg-[#1C2012] rounded-full animate-pulse mx-auto" />
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <div className="h-4 w-10 bg-[#1C2012] rounded animate-pulse mx-auto" />
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <div className="h-4 w-16 bg-[#1C2012] rounded animate-pulse mx-auto" />
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <div className="h-6 w-16 bg-[#1C2012] rounded-full animate-pulse mx-auto" />
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center justify-end gap-3">
+                      <div className="w-4.5 h-4.5 bg-[#1C2012] rounded animate-pulse" />
+                      <div className="w-4.5 h-4.5 bg-[#1C2012] rounded animate-pulse" />
+                      <div className="w-4.5 h-4.5 bg-[#1C2012] rounded animate-pulse" />
+                    </div>
+                  </td>
+                </tr>
+              ))
             ) : data?.hosts?.length === 0 ? (
               <tr>
                 <td colSpan={7} className="py-8 text-center text-[#5A752A] font-sans text-sm">
@@ -161,7 +209,41 @@ export default function HostsTable() {
                     {getStatusPill(host.isBlocked)}
                   </td>
                   <td className="py-4 px-6">
-                    <div className="flex items-center justify-end gap-3">
+                    <div className="flex items-center justify-end gap-3 font-sans">
+                      {!host.isVerified && (
+                        <>
+                          <button 
+                            onClick={() => approveHostMutation.mutate(host.id)}
+                            disabled={approveHostMutation.isPending || rejectHostMutation.isPending}
+                            className="text-[#4ADE80] hover:text-[#22c55e] hover:scale-125 active:scale-95 transition-all duration-200 mr-1 flex items-center justify-center shrink-0" 
+                            title="Approve Host"
+                          >
+                            {approveHostMutation.isPending && approveHostMutation.variables === host.id ? (
+                              <div className="w-4.5 h-4.5 border-2 border-[#4ADE80] border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                              </svg>
+                            )}
+                          </button>
+
+                          <button 
+                            onClick={() => rejectHostMutation.mutate(host.id)}
+                            disabled={approveHostMutation.isPending || rejectHostMutation.isPending}
+                            className="text-[#EF4444] hover:text-[#dc2626] hover:scale-125 active:scale-95 transition-all duration-200 mr-2 flex items-center justify-center shrink-0" 
+                            title="Reject Host"
+                          >
+                            {rejectHostMutation.isPending && rejectHostMutation.variables === host.id ? (
+                              <div className="w-4.5 h-4.5 border-2 border-[#EF4444] border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                              </svg>
+                            )}
+                          </button>
+                        </>
+                      )}
+
                       <button 
                         onClick={() => handleReview(host)}
                         className="text-[#5A752A] hover:text-[#8CB34A] transition-colors" 
@@ -202,6 +284,10 @@ export default function HostsTable() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         data={selectedHost} 
+        onApprove={(hostId) => approveHostMutation.mutate(hostId)}
+        isApproveLoading={approveHostMutation.isPending}
+        onReject={(hostId) => rejectHostMutation.mutate(hostId)}
+        isRejectLoading={rejectHostMutation.isPending}
       />
 
       <ConfirmBlockModal 

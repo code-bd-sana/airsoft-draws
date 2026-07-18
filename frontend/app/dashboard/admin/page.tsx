@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { useAdminOverviewStats } from "../../../hooks/useAdminHooks";
 
 const REVENUE_DATA = [
   { name: 'Jan', value: 30000 },
@@ -28,6 +30,8 @@ const GROWTH_DATA = [
 ];
 
 export default function AdminDashboardPage() {
+  const { data: overview, isLoading } = useAdminOverviewStats();
+
   return (
     <div className="flex flex-col gap-6 p-8 max-w-[1660px] mx-auto w-full animate-fadeIn">
       
@@ -40,13 +44,12 @@ export default function AdminDashboardPage() {
             Total Users
           </span>
           <div className="flex flex-col gap-1 mt-1">
-            <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">142</span>
+            <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">
+              {isLoading ? "..." : overview?.stats.totalUsers ?? 0}
+            </span>
             <div className="flex items-center gap-1.5 mt-2">
               <div className="px-2 py-0.5 rounded-full bg-[#083b18] flex items-center justify-center">
-                <svg className="w-3 h-3 text-[#4ADE80]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
-                </svg>
-                <span className="font-sans font-medium text-[10px] text-[#4ADE80] ml-1">12 this month</span>
+                <span className="font-sans font-medium text-[10px] text-[#4ADE80]">Registered Members</span>
               </div>
             </div>
           </div>
@@ -58,9 +61,11 @@ export default function AdminDashboardPage() {
             Active Hosts
           </span>
           <div className="flex flex-col gap-1 mt-1">
-            <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">8</span>
+            <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">
+              {isLoading ? "..." : overview?.stats.activeHosts ?? 0}
+            </span>
             <div className="flex items-center gap-1.5 mt-2">
-              <span className="font-sans text-[11px] text-[#8CB34A]">Pending approval</span>
+              <span className="font-sans text-[11px] text-[#8CB34A]">Verified Operators</span>
             </div>
           </div>
         </div>
@@ -71,13 +76,12 @@ export default function AdminDashboardPage() {
             Live Raffles
           </span>
           <div className="flex flex-col gap-1 mt-1">
-            <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">3</span>
+            <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">
+              {isLoading ? "..." : overview?.stats.liveRaffles ?? 0}
+            </span>
             <div className="flex items-center gap-1.5 mt-2">
               <div className="px-2 py-0.5 rounded-full bg-[#083b18] flex items-center justify-center">
-                <svg className="w-3 h-3 text-[#4ADE80]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
-                </svg>
-                <span className="font-sans font-medium text-[10px] text-[#4ADE80] ml-1">1 new</span>
+                <span className="font-sans font-medium text-[10px] text-[#4ADE80]">Active Draws</span>
               </div>
             </div>
           </div>
@@ -89,9 +93,11 @@ export default function AdminDashboardPage() {
             Total Revenue
           </span>
           <div className="flex flex-col gap-1 mt-1">
-            <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">£286,500</span>
+            <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">
+              {isLoading ? "..." : `£${(overview?.stats.totalRevenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+            </span>
             <div className="flex items-center gap-1.5 mt-2">
-              <span className="font-sans text-[11px] text-[#5A752A]">Lifetime</span>
+              <span className="font-sans text-[11px] text-[#5A752A]">Ticket Sales</span>
             </div>
           </div>
         </div>
@@ -107,12 +113,14 @@ export default function AdminDashboardPage() {
             <div className="flex flex-col gap-2">
               <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">Platform Revenue</span>
               <div className="flex items-center gap-3">
-                <span className="font-heading font-bold text-[28px] text-[#E8EDD4]">£284,600</span>
+                <span className="font-heading font-bold text-[28px] text-[#E8EDD4]">
+                  {isLoading ? "..." : `£${(overview?.stats.totalRevenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                </span>
                 <div className="px-2 py-0.5 rounded-full bg-[#083b18] flex items-center justify-center">
                   <svg className="w-3 h-3 text-[#4ADE80]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
                   </svg>
-                  <span className="font-sans font-medium text-[10px] text-[#4ADE80] ml-1">14%</span>
+                  <span className="font-sans font-medium text-[10px] text-[#4ADE80] ml-1">Live</span>
                 </div>
               </div>
             </div>
@@ -168,46 +176,38 @@ export default function AdminDashboardPage() {
         <div className="bg-[#161810] border border-[#2D3C13] rounded-[16px] p-6 flex flex-col">
           <div className="flex items-center gap-3 mb-6">
             <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">Awaiting Your Review</span>
-            <div className="w-[18px] h-[18px] rounded-full bg-[#f76b6b] flex items-center justify-center">
-              <span className="font-sans font-bold text-[10px] text-[#0D0D0B]">12</span>
+            <div className="w-[18px] h-[18px] rounded-full bg-[#f76b6b] flex items-center justify-center shrink-0">
+              <span className="font-sans font-bold text-[10px] text-[#0D0D0B]">
+                {isLoading ? "..." : overview?.awaitingReview.count ?? 0}
+              </span>
             </div>
           </div>
           
           <div className="flex flex-col gap-4 flex-1">
-            {[
-              { title: "Sniper Rifle Set", sub: "Submitted 2h ago", icon: "SR" },
-              { title: "VFC HK416 Bundle", sub: "Submitted 5h ago", icon: "VH" },
-              { title: "Ghillie Suit Custom", sub: "Submitted 1d ago", icon: "GS" },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center justify-between pb-4 border-b border-[#2D3C13]">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#1A230A] border border-[#2D3C13] flex items-center justify-center shrink-0">
-                    <span className="font-sans font-medium text-[10px] text-[#8CB34A]">{item.icon}</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">{item.title}</span>
-                    <span className="font-sans text-[11px] text-[#5A752A]">{item.sub}</span>
+            {isLoading ? (
+              <div className="py-8 text-center text-[#5A752A] font-sans text-sm animate-pulse">Loading review items...</div>
+            ) : overview?.awaitingReview.list.length === 0 ? (
+              <div className="py-8 text-center text-[#5A752A] font-sans text-sm">No items pending review.</div>
+            ) : (
+              overview?.awaitingReview.list.map((item) => (
+                <div key={item.id} className="flex items-center justify-between pb-4 border-b border-[#2D3C13] last:border-b-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[#1A230A] border border-[#2D3C13] flex items-center justify-center shrink-0">
+                      <span className="font-sans font-medium text-[10px] text-[#8CB34A]">{item.icon}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">{item.title}</span>
+                      <span className="font-sans text-[11px] text-[#5A752A]">{item.sub}</span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button className="w-7 h-7 rounded-full bg-transparent border border-[#2D3C13] hover:bg-[#1A230A] flex items-center justify-center transition-colors group">
-                    <svg className="w-3.5 h-3.5 text-[#4ADE80]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                    </svg>
-                  </button>
-                  <button className="w-7 h-7 rounded-full bg-transparent border border-[#2D3C13] hover:bg-[#1A230A] flex items-center justify-center transition-colors group">
-                    <svg className="w-3.5 h-3.5 text-[#f76b6b]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
           
-          <button className="w-full mt-4 h-[40px] rounded-[8px] bg-transparent border border-[#2D3C13] hover:bg-[#1A230A] text-[#E8EDD4] font-sans font-medium text-[13px] transition-colors">
+          <Link href="/dashboard/admin/raffles" className="w-full mt-4 h-[40px] rounded-[8px] bg-transparent border border-[#2D3C13] hover:bg-[#1A230A] text-[#E8EDD4] font-sans font-medium text-[13px] transition-colors flex items-center justify-center cursor-pointer">
             Review All →
-          </button>
+          </Link>
         </div>
 
       </div>
@@ -299,37 +299,35 @@ export default function AdminDashboardPage() {
         <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">Recent Activity</span>
         
         <div className="flex items-center gap-6 overflow-x-auto no-scrollbar pb-2">
-          
-          {[
-            { text: "New host registered — Tactical Gear UK", time: "14m ago" },
-            { text: "Raffle approved — Sniper Rifle Set", time: "32m ago" },
-            { text: "Withdrawal request — £840.00", time: "1h ago", highlight: true },
-            { text: "Raffle rejected — Incomplete details", time: "2h ago", alert: true },
-            { text: "New user registered — john@example.com", time: "3h ago" },
-          ].map((activity, i) => (
-             <div key={i} className="flex items-start gap-3 shrink-0 min-w-[280px]">
-               <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border ${
-                 activity.highlight ? 'bg-[#78350F] border-[#D97706]/30 text-[#F59E0B]' :
-                 activity.alert ? 'bg-[#7F1D1D] border-[#EF4444]/30 text-[#f76b6b]' :
-                 'bg-[#083b18] border-[#4ADE80]/30 text-[#4ADE80]'
-               }`}>
-                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                 </svg>
-               </div>
-               <div className="flex flex-col">
-                 <span className={`font-sans text-[12px] truncate ${
-                   activity.highlight ? 'text-[#F59E0B]' :
-                   activity.alert ? 'text-[#f76b6b]' :
-                   'text-[#72943A]'
-                 }`}>
-                   {activity.text}
-                 </span>
-                 <span className="font-sans text-[10px] text-[#5A752A] mt-0.5">{activity.time}</span>
-               </div>
-             </div>
-           ))}
-          
+          {isLoading ? (
+            <div className="py-4 text-center text-[#5A752A] font-sans text-sm animate-pulse">Loading recent activity...</div>
+          ) : overview?.recentActivity.length === 0 ? (
+            <div className="py-4 text-center text-[#5A752A] font-sans text-sm">No recent activity.</div>
+          ) : (
+            overview?.recentActivity.map((activity, i) => (
+              <div key={i} className="flex items-start gap-3 shrink-0 min-w-[280px]">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border ${
+                  activity.highlight ? 'bg-[#78350F] border-[#D97706]/30 text-[#F59E0B]' :
+                  activity.alert ? 'bg-[#7F1D1D] border-[#EF4444]/30 text-[#f76b6b]' :
+                  'bg-[#083b18] border-[#4ADE80]/30 text-[#4ADE80]'
+                }`}>
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className={`font-sans text-[12px] truncate ${
+                    activity.highlight ? 'text-[#F59E0B]' :
+                    activity.alert ? 'text-[#f76b6b]' :
+                    'text-[#72943A]'
+                  }`}>
+                    {activity.text}
+                  </span>
+                  <span className="font-sans text-[10px] text-[#5A752A] mt-0.5">{activity.time}</span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

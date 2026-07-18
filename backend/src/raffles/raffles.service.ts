@@ -65,7 +65,9 @@ export class RafflesService {
         title: data.title,
         slug,
         description: data.description || '',
-        mainPrizeValue: data.mainPrizeValue ? Number(data.mainPrizeValue) : null,
+        mainPrizeValue: data.mainPrizeValue
+          ? Number(data.mainPrizeValue)
+          : null,
         pricePerTicket: data.ticketPrice || 0,
         totalTickets,
         startDate,
@@ -175,8 +177,16 @@ export class RafflesService {
       whereClause.OR = [
         { title: { contains: search, mode: 'insensitive' } },
         { host: { businessName: { contains: search, mode: 'insensitive' } } },
-        { host: { user: { firstName: { contains: search, mode: 'insensitive' } } } },
-        { host: { user: { lastName: { contains: search, mode: 'insensitive' } } } },
+        {
+          host: {
+            user: { firstName: { contains: search, mode: 'insensitive' } },
+          },
+        },
+        {
+          host: {
+            user: { lastName: { contains: search, mode: 'insensitive' } },
+          },
+        },
       ];
     }
 
@@ -194,13 +204,12 @@ export class RafflesService {
       orderBy = { createdAt: 'desc' };
     }
 
-
     const [raffles, total] = await Promise.all([
       this.prisma.raffle.findMany({
         where: whereClause,
-        include: { 
+        include: {
           host: { include: { user: true } },
-          _count: { select: { instantWins: true } }
+          _count: { select: { instantWins: true } },
         },
         skip,
         take: Number(limit),
@@ -264,7 +273,13 @@ export class RafflesService {
   }
 
   async getPublicWinnersList(query: any) {
-    const { page = 1, limit = 8, activeTab = 'all', winnerType = 'all', sortBy = 'newest' } = query;
+    const {
+      page = 1,
+      limit = 8,
+      activeTab = 'all',
+      winnerType = 'all',
+      sortBy = 'newest',
+    } = query;
     const skip = (Number(page) - 1) * Number(limit);
 
     const whereClause: any = {};
@@ -284,7 +299,8 @@ export class RafflesService {
       whereClause.winType = 'MAIN_DRAW';
     }
 
-    const orderBy: Prisma.WinnerOrderByWithRelationInput = sortBy === 'oldest' ? { createdAt: 'asc' } : { createdAt: 'desc' };
+    const orderBy: Prisma.WinnerOrderByWithRelationInput =
+      sortBy === 'oldest' ? { createdAt: 'asc' } : { createdAt: 'desc' };
 
     const [winners, total] = await Promise.all([
       this.prisma.winner.findMany({
@@ -293,7 +309,14 @@ export class RafflesService {
         skip,
         take: Number(limit),
         include: {
-          user: { select: { firstName: true, lastName: true, avatarUrl: true, location: true } },
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+              location: true,
+            },
+          },
           raffle: { select: { title: true, mainImage: true, prizeName: true } },
           ticket: { select: { ticketNumber: true } },
         },
@@ -303,14 +326,22 @@ export class RafflesService {
 
     const data = winners.map((w) => ({
       id: w.id,
-      name: w.user.firstName ? `${w.user.firstName} ${w.user.lastName?.charAt(0) || ''}.` : 'Anonymous',
+      name: w.user.firstName
+        ? `${w.user.firstName} ${w.user.lastName?.charAt(0) || ''}.`
+        : 'Anonymous',
       location: w.user.location || 'Unknown',
       avatar: w.user.avatarUrl || w.raffle?.mainImage || '',
       competitionImage: w.raffle?.mainImage || '',
       winnerType: w.winType === 'INSTANT_WIN' ? 'instant' : 'main_draw',
-      initials: w.user.firstName ? `${w.user.firstName.charAt(0)}${w.user.lastName?.charAt(0) || ''}` : 'AU',
+      initials: w.user.firstName
+        ? `${w.user.firstName.charAt(0)}${w.user.lastName?.charAt(0) || ''}`
+        : 'AU',
       prizeTitle: w.prizeName || w.raffle?.prizeName || 'Unknown Prize',
-      drawDate: w.createdAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+      drawDate: w.createdAt.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      }),
       dateString: w.createdAt.toISOString(),
       ticketNumber: w.ticket?.ticketNumber?.toString() || '0000',
       status: w.deliveryStatus?.toLowerCase() || 'pending',
@@ -681,24 +712,24 @@ export class RafflesService {
 
   async getPublicWinnerStats() {
     const totalWinners = await this.prisma.winner.count();
-    
+
     // For "Verified Draws", we can count raffles with status 'ENDED' or 'COMPLETED'
     // Since 'ENDED' is the status in the enum
     const verifiedDraws = await this.prisma.raffle.count({
-      where: { status: 'ENDED' }
+      where: { status: 'ENDED' },
     });
 
     // For "Prizes Awarded" value, since we don't have a specific monetary value field,
-    // we'll calculate the total potential revenue of all ENDED draws as a proxy, 
+    // we'll calculate the total potential revenue of all ENDED draws as a proxy,
     // or we can sum totalTickets * pricePerTicket of ENDED draws.
     const endedRaffles = await this.prisma.raffle.findMany({
       where: { status: 'ENDED' },
-      select: { totalTickets: true, pricePerTicket: true }
+      select: { totalTickets: true, pricePerTicket: true },
     });
 
     let totalValue = 0;
-    endedRaffles.forEach(r => {
-      totalValue += (r.totalTickets * Number(r.pricePerTicket));
+    endedRaffles.forEach((r) => {
+      totalValue += r.totalTickets * Number(r.pricePerTicket);
     });
 
     // Formatting currency for UK (£)

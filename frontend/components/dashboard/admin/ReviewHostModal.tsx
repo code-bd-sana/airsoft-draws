@@ -10,15 +10,28 @@ export interface HostApplicationData {
   contact: string;
   payoutMethod: string;
   social: string;
+  isVerified?: boolean;
 }
 
 interface ReviewHostModalProps {
   isOpen: boolean;
   onClose: () => void;
   data: HostApplicationData | null;
+  onApprove?: (hostId: string) => void;
+  isApproveLoading?: boolean;
+  onReject?: (hostId: string) => void;
+  isRejectLoading?: boolean;
 }
 
-export default function ReviewHostModal({ isOpen, onClose, data }: ReviewHostModalProps) {
+export default function ReviewHostModal({ 
+  isOpen, 
+  onClose, 
+  data, 
+  onApprove, 
+  isApproveLoading,
+  onReject,
+  isRejectLoading
+}: ReviewHostModalProps) {
   if (!isOpen || !data) return null;
 
   return (
@@ -81,10 +94,36 @@ export default function ReviewHostModal({ isOpen, onClose, data }: ReviewHostMod
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center gap-4 mt-10">
+        <div className="flex flex-col sm:flex-row items-center gap-3 mt-10">
+          {!data.isVerified && onApprove && (
+            <button 
+              onClick={() => onApprove(data.id)}
+              disabled={isApproveLoading || isRejectLoading}
+              className="w-full h-[48px] rounded-[8px] bg-[#8CB34A] hover:bg-[#a1cf52] text-[#111210] font-heading font-medium text-[15px] transition-all hover:scale-[1.02] active:scale-[0.98] duration-200 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isApproveLoading ? (
+                <div className="w-5 h-5 border-2 border-[#111210] border-t-transparent rounded-full animate-spin" />
+              ) : (
+                "Approve Host"
+              )}
+            </button>
+          )}
+          {!data.isVerified && onReject && (
+            <button 
+              onClick={() => onReject(data.id)}
+              disabled={isApproveLoading || isRejectLoading}
+              className="w-full h-[48px] rounded-[8px] bg-[#EF4444]/10 border border-[#EF4444]/30 hover:bg-[#EF4444] text-[#EF4444] hover:text-[#111210] font-heading font-medium text-[15px] transition-all hover:scale-[1.02] active:scale-[0.98] duration-200 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isRejectLoading ? (
+                <div className="w-5 h-5 border-2 border-[#EF4444] border-t-transparent rounded-full animate-spin" />
+              ) : (
+                "Reject Host"
+              )}
+            </button>
+          )}
           <button 
             onClick={onClose}
-            className="w-full h-[48px] rounded-[8px] bg-[#1A230A] border border-[#2D3C13] hover:bg-[#2D3C13] text-[#E8EDD4] font-heading font-medium text-[15px] transition-colors"
+            className="w-full h-[48px] rounded-[8px] bg-[#1A230A] border border-[#2D3C13] hover:bg-[#2D3C13] text-[#E8EDD4] font-heading font-medium text-[15px] transition-all duration-200 cursor-pointer"
           >
             Close
           </button>

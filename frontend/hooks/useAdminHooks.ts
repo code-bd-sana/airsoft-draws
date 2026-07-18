@@ -61,3 +61,10 @@ export const useToggleUserBlockMutation = () => {
     },
   });
 };
+
+export const useAdminOverviewStats = () => {
+  return useQuery({
+    queryKey: ['adminOverviewStats'],
+    queryFn: () => adminService.getOverviewStats(),
+  });
+};
