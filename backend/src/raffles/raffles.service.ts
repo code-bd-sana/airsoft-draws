@@ -209,7 +209,7 @@ export class RafflesService {
         where: whereClause,
         include: {
           host: { include: { user: true } },
-          _count: { select: { instantWins: true } },
+          _count: { select: { instantWins: true, tickets: true } },
         },
         skip,
         take: Number(limit),
@@ -218,8 +218,13 @@ export class RafflesService {
       this.prisma.raffle.count({ where: whereClause }),
     ]);
 
+    const mappedData = raffles.map((r) => ({
+      ...r,
+      ticketsSold: r._count?.tickets !== undefined ? r._count.tickets : r.ticketsSold,
+    }));
+
     return {
-      data: raffles,
+      data: mappedData,
       meta: {
         total,
         page: Number(page),
