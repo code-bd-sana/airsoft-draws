@@ -1,12 +1,20 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { userService } from '../services/user.service';
 import { authService } from '../services/auth.service';
+
+export const useMyWinnersQuery = () => {
+  return useQuery({
+    queryKey: ['my-winners'],
+    queryFn: () => userService.getMyWinners(),
+  });
+};
 
 export const useChangePasswordMutation = () => {
   return useMutation({
     mutationFn: userService.changePassword,
   });
 };
+
 
 export const useUpdateProfileMutation = () => {
   const queryClient = useQueryClient();

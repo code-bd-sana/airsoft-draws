@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useMySubscription } from "../../../../hooks/useSubscriptionHooks";
 import { useCreateRaffle, useUploadRaffleImage } from "../../../../hooks/useRaffleHooks";
+import { extractApiError } from "../../../../lib/utils";
 
 export interface RaffleFormData {
   // Step 1
@@ -80,6 +81,7 @@ export default function CreateRaffleWizard() {
       // 1. Upload instant win images first
       const processedInstantWins = [];
       for (const iw of formData.instantWins) {
+        const numericRrp = iw.rrpValue ? Number(iw.rrpValue) : undefined;
         if (iw.imageFile) {
           const res = await fetch('/api/v1/raffles/image', {
             method: 'POST',
@@ -94,12 +96,12 @@ export default function CreateRaffleWizard() {
           });
           if (res.ok) {
             const data = await res.json();
-            processedInstantWins.push({ prizeName: iw.prizeName, image: data.url, rrpValue: iw.rrpValue });
+            processedInstantWins.push({ prizeName: iw.prizeName, image: data.url, rrpValue: numericRrp });
           } else {
-            processedInstantWins.push({ prizeName: iw.prizeName, image: iw.imageUrl, rrpValue: iw.rrpValue });
+            processedInstantWins.push({ prizeName: iw.prizeName, image: iw.imageUrl, rrpValue: numericRrp });
           }
         } else {
-          processedInstantWins.push({ prizeName: iw.prizeName, image: iw.imageUrl, rrpValue: iw.rrpValue });
+          processedInstantWins.push({ prizeName: iw.prizeName, image: iw.imageUrl, rrpValue: numericRrp });
         }
       }
 
@@ -107,8 +109,8 @@ export default function CreateRaffleWizard() {
       const created = await createRaffle.mutateAsync({
         title: formData.title,
         description: formData.description,
-        mainPrizeValue: formData.mainPrizeValue,
-        pricePerTicket: formData.ticketPrice,
+        mainPrizeValue: formData.mainPrizeValue ? Number(formData.mainPrizeValue) : undefined,
+        pricePerTicket: Number(formData.ticketPrice) || 0,
         totalTickets: Number(formData.totalTickets) || 0,
         startDate: formData.startDate,
         endDate: formData.endDate,
@@ -126,7 +128,7 @@ export default function CreateRaffleWizard() {
       toast.success("Competition Created and Pending Approval!");
       router.push("/dashboard/host/competitions");
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to create competition");
+      toast.error(extractApiError(err, "Failed to create competition"));
     } finally {
       setIsSubmitting(false);
     }

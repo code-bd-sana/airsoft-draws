@@ -202,6 +202,7 @@ export class TicketsService {
             pricePerTicket: true,
             totalTickets: true,
             ticketsSold: true,
+            instantWins: true,
             host: {
               include: { user: true },
             },
