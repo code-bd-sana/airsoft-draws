@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { raffleService } from "../../../services/raffle.service";
 
 /**
- * Renders the hero block for the Winners page, including transparency key statistics.
+ * Renders the hero block for the Winners page, displaying real database statistics.
  */
 export default function WinnersHero() {
   const [stats, setStats] = useState({
@@ -12,14 +12,23 @@ export default function WinnersHero() {
     totalWinners: 0,
     verifiedDraws: "0",
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadStats() {
       try {
         const data = await raffleService.getPublicWinnerStats();
-        if (data) setStats(data);
+        if (data) {
+          setStats({
+            prizesAwarded: data.prizesAwarded || "£0",
+            totalWinners: Number(data.totalWinners) || 0,
+            verifiedDraws: String(data.verifiedDraws || "0"),
+          });
+        }
       } catch (error) {
         console.error("Failed to load winner stats", error);
+      } finally {
+        setIsLoading(false);
       }
     }
     loadStats();
@@ -42,7 +51,7 @@ export default function WinnersHero() {
           {/* Stat 1: Prizes Awarded */}
           <div className="flex flex-col items-center text-center flex-1">
             <span className="font-heading font-bold text-3xl md:text-4xl text-text-brand">
-              {stats.prizesAwarded}
+              {isLoading ? "..." : stats.prizesAwarded}
             </span>
             <span className="font-sans text-xs text-text-muted mt-2 font-medium">
               Prizes Awarded
@@ -55,7 +64,7 @@ export default function WinnersHero() {
           {/* Stat 2: Total Winners */}
           <div className="flex flex-col items-center text-center flex-1">
             <span className="font-heading font-bold text-3xl md:text-4xl text-text-brand">
-              {stats.totalWinners.toLocaleString()}+
+              {isLoading ? "..." : stats.totalWinners.toLocaleString()}
             </span>
             <span className="font-sans text-xs text-text-muted mt-2 font-medium">
               Total Winners
@@ -68,7 +77,7 @@ export default function WinnersHero() {
           {/* Stat 3: Verified Draws */}
           <div className="flex flex-col items-center text-center flex-1">
             <span className="font-heading font-bold text-3xl md:text-4xl text-text-brand">
-              {stats.verifiedDraws}
+              {isLoading ? "..." : stats.verifiedDraws}
             </span>
             <span className="font-sans text-xs text-text-muted mt-2 font-medium">
               Verified Draws

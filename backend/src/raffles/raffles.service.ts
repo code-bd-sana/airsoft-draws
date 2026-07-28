@@ -745,26 +745,44 @@ export class RafflesService {
   async getPublicWinnerStats() {
     const totalWinners = await this.prisma.winner.count();
 
-    // For "Verified Draws", we can count raffles with status 'ENDED' or 'COMPLETED'
-    // Since 'ENDED' is the status in the enum
-    const verifiedDraws = await this.prisma.raffle.count({
-      where: { status: 'ENDED' },
-    });
-
-    // For "Prizes Awarded" value, since we don't have a specific monetary value field,
-    // we'll calculate the total potential revenue of all ENDED draws as a proxy,
-    // or we can sum totalTickets * pricePerTicket of ENDED draws.
     const endedRaffles = await this.prisma.raffle.findMany({
-      where: { status: 'ENDED' },
-      select: { totalTickets: true, pricePerTicket: true },
+      where: {
+        OR: [
+          { status: 'ENDED' },
+          { winners: { some: {} } },
+        ],
+      },
+      select: {
+        totalTickets: true,
+        pricePerTicket: true,
+        mainPrizeValue: true,
+      },
     });
 
     let totalValue = 0;
     endedRaffles.forEach((r) => {
-      totalValue += r.totalTickets * Number(r.pricePerTicket);
+      if (r.mainPrizeValue && Number(r.mainPrizeValue) > 0) {
+        totalValue += Number(r.mainPrizeValue);
+      } else {
+        totalValue += r.totalTickets * Number(r.pricePerTicket);
+      }
     });
 
-    // Formatting currency for UK (£)
+    // Add instant wins value if available
+    const instantWins = await this.prisma.instantWin.findMany({
+      where: { isClaimed: true },
+      select: { rrpValue: true },
+    });
+    instantWins.forEach((iw) => {
+      if (iw.rrpValue && Number(iw.rrpValue) > 0) {
+        totalValue += Number(iw.rrpValue);
+      }
+    });
+
+    const verifiedDrawsCount = await this.prisma.raffle.count({
+      where: { status: 'ENDED' },
+    });
+
     const formattedValue = new Intl.NumberFormat('en-GB', {
       style: 'currency',
       currency: 'GBP',
@@ -774,7 +792,7 @@ export class RafflesService {
     return {
       prizesAwarded: formattedValue,
       totalWinners,
-      verifiedDraws: verifiedDraws > 0 ? `${verifiedDraws}+` : '0',
+      verifiedDraws: verifiedDrawsCount.toString(),
     };
   }
 }

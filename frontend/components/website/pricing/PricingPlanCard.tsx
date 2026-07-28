@@ -116,12 +116,12 @@ export default function PricingPlanCard({ plan, billingCycle, dbPlan }: PricingP
 
       {/* Feature List */}
       <ul className="flex-1 flex flex-col gap-3.5 mb-8">
-        {plan.features.map((feature) => (
+        {plan.features.map((feature, idx) => (
           <li
-            key={feature.id}
+            key={`${feature.id}-${idx}`}
             className={cn(
               "flex items-center gap-3 font-sans text-xs md:text-sm transition-all duration-200",
-              feature.included ? "text-text-primary" : "text-text-muted/40"
+              feature.included ? "text-[#E8EDD4]" : "text-[#5A752A]/40"
             )}
           >
             {/* Check or Dash SVG icon */}
