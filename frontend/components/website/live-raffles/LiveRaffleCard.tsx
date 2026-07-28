@@ -31,7 +31,8 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
     isAutoDraw,
   } = raffle as any;
 
-  const image = mainImage || "https://placehold.co/800x600/1a230a/8cb34a?text=No+Image";
+  const fallbackImg = "https://placehold.co/800x600/1a230a/8cb34a?text=No+Image";
+  const image = mainImage || fallbackImg;
   const ticketPrice = Number(pricePerTicket);
   const soldTickets = ticketsSold || 0;
   const category = "rifles"; // Add category to schema later if needed
@@ -44,6 +45,7 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
   const hostName = host?.businessName || host?.user?.firstName || "Unknown Host";
 
   const [timeLeft, setTimeLeft] = useState("");
+  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     const calculateTime = () => {
@@ -145,12 +147,13 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
         {/* Left Side: Image Block */}
         <div className="relative w-full sm:w-[240px] md:w-[280px] h-[180px] sm:h-auto bg-bg shrink-0">
           <Image
-            src={image}
+            src={imgError ? fallbackImg : image}
             alt={title}
             fill
             sizes="(max-width: 640px) 100vw, 280px"
-            className="object-cover opacity-75"
+            className="object-cover opacity-75 text-transparent"
             unoptimized
+            onError={() => setImgError(true)}
           />
 
           {/* Badges on Top of Image */}
@@ -255,12 +258,13 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
       {/* Card Image Block */}
       <div className="relative w-full h-[180px] bg-bg shrink-0">
         <Image
-          src={image}
+          src={imgError ? fallbackImg : image}
           alt={title}
           fill
           sizes="(max-width: 768px) 100vw, 380px"
-          className="object-cover opacity-75"
+          className="object-cover opacity-75 text-transparent"
           unoptimized
+          onError={() => setImgError(true)}
         />
 
         {/* Floating Badges */}

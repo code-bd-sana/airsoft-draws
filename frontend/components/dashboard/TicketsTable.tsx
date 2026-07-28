@@ -63,12 +63,15 @@ export default function TicketsTable({ tickets }: TicketsTableProps) {
 
                   {/* Competition Name */}
                   <div className="col-span-4 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#1A230A] border border-[#2D3C13] flex items-center justify-center shrink-0 overflow-hidden relative">
-                       {/* Abstract placeholder using concentric circles */}
-                      <svg className="w-5 h-5 text-[#5A752A] absolute" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="4">
-                        <circle cx="50" cy="50" r="30" />
-                        <circle cx="50" cy="50" r="15" />
-                      </svg>
+                    <div className="w-9 h-9 rounded-lg bg-[#1A230A] border border-[#2D3C13] flex items-center justify-center shrink-0 overflow-hidden relative">
+                      {ticket.raw?.raffle?.mainImage ? (
+                        <img src={ticket.raw.raffle.mainImage} alt={ticket.competitionName} className="w-full h-full object-cover" />
+                      ) : (
+                        <svg className="w-5 h-5 text-[#5A752A]" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="4">
+                          <circle cx="50" cy="50" r="30" />
+                          <circle cx="50" cy="50" r="15" />
+                        </svg>
+                      )}
                     </div>
                     <span className="font-medium text-[13px] text-[#E8EDD4] truncate pr-4">
                       {ticket.competitionName}
