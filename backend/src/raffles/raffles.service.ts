@@ -317,35 +317,67 @@ export class RafflesService {
               location: true,
             },
           },
-          raffle: { select: { title: true, mainImage: true, prizeName: true } },
+          raffle: {
+            select: {
+              title: true,
+              mainImage: true,
+              prizeName: true,
+              category: true,
+              instantWins: true,
+            },
+          },
           ticket: { select: { ticketNumber: true } },
         },
       }),
       this.prisma.winner.count({ where: whereClause }),
     ]);
 
-    const data = winners.map((w) => ({
-      id: w.id,
-      name: w.user.firstName
-        ? `${w.user.firstName} ${w.user.lastName?.charAt(0) || ''}.`
-        : 'Anonymous',
-      location: w.user.location || 'Unknown',
-      avatar: w.user.avatarUrl || w.raffle?.mainImage || '',
-      competitionImage: w.raffle?.mainImage || '',
-      winnerType: w.winType === 'INSTANT_WIN' ? 'instant' : 'main_draw',
-      initials: w.user.firstName
-        ? `${w.user.firstName.charAt(0)}${w.user.lastName?.charAt(0) || ''}`
-        : 'AU',
-      prizeTitle: w.prizeName || w.raffle?.prizeName || 'Unknown Prize',
-      drawDate: w.createdAt.toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      }),
-      dateString: w.createdAt.toISOString(),
-      ticketNumber: w.ticket?.ticketNumber?.toString() || '0000',
-      status: w.deliveryStatus?.toLowerCase() || 'pending',
-    }));
+    const data = winners.map((w) => {
+      const instantWin =
+        w.winType === 'INSTANT_WIN'
+          ? w.raffle?.instantWins?.find(
+              (iw) => iw.ticketNumber === w.ticket?.ticketNumber,
+            )
+          : null;
+
+      const displayImage =
+        w.winType === 'INSTANT_WIN'
+          ? instantWin?.image || w.raffle?.mainImage || ''
+          : w.raffle?.mainImage || '';
+
+      const prizeTitle =
+        w.prizeName ||
+        (w.winType === 'INSTANT_WIN'
+          ? instantWin?.prizeName
+          : w.raffle?.prizeName) ||
+        'Prize';
+
+      return {
+        id: w.id,
+        name: w.user.firstName
+          ? `${w.user.firstName} ${w.user.lastName?.charAt(0) || ''}.`
+          : 'Anonymous',
+        location: w.user.location || 'UK',
+        avatar: w.user.avatarUrl || displayImage,
+        competitionImage: displayImage,
+        winnerType: w.winType === 'INSTANT_WIN' ? 'instant' : 'main_draw',
+        initials: w.user.firstName
+          ? `${w.user.firstName.charAt(0)}${w.user.lastName?.charAt(0) || ''}`
+          : 'AU',
+        prizeTitle,
+        drawDate: w.createdAt.toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        }),
+        dateString: w.createdAt.toISOString(),
+        ticketNumber: w.ticket?.ticketNumber
+          ? `#${w.ticket.ticketNumber.toString().padStart(4, '0')}`
+          : '#0000',
+        status: w.deliveryStatus?.toLowerCase() || 'pending',
+        category: w.raffle?.category || 'General',
+      };
+    });
 
     return {
       data,
