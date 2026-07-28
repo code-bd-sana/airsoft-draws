@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Patch,
   Post,
   Body,
@@ -50,6 +51,18 @@ export class UsersController {
     } catch {
       throw new UnauthorizedException('Invalid or expired token');
     }
+  }
+
+  @Get('my-winners')
+  @ApiOperation({ summary: 'Get all winning records for the current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of prizes won by current user',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getMyWinners(@Req() req: Request) {
+    const userId = this.extractUserId(req);
+    return this.usersService.getMyWinners(userId);
   }
 
   @Patch('change-password')
@@ -130,3 +143,4 @@ export class UsersController {
     return this.usersService.updateAvatar(userId, avatarUrl);
   }
 }
+

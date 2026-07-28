@@ -14,6 +14,12 @@ async function bootstrap() {
   });
 
   // Enable CORS for Next.js frontend with credentials support
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://airsoft-draws.vercel.app',
+    process.env.FRONTEND_URL,
+  ].filter(Boolean);
+
   app.enableCors({
     origin: true, // This allows any origin dynamically (acting like *) while supporting credentials
     credentials: true,

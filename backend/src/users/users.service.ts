@@ -111,4 +111,83 @@ export class UsersService {
       user: userWithoutPassword,
     };
   }
+
+  async getMyWinners(userId: string) {
+    const winners = await this.prisma.winner.findMany({
+      where: { userId },
+      include: {
+        raffle: {
+          include: {
+            host: true,
+            instantWins: true,
+          },
+        },
+        ticket: {
+          select: {
+            ticketNumber: true,
+            createdAt: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return winners.map((w) => {
+      const instantWinDetails =
+        w.winType === 'INSTANT_WIN'
+          ? w.raffle.instantWins.find(
+              (iw) => iw.ticketNumber === w.ticket.ticketNumber,
+            )
+          : null;
+
+      const prizeImage =
+        w.winType === 'INSTANT_WIN'
+          ? instantWinDetails?.image || w.raffle.mainImage
+          : w.raffle.mainImage;
+
+      const prizeName =
+        w.prizeName ||
+        (w.winType === 'INSTANT_WIN'
+          ? instantWinDetails?.prizeName
+          : w.raffle.prizeName);
+
+      return {
+        id: w.id,
+        raffleId: w.raffleId,
+        ticketId: w.ticketId,
+        winType: w.winType, // 'INSTANT_WIN' | 'MAIN_DRAW'
+        prizeName: prizeName || 'Prize',
+        prizeImage: prizeImage || null,
+        rrpValue: instantWinDetails?.rrpValue
+          ? Number(instantWinDetails.rrpValue)
+          : w.raffle.mainPrizeValue
+            ? Number(w.raffle.mainPrizeValue)
+            : null,
+        ticketNumber: w.ticket.ticketNumber,
+        deliveryStatus: w.deliveryStatus,
+        verificationStatus: w.verificationStatus,
+        trackingNumber: w.trackingNumber,
+        createdAt: w.createdAt,
+        raffle: {
+          id: w.raffle.id,
+          title: w.raffle.title,
+          slug: w.raffle.slug,
+          mainImage: w.raffle.mainImage,
+          hostBusinessName: w.raffle.host?.businessName || 'Host',
+          status: w.raffle.status,
+        },
+        instantWinDetails: instantWinDetails
+          ? {
+              id: instantWinDetails.id,
+              prizeName: instantWinDetails.prizeName,
+              image: instantWinDetails.image,
+              rrpValue: instantWinDetails.rrpValue
+                ? Number(instantWinDetails.rrpValue)
+                : null,
+            }
+          : null,
+      };
+    });
+  }
 }
+
