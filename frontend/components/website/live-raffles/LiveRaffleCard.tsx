@@ -13,43 +13,54 @@ interface LiveRaffleCardProps {
 }
 
 /**
- * Dedicated Card component for the Live Raffles page.
- * Replicates the Figma design layout, borders, font weights, and spacing.
+ * Dedicated Card component for the Live Raffles page and Related Raffles section.
+ * Handles both API raffle payloads and local mock draw data seamlessly.
  */
 export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffleCardProps) {
-  const {
-    id,
-    title,
-    mainImage,
-    pricePerTicket,
-    totalTickets,
-    ticketsSold,
-    endDate,
-    prizeName,
-    slug,
-    host,
-    isAutoDraw,
-  } = raffle as any;
+  const r = raffle as any;
+
+  const id = r.id;
+  const title = r.title || "Untitled Competition";
+  const slug = r.slug || id;
+  const isAutoDraw = r.isAutoDraw;
+  const host = r.host;
 
   const fallbackImg = "https://placehold.co/800x600/1a230a/8cb34a?text=No+Image";
-  const image = mainImage || fallbackImg;
-  const ticketPrice = Number(pricePerTicket);
-  const soldTickets = ticketsSold || 0;
-  const category = "rifles"; // Add category to schema later if needed
-  const worthPrice = ticketPrice * totalTickets;
-  const badgeText = soldTickets / totalTickets > 0.9 ? "ALMOST GONE" : "HOT";
-  
-  const soldPercent = totalTickets > 0 ? Math.min(Math.round((soldTickets / totalTickets) * 100), 100) : 0;
-  
-  const formattedEndDate = new Date(endDate).toLocaleDateString();
-  const hostName = host?.businessName || host?.user?.firstName || "Unknown Host";
+  const image = r.mainImage || r.image || fallbackImg;
 
-  const [timeLeft, setTimeLeft] = useState("");
+  const ticketPrice = Number(r.pricePerTicket ?? r.ticketPrice ?? 0) || 0;
+  const totalTickets = Number(r.totalTickets ?? 0) || 0;
+  const soldTickets = Number(r.ticketsSold ?? r.soldTickets ?? 0) || 0;
+
+  const worthPrice = Number(r.worthPrice ?? (ticketPrice * totalTickets)) || 0;
+  const soldPercent = totalTickets > 0 ? Math.min(Math.round((soldTickets / totalTickets) * 100), 100) : 0;
+  const badgeText = r.badgeText || (soldPercent >= 90 ? "ALMOST GONE" : "HOT");
+
+  const category = r.category || "rifles";
+
+  const hostName = host?.businessName || (host?.user?.firstName ? `${host.user.firstName} ${host.user.lastName || ''}`.trim() : "");
+  const hostLocation = host?.user?.location || host?.address || "";
+
+  const rawEndDate = r.endDate;
+  const isValidDate = rawEndDate && !isNaN(new Date(rawEndDate).getTime());
+  const formattedEndDate = isValidDate
+    ? new Date(rawEndDate).toLocaleDateString()
+    : (typeof rawEndDate === "string" ? rawEndDate : "Closing Soon");
+
+  const [timeLeft, setTimeLeft] = useState<string>(() => {
+    if (!isValidDate) return typeof rawEndDate === "string" ? rawEndDate : "Closing Soon";
+    return "";
+  });
   const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
+    if (!isValidDate) {
+      if (typeof rawEndDate === "string") setTimeLeft(rawEndDate);
+      return;
+    }
+
     const calculateTime = () => {
-      const diff = new Date(endDate).getTime() - new Date().getTime();
+      const diff = new Date(rawEndDate).getTime() - new Date().getTime();
       if (diff <= 0) return "Ended";
       const d = Math.floor(diff / (1000 * 60 * 60 * 24));
       const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
@@ -63,7 +74,7 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
     setTimeLeft(calculateTime());
     const interval = setInterval(() => setTimeLeft(calculateTime()), 1000);
     return () => clearInterval(interval);
-  }, [endDate]);
+  }, [rawEndDate, isValidDate]);
 
   // SVG Icons matching Figma design
   const fireIcon = (
@@ -158,9 +169,11 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
 
           {/* Badges on Top of Image */}
           <div className="absolute inset-x-3 top-3 flex items-start justify-between pointer-events-none">
-            <div className="bg-[#1a230a]/90 backdrop-blur-sm border border-[#2d3c13] px-2.5 py-1 rounded-badge text-[10px] font-semibold text-[#a0d056] shadow-md truncate max-w-[120px]">
-              By {hostName}
-            </div>
+            {(hostName || hostLocation) ? (
+              <div className="bg-[#1a230a]/90 backdrop-blur-sm border border-[#2d3c13] px-2.5 py-1 rounded-badge text-[10px] font-semibold text-[#a0d056] shadow-md truncate max-w-[160px]">
+                {hostLocation ? `📍 ${hostLocation}` : `By ${hostName}`}
+              </div>
+            ) : <div />}
 
             <div className="bg-[#1a230a] border border-[#2d3c13] px-2.5 py-1 rounded-badge text-[10px] font-semibold text-[#72943a]">
               {categoryLabel}
@@ -197,7 +210,7 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
                     </div>
                   )}
                 </div>
-                {worthPrice && (
+                {worthPrice > 0 && (
                   <p className="font-sans text-[11px] text-[#72943a] mt-1.5">
                     Worth {formatCurrency(worthPrice, 0)}
                   </p>
@@ -269,9 +282,11 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
 
         {/* Floating Badges */}
         <div className="absolute inset-x-3 top-3 flex items-start justify-between pointer-events-none">
-          <div className="bg-[#1a230a]/90 backdrop-blur-sm border border-[#2d3c13] px-2.5 py-1 rounded-badge text-[10px] font-semibold text-[#a0d056] shadow-md truncate max-w-[120px]">
-            By {hostName}
-          </div>
+          {(hostName || hostLocation) ? (
+            <div className="bg-[#1a230a]/90 backdrop-blur-sm border border-[#2d3c13] px-2.5 py-1 rounded-badge text-[10px] font-semibold text-[#a0d056] shadow-md truncate max-w-[160px]">
+              {hostLocation ? `📍 ${hostLocation}` : `By ${hostName}`}
+            </div>
+          ) : <div />}
 
           <div className="bg-[#1a230a] border border-[#2d3c13] px-2.5 py-1 rounded-badge text-[10px] font-semibold text-[#72943a]">
             {categoryLabel}
@@ -314,7 +329,7 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
           </div>
 
           {/* Worth Subheading */}
-          {worthPrice && (
+          {worthPrice > 0 && (
             <p className="font-sans text-[11px] text-[#5a752a] font-normal mb-3">
               Worth {formatCurrency(worthPrice, 0)}
             </p>
@@ -340,7 +355,7 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
           {/* Closes in Countdown Block */}
           <div className="flex items-center gap-1.5 bg-[#111210] border border-[#1a230a] px-3 py-2 rounded-[10px] mb-4 text-xs">
             {clockIcon}
-            <span className="text-[#5a752a]">Closes on</span>
+            <span className="text-[#5a752a]">Closes in</span>
             <span className="font-semibold text-text-primary">{formattedEndDate}</span>
           </div>
         </div>

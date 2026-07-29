@@ -28,9 +28,11 @@ export default function WinnerCard({ winner }: WinnerCardProps) {
           <span className="font-sans font-medium text-sm text-text-primary truncate">
             {name}
           </span>
-          <span className="font-sans text-xs text-text-secondary truncate mt-0.5">
-            {location}
-          </span>
+          {location && location !== "Unknown Location" && location !== "Unknown" && (
+            <span className="font-sans text-xs text-text-secondary truncate mt-0.5">
+              {location}
+            </span>
+          )}
         </div>
       </div>
 

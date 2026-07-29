@@ -6,6 +6,7 @@ import { usePurchaseTicketsMutation } from "../../../hooks/useTicketHooks";
 import { useAuth } from "../../../features/auth/AuthContext";
 import { useRouter } from "next/navigation";
 import TicketPurchaseSuccessModal, { TicketPurchaseSuccessData } from "./TicketPurchaseSuccessModal";
+import FreePostalEntryButton from "../legal/FreePostalEntryButton";
 
 interface RaffleEntryCardProps {
   raffle: RaffleDetail;
@@ -204,6 +205,9 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
         >
           {purchaseMutation.isPending ? 'Processing...' : `Enter Draw — £${totalPrice.toFixed(2)}`}
         </button>
+
+        {/* UK-Compliant Free Postal Entry Route Button */}
+        <FreePostalEntryButton raffleTitle={raffle.title} variant="button" />
 
         {statusMessage && (
           <div className={`p-3 rounded-lg text-sm font-sans text-center ${

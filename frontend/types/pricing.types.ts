@@ -22,7 +22,6 @@ export interface PricingPlan {
 
 export interface ComparisonRow {
   featureName: string;
-  freeValue: string | boolean;
   premiumValue: string | boolean;
   proValue: string | boolean;
 }

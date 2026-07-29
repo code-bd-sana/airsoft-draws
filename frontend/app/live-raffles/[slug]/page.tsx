@@ -8,6 +8,7 @@ import RaffleEntryCard from "../../../components/website/raffle-details/RaffleEn
 import RaffleDetailsTabs from "../../../components/website/raffle-details/RaffleDetailsTabs";
 import RelatedRafflesSection from "../../../components/website/raffle-details/RelatedRafflesSection";
 import RaffleDetailsEmptyState from "../../../components/website/raffle-details/RaffleDetailsEmptyState";
+import FreePostalEntryButton from "../../../components/website/legal/FreePostalEntryButton";
 import { raffleDetailsData } from "../../../data/raffles/raffle-details.data";
 import { liveRafflesData } from "../../../data/live-raffles.data";
 import { RaffleDetail } from "../../../types/raffle-details.types";
@@ -210,6 +211,9 @@ export default async function LiveRaffleDetailPage({ params }: PageProps) {
                         • {raffle.instantWinPrizes.length} instant wins
                       </span>
                     )}
+
+                    {/* Highly visible UK-compliant Free Postal Entry button */}
+                    <FreePostalEntryButton raffleTitle={raffle.title} variant="badge" />
                   </div>
                 </div>
 
