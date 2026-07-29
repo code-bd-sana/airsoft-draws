@@ -33,6 +33,7 @@ export const FOOTER_SECTIONS = [
     links: [
       { label: "Start Hosting", href: "/#host-info" },
       { label: "Pricing & Fees", href: "/pricing" },
+      { label: "Verified Hosts", href: "/verified-hosts" },
     ],
   },
   {
@@ -42,6 +43,7 @@ export const FOOTER_SECTIONS = [
       { label: "Contact Support", href: "/contact" },
       { label: "Terms of Service", href: "/terms" },
       { label: "Privacy Policy", href: "/privacy" },
+      { label: "Cookie Policy", href: "/cookie-policy" },
       { label: "Free Entry Method", href: "/terms#free-entry" },
     ],
   },
