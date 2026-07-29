@@ -61,6 +61,18 @@ export default function MobileDashboardMenu({ account, isOpen, onClose }: Mobile
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1 scrollbar-hide flex flex-col gap-1 w-full">
+          {/* Quick 1-Tap Switch to Public Website */}
+          <Link
+            href="/live-raffles"
+            onClick={onClose}
+            className="w-full py-2.5 px-4 rounded-xl bg-[#1A230A] border border-[#8CB34A] text-[#A0D056] text-xs font-bold font-sans flex items-center justify-center gap-2 mb-3 shadow-sm hover:bg-[#2D3C13] transition-colors"
+          >
+            <svg className="w-4 h-4 text-[#8CB34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m-17.432-6A8.959 8.959 0 0 0 3 12c0 .778.099 1.533.284 2.253" />
+            </svg>
+            <span>Exit to Public Website</span>
+          </Link>
+
           {navItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href) && item.href !== "/dashboard/host");
             return (
