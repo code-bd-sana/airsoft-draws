@@ -10,7 +10,7 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('Seeding Paid Subscription Plans...');
-  
+
   const plans = [
     {
       name: 'Premium',
@@ -23,12 +23,12 @@ async function main() {
       price: 99.99,
       durationDays: 30,
       maxActiveRaffles: 999999, // Uncapped basically
-    }
+    },
   ];
 
   for (const plan of plans) {
     const existingPlan = await prisma.subscriptionPlan.findFirst({
-      where: { name: plan.name }
+      where: { name: plan.name },
     });
 
     if (!existingPlan) {
