@@ -6,6 +6,7 @@ import TextareaField from "../shared/TextareaField";
 import PrimaryButton from "../shared/PrimaryButton";
 import { ContactFormValues } from "../../../types/contact.types";
 import { cn } from "../../../lib/utils";
+import { contactService } from "../../../services/contact.service";
 
 const SUBJECT_OPTIONS = [
   { value: "", label: "Select a topic..." },
@@ -17,8 +18,8 @@ const SUBJECT_OPTIONS = [
 ];
 
 /**
- * Stateful Contact Form component with strict frontend validation,
- * simulated API submission delays, and accessible success/error alerts.
+ * Stateful Contact Form component with backend SMTP integration,
+ * validation feedback, and accessible success/error alerts.
  */
 export default function ContactForm() {
   const [formValues, setFormValues] = useState<ContactFormValues>({
@@ -32,6 +33,7 @@ export default function ContactForm() {
   const [errors, setErrors] = useState<Partial<Record<keyof ContactFormValues, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -86,16 +88,22 @@ export default function ContactForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validate()) return;
 
     setIsSubmitting(true);
+    setSubmitError(null);
 
-    // Simulate API call latency
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await contactService.sendContactMessage({
+        name: formValues.fullName,
+        email: formValues.email,
+        subject: formValues.subject,
+        message: formValues.message,
+      });
+
       setIsSuccess(true);
       setFormValues({
         fullName: "",
@@ -104,7 +112,15 @@ export default function ContactForm() {
         message: "",
         agreeToPolicy: false,
       });
-    }, 1500);
+    } catch (err: any) {
+      setSubmitError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to send message. Please try again or chat with us directly on WhatsApp."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -112,6 +128,19 @@ export default function ContactForm() {
       <h2 className="font-heading font-bold text-lg md:text-xl text-text-primary mb-6">
         Send Us a Message
       </h2>
+
+      {/* Submit Error Notification */}
+      {submitError && (
+        <div className="mb-6 p-4 rounded-xl bg-red-950/60 border border-red-800 text-red-200 font-sans text-xs flex items-center justify-between">
+          <span>⚠️ {submitError}</span>
+          <button
+            onClick={() => setSubmitError(null)}
+            className="text-red-400 hover:text-white font-bold ml-2"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Success Notification Alert */}
       {isSuccess ? (
@@ -126,9 +155,9 @@ export default function ContactForm() {
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
           </svg>
-          <h3 className="font-heading font-bold text-base md:text-lg mb-2">Message Sent Successfully!</h3>
+          <h3 className="font-heading font-bold text-base md:text-lg mb-2">Message Sent to Support!</h3>
           <p className="font-sans text-xs md:text-sm text-text-muted leading-relaxed max-w-sm mb-4">
-            Thank you for reaching out. A member of our support team will reply within 24 hours.
+            Thank you for reaching out. Your message has been dispatched to our admin support team. We will respond via email within 24 hours.
           </p>
           <PrimaryButton onClick={() => setIsSuccess(false)} className="px-5 py-2 text-xs">
             Send Another Message
@@ -248,7 +277,7 @@ export default function ContactForm() {
               )
             }
           >
-            {isSubmitting ? "Sending..." : "Send Message"}
+            {isSubmitting ? "Sending to Support..." : "Send Message"}
           </PrimaryButton>
         </form>
       )}

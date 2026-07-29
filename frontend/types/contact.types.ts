@@ -4,7 +4,7 @@ export interface ContactInfoCardItem {
   description: string;
   value: string;
   href?: string;
-  type: "email" | "chat" | "time" | "faq" | "hours";
+  type: "email" | "chat" | "time" | "faq" | "hours" | "whatsapp";
 }
 
 export interface ContactFormValues {
