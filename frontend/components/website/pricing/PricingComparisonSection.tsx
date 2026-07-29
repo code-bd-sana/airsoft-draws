@@ -2,7 +2,7 @@ import React from "react";
 import { COMPARISON_ROWS } from "../../../data/pricing/pricing-comparison.data";
 
 /**
- * Tabular comparison matrix for Free vs Premium vs Pro features.
+ * Tabular comparison matrix for Premium vs Pro paid features.
  * Features clean alternate row coloring, check/dash status indicators, and mobile scroll support.
  */
 export default function PricingComparisonSection() {
@@ -46,22 +46,19 @@ export default function PricingComparisonSection() {
         {/* Header Title */}
         <div className="text-center mb-12">
           <h2 className="font-heading font-bold text-2xl md:text-4xl text-text-primary tracking-tight">
-            Compare All Features
+            Compare Paid Plans & Features
           </h2>
         </div>
 
         {/* Scrollable Comparison Table Frame */}
-        <div className="w-full max-w-5xl mx-auto overflow-x-auto rounded-[14px] border border-border shadow-card">
-          <table className="w-full min-w-[768px] border-collapse text-left">
+        <div className="w-full max-w-4xl mx-auto overflow-x-auto rounded-[14px] border border-border shadow-card">
+          <table className="w-full min-w-[600px] border-collapse text-left">
             
             {/* Table Header */}
             <thead>
               <tr className="bg-surface border-b border-border h-[58px]">
-                <th className="font-heading font-bold text-xs md:text-sm text-text-secondary px-6 uppercase tracking-wider w-1/4">
+                <th className="font-heading font-bold text-xs md:text-sm text-text-secondary px-6 uppercase tracking-wider w-1/2">
                   Feature
-                </th>
-                <th className="font-heading font-bold text-xs md:text-sm text-text-primary text-center px-6 uppercase tracking-wider w-1/4">
-                  Free
                 </th>
                 <th className="font-heading font-bold text-xs md:text-sm text-text-primary text-center px-6 uppercase tracking-wider w-1/4">
                   Premium
@@ -82,11 +79,6 @@ export default function PricingComparisonSection() {
                   {/* Feature Label Name */}
                   <td className="font-sans font-medium text-xs md:text-sm text-text-muted px-6 py-4.5">
                     {row.featureName}
-                  </td>
-                  
-                  {/* Free Value */}
-                  <td className="text-center px-6 py-4.5 border-l border-divider/50">
-                    {renderCell(row.freeValue)}
                   </td>
                   
                   {/* Premium Value */}

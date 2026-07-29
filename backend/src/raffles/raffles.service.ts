@@ -32,18 +32,8 @@ export class RafflesService {
     const activeSub = hostProfile.subscriptions[0];
     if (!activeSub) {
       throw new ForbiddenException(
-        'You must have an active subscription to create a competition.',
+        'You must have an active paid subscription to create a competition.',
       );
-    }
-
-    // Check free tier limits (assuming plan price == 0 means free)
-    if (Number(activeSub.plan.price) === 0) {
-      const maxFreeRaffles = 3;
-      if (hostProfile.raffles.length >= maxFreeRaffles) {
-        throw new ForbiddenException(
-          `Free plan is limited to ${maxFreeRaffles} competitions. Please upgrade your plan.`,
-        );
-      }
     }
 
     // Generate unique slug
@@ -258,7 +248,7 @@ export class RafflesService {
       initials: w.user.firstName
         ? `${w.user.firstName.charAt(0)}${w.user.lastName?.charAt(0) || ''}`
         : 'AU',
-      location: w.user.location || 'Unknown Location',
+      location: w.user.location || '',
       avatarUrl: w.user.avatarUrl,
       prizeWon: w.prizeName || w.raffle.prizeName,
       status: w.deliveryStatus,
@@ -329,7 +319,7 @@ export class RafflesService {
       name: w.user.firstName
         ? `${w.user.firstName} ${w.user.lastName?.charAt(0) || ''}.`
         : 'Anonymous',
-      location: w.user.location || 'Unknown',
+      location: w.user.location || '',
       avatar: w.user.avatarUrl || w.raffle?.mainImage || '',
       competitionImage: w.raffle?.mainImage || '',
       winnerType: w.winType === 'INSTANT_WIN' ? 'instant' : 'main_draw',

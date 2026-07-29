@@ -2,33 +2,13 @@ import { PricingPlan } from "../../types/pricing.types";
 
 export const PRICING_PLANS: PricingPlan[] = [
   {
-    id: "free",
-    name: "Free",
-    description: "Perfect for testing the waters and hosting small, casual draws.",
-    monthlyPrice: 0,
-    yearlyPrice: 0,
-    commissionLabel: "15% commission",
-    ctaLabel: "Get Started Free",
-    features: [
-      { id: "active-draws", label: "1 active draw", included: true },
-      { id: "host-dashboard", label: "Host dashboard access", included: true },
-      { id: "support", label: "Email support", included: true },
-      { id: "instant-wins", label: "Access to Instant Wins", included: false },
-      { id: "featured-slots", label: "Featured listing slots", included: false },
-      { id: "priority-payout", label: "Priority payout", included: false },
-      { id: "custom-branding", label: "Custom branding", included: false },
-      { id: "analytics", label: "Advanced analytics", included: false },
-      { id: "account-manager", label: "Dedicated account manager", included: false },
-    ],
-  },
-  {
     id: "premium",
     name: "Premium",
-    description: "Designed for active hosts seeking visibility and lower commission.",
+    description: "Designed for active hosts seeking maximum visibility and lower commission.",
     monthlyPrice: 29,
     yearlyPrice: 23,
     commissionLabel: "10% commission",
-    ctaLabel: "Upgrade Now",
+    ctaLabel: "Get Started — Premium",
     isFeatured: true,
     badgeLabel: "MOST POPULAR",
     features: [
@@ -38,7 +18,6 @@ export const PRICING_PLANS: PricingPlan[] = [
       { id: "featured-slots", label: "Featured listing slots (3/mo)", included: true },
       { id: "priority-payout", label: "Priority payout", included: true },
       { id: "instant-wins", label: "Access to Instant Wins", included: true },
-      { id: "priority-payout", label: "Priority payout", included: true },
       { id: "custom-branding", label: "Custom branding", included: false },
       { id: "analytics", label: "Advanced analytics", included: false },
       { id: "account-manager", label: "Dedicated account manager", included: false },
@@ -51,7 +30,7 @@ export const PRICING_PLANS: PricingPlan[] = [
     monthlyPrice: 79,
     yearlyPrice: 63,
     commissionLabel: "10% commission",
-    ctaLabel: "Upgrade Now",
+    ctaLabel: "Get Started — Pro",
     features: [
       { id: "active-draws", label: "Unlimited active draws", included: true },
       { id: "host-dashboard", label: "Host dashboard access", included: true },

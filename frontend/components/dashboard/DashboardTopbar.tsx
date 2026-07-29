@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DashboardAccount } from "../../types/dashboard.types";
 import { cn } from "../../lib/utils";
@@ -27,7 +28,7 @@ export default function DashboardTopbar({ account, onMenuClick, title = "Dashboa
 
   return (
     <header className="h-[88px] w-full bg-[#0D0D0B] border-b border-[#2D3C13] flex items-center justify-between px-[20px] lg:px-[40px] shrink-0 sticky top-0 z-30">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         {/* Mobile menu trigger */}
         <button
           onClick={onMenuClick}
@@ -38,12 +39,23 @@ export default function DashboardTopbar({ account, onMenuClick, title = "Dashboa
           </svg>
         </button>
 
+        {/* 1-Tap Quick Switcher to Public Website */}
+        <Link
+          href="/live-raffles"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1A230A] border border-[#8CB34A]/50 text-[#8CB34A] hover:bg-[#2D3C13] hover:text-[#A0D056] text-xs font-sans font-bold transition-all shadow-sm"
+        >
+          <svg className="w-4 h-4 text-[#8CB34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m-17.432-6A8.959 8.959 0 0 0 3 12c0 .778.099 1.533.284 2.253" />
+          </svg>
+          <span className="whitespace-nowrap">Public Site</span>
+        </Link>
+
         {/* Page Title & Subtitle */}
         <div className="flex flex-col">
-          <h1 className="font-heading font-medium text-[24px] text-[#E8EDD4] leading-tight m-0 p-0 hidden sm:block">
+          <h1 className="font-heading font-medium text-[24px] text-[#E8EDD4] leading-tight m-0 p-0 hidden md:block">
             {title}
           </h1>
-          <p className="font-sans font-normal text-[16px] text-[#B3B8AA] leading-none m-0 p-0 hidden sm:block mt-1">
+          <p className="font-sans font-normal text-[16px] text-[#B3B8AA] leading-none m-0 p-0 hidden md:block mt-1">
             {subtitle}
           </p>
         </div>

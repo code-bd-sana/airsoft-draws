@@ -139,7 +139,7 @@ export class TicketsService {
           }
         }
 
-        // 7. Update Raffle Tickets Sold
+        // 7. Update Raffle Tickets Sold & Credit Host Wallet Balance
         const updatedRaffle = await tx.raffle.update({
           where: { id: raffle.id },
           data: {
@@ -148,6 +148,17 @@ export class TicketsService {
             },
           },
         });
+
+        if (raffle.hostId) {
+          await tx.hostProfile.update({
+            where: { id: raffle.hostId },
+            data: {
+              walletBalance: {
+                increment: totalAmount,
+              },
+            },
+          });
+        }
 
         return {
           updatedRaffle,

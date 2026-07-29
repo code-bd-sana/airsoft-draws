@@ -21,7 +21,7 @@ import { AdminWinnersQueryDto } from './dto/admin-winners-query.dto';
 
 @ApiTags('Admin - Winners')
 @ApiBearerAuth()
-@Controller('admin/winners')
+@Controller('api/v1/admin/winners')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('ADMIN')
 export class AdminWinnersController {

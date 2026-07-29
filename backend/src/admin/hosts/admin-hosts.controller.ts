@@ -1,15 +1,22 @@
-import { Controller, Get, Patch, Param, Query, UseGuards } from '@nestjs/common';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import {
   ApiBearerAuth,
+  ApiOperation,
   ApiParam,
+  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
-import { AdminHostsService } from './admin-hosts.service';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
+import { AdminHostsService } from './admin-hosts.service';
 import { AdminHostsQueryDto } from './dto/admin-hosts-query.dto';
 
 @ApiTags('Admin - Hosts')
@@ -69,4 +76,3 @@ export class AdminHostsController {
     return this.adminHostsService.rejectHost(id);
   }
 }
-

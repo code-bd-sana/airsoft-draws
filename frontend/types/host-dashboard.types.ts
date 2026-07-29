@@ -54,7 +54,7 @@ export interface PayoutHistoryItem {
   feePercent: number;
   netAmount: number;
   method: string;
-  status: "Paid" | "Processing";
+  status: "Paid" | "Processing" | "Approved" | "Rejected" | "Pending" | "Completed" | string;
   referenceId: string;
 }
 

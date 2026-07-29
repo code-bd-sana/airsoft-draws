@@ -1,16 +1,16 @@
-import React from "react";
-import type { Metadata } from "next";
-import WebsiteNavbar from "../../components/website/layout/WebsiteNavbar";
-import WebsiteFooter from "../../components/website/layout/WebsiteFooter";
-import HowItWorksHero from "../../components/website/how-it-works/HowItWorksHero";
-import HowItWorksStepsSection from "../../components/website/how-it-works/HowItWorksStepsSection";
-import HowItWorksVideoSection from "../../components/website/how-it-works/HowItWorksVideoSection";
-import HowItWorksFinalCta from "../../components/website/how-it-works/HowItWorksFinalCta";
+import React from 'react';
+import type { Metadata } from 'next';
+import WebsiteNavbar from '../../components/website/layout/WebsiteNavbar';
+import WebsiteFooter from '../../components/website/layout/WebsiteFooter';
+import HowItWorksHero from '../../components/website/how-it-works/HowItWorksHero';
+import HowItWorksStepsSection from '../../components/website/how-it-works/HowItWorksStepsSection';
+import HowItWorksVideoSection from '../../components/website/how-it-works/HowItWorksVideoSection';
+import HowItWorksFinalCta from '../../components/website/how-it-works/HowItWorksFinalCta';
 
 export const metadata: Metadata = {
-  title: "How It Works | Airsoft Draws",
+  title: 'How It Works | Airsoft Draws',
   description:
-    "Learn how to enter premium airsoft gear drawings or host your own competitions with transparent random draws and instant payouts.",
+    'Learn how to enter premium airsoft gear drawings or host your own competitions with transparent random draws and instant payouts.',
 };
 
 /**
@@ -23,7 +23,7 @@ export default function HowItWorksPage() {
       {/* Sticky top navbar */}
       <WebsiteNavbar />
 
-      <main className="min-h-screen flex flex-col bg-bg">
+      <main className='min-h-screen flex flex-col bg-bg'>
         {/* Hero Section */}
         <HowItWorksHero />
 
@@ -31,7 +31,7 @@ export default function HowItWorksPage() {
         <HowItWorksStepsSection />
 
         {/* Playable Video Section */}
-        <HowItWorksVideoSection />
+        {/* <HowItWorksVideoSection /> */}
 
         {/* Bottom Call to Action Section */}
         <HowItWorksFinalCta />

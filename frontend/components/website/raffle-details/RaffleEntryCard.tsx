@@ -5,7 +5,8 @@ import { RaffleDetail } from "../../../types/raffle-details.types";
 import { usePurchaseTicketsMutation } from "../../../hooks/useTicketHooks";
 import { useAuth } from "../../../features/auth/AuthContext";
 import { useRouter } from "next/navigation";
-import WinAnimationModal from "../../ui/WinAnimationModal";
+import TicketPurchaseSuccessModal, { TicketPurchaseSuccessData } from "./TicketPurchaseSuccessModal";
+import FreePostalEntryButton from "../legal/FreePostalEntryButton";
 
 interface RaffleEntryCardProps {
   raffle: RaffleDetail;
@@ -14,7 +15,7 @@ interface RaffleEntryCardProps {
 export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
   const [quantity, setQuantity] = useState(1);
   const [statusMessage, setStatusMessage] = useState<{type: 'success'|'error'|'info', text: string} | null>(null);
-  const [instantWinData, setInstantWinData] = useState<Array<{title: string, ticketNumber: number}> | null>(null);
+  const [purchaseSuccessData, setPurchaseSuccessData] = useState<TicketPurchaseSuccessData | null>(null);
   const [timeLeft, setTimeLeft] = useState("");
 
   const { isAuthenticated } = useAuth();
@@ -76,22 +77,23 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
     setStatusMessage(null);
     purchaseMutation.mutate(quantity, {
       onSuccess: (data) => {
-        let msg = `Successfully purchased ${data.tickets.length} tickets!`;
-        if (data.instantWins && data.instantWins.length > 0) {
-          msg += ` 🎉 YOU GOT ${data.instantWins.length} INSTANT WIN(S)! 🎉`;
-          
-          // Map backend winner records to modal expected format
-          const formattedWins = data.instantWins.map((iw: any) => {
-             // Find matching ticket for number
-             const tk = data.tickets.find((t: any) => t.id === iw.ticketId);
-             return {
-                title: iw.prizeName,
-                ticketNumber: tk ? tk.ticketNumber : 0
-             };
-          });
-          setInstantWinData(formattedWins);
-        }
-        setStatusMessage({ type: 'success', text: msg });
+        const formattedWins = (data.instantWins || []).map((iw: any) => {
+          const tk = (data.tickets || []).find((t: any) => t.id === iw.ticketId);
+          return {
+            id: iw.id,
+            ticketId: iw.ticketId,
+            prizeName: iw.prizeName,
+            ticketNumber: tk ? tk.ticketNumber : undefined,
+          };
+        });
+
+        setPurchaseSuccessData({
+          raffleTitle: raffle.title,
+          tickets: data.tickets || [],
+          instantWins: formattedWins,
+          totalAmount: totalPrice,
+        });
+
         setQuantity(1);
       },
       onError: (error: any) => {
@@ -204,6 +206,9 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
           {purchaseMutation.isPending ? 'Processing...' : `Enter Draw — £${totalPrice.toFixed(2)}`}
         </button>
 
+        {/* UK-Compliant Free Postal Entry Route Button */}
+        <FreePostalEntryButton raffleTitle={raffle.title} variant="button" />
+
         {statusMessage && (
           <div className={`p-3 rounded-lg text-sm font-sans text-center ${
             statusMessage.type === 'success' ? 'bg-[#1A230A] text-[#A0D056] border border-[#8CB34A]' : 'bg-red-950 text-red-400 border border-red-800'
@@ -225,10 +230,11 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
         Share this competition
       </button>
 
-      <WinAnimationModal 
-        isOpen={!!instantWinData} 
-        onClose={() => setInstantWinData(null)} 
-        prizes={instantWinData || []} 
+      {/* Instant Ticket Numbers & Instant Win Purchase Confirmation Modal */}
+      <TicketPurchaseSuccessModal
+        isOpen={!!purchaseSuccessData}
+        onClose={() => setPurchaseSuccessData(null)}
+        data={purchaseSuccessData}
       />
     </div>
   );

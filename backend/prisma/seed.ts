@@ -9,15 +9,9 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log('Seeding Subscription Plans...');
+  console.log('Seeding Paid Subscription Plans...');
   
   const plans = [
-    {
-      name: 'Free Tier',
-      price: 0.00,
-      durationDays: 30,
-      maxActiveRaffles: 1,
-    },
     {
       name: 'Premium',
       price: 29.99,
