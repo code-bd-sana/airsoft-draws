@@ -15,6 +15,7 @@ import { HostsModule } from './hosts/hosts.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { AdminModule } from './admin/admin.module';
 import { CategoriesModule } from './categories/categories.module';
+import { TestAwsModule } from './test-aws/test-aws.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CategoriesModule } from './categories/categories.module';
     AdminModule,
     ScheduleModule.forRoot(),
     CategoriesModule,
+    TestAwsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
