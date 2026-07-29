@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -25,6 +25,7 @@ export class AdminWithdrawalsService {
     });
 
     return withdrawals.map((w) => {
+      const wObj = w as any;
       let parsedDetails = {};
       try {
         if (w.payoutDetails) parsedDetails = JSON.parse(w.payoutDetails);
@@ -39,8 +40,8 @@ export class AdminWithdrawalsService {
         hostUserEmail: w.host.user.email,
         hostUserName: `${w.host.user.firstName || ''} ${w.host.user.lastName || ''}`.trim(),
         amount: Number(w.amount),
-        feeAmount: Number(w.feeAmount || Number(w.amount) * 0.10),
-        netAmount: Number(w.netAmount || Number(w.amount) * 0.90),
+        feeAmount: Number(wObj.feeAmount || Number(w.amount) * 0.10),
+        netAmount: Number(wObj.netAmount || Number(w.amount) * 0.90),
         status: w.status,
         payoutMethod: w.payoutMethod || 'BANK_TRANSFER',
         payoutDetails: parsedDetails,

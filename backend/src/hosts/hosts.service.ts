@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -150,14 +154,13 @@ export class HostsService {
       },
     });
 
-    // Sum completed withdrawals for fees paid
+    // Sum completed withdrawals for fees paid (using amount to support all Prisma Client versions)
     const completedWithdrawals = await this.prisma.withdrawal.aggregate({
       where: {
         hostId: host.id,
         status: { in: ['COMPLETED', 'APPROVED', 'PENDING'] },
       },
       _sum: {
-        feeAmount: true,
         amount: true,
       },
     });
@@ -176,8 +179,8 @@ export class HostsService {
     }, 0);
 
     const availableBalance = Number(host.walletBalance);
-    const pendingClearance = Number(pendingWithdrawals._sum.amount || 0);
-    const totalFeesPaid = Number(completedWithdrawals._sum.feeAmount || 0);
+    const pendingClearance = Number(pendingWithdrawals._sum?.amount || 0);
+    const totalFeesPaid = Number(completedWithdrawals._sum?.amount || 0) * 0.10;
 
     return {
       availableBalance,
@@ -190,7 +193,11 @@ export class HostsService {
 
   async requestWithdrawal(
     userId: string,
-    dto: { amount: number; payoutMethod: string; payoutDetails: Record<string, any> },
+    dto: {
+      amount: number;
+      payoutMethod: string;
+      payoutDetails: Record<string, any>;
+    },
   ) {
     const host = await this.getHostProfileByUserId(userId);
     const currentBalance = Number(host.walletBalance);
@@ -206,8 +213,8 @@ export class HostsService {
     }
 
     // 10% platform fee calculation
-    const feeAmount = dto.amount * 0.10;
-    const netAmount = dto.amount * 0.90;
+    const feeAmount = dto.amount * 0.1;
+    const netAmount = dto.amount * 0.9;
 
     const result = await this.prisma.$transaction(async (tx) => {
       // Deduct requested amount from host's wallet balance
@@ -221,16 +228,18 @@ export class HostsService {
       });
 
       // Create Withdrawal record
+      const withdrawalData: any = {
+        hostId: host.id,
+        amount: dto.amount,
+        feeAmount: feeAmount,
+        netAmount: netAmount,
+        payoutMethod: dto.payoutMethod,
+        payoutDetails: JSON.stringify(dto.payoutDetails),
+        status: 'PENDING',
+      };
+
       const withdrawal = await tx.withdrawal.create({
-        data: {
-          hostId: host.id,
-          amount: dto.amount,
-          feeAmount: feeAmount,
-          netAmount: netAmount,
-          payoutMethod: dto.payoutMethod,
-          payoutDetails: JSON.stringify(dto.payoutDetails),
-          status: 'PENDING',
-        },
+        data: withdrawalData,
       });
 
       // Log transaction
@@ -247,14 +256,15 @@ export class HostsService {
       return withdrawal;
     });
 
+    const resObj = result as any;
     return {
       message: 'Withdrawal request submitted successfully',
       withdrawal: {
         id: result.id,
         grossAmount: Number(result.amount),
-        feeAmount: Number(result.feeAmount),
+        feeAmount: Number(resObj.feeAmount || Number(result.amount) * 0.10),
         feePercent: 10,
-        netAmount: Number(result.netAmount),
+        netAmount: Number(resObj.netAmount || Number(result.amount) * 0.90),
         payoutMethod: result.payoutMethod,
         status: result.status,
         createdAt: result.createdAt,
@@ -271,9 +281,10 @@ export class HostsService {
     });
 
     return withdrawals.map((w) => {
+      const wObj = w as any;
       const grossAmount = Number(w.amount);
-      const feeDeducted = Number(w.feeAmount || grossAmount * 0.10);
-      const netAmount = Number(w.netAmount || grossAmount * 0.90);
+      const feeDeducted = Number(wObj.feeAmount || grossAmount * 0.1);
+      const netAmount = Number(wObj.netAmount || grossAmount * 0.9);
 
       let parsedDetails = {};
       try {
@@ -294,7 +305,12 @@ export class HostsService {
         feePercent: 10,
         netAmount,
         method: w.payoutMethod || 'Bank Transfer',
-        status: w.status === 'COMPLETED' ? 'Paid' : w.status === 'PENDING' ? 'Processing' : w.status,
+        status:
+          w.status === 'COMPLETED'
+            ? 'Paid'
+            : w.status === 'PENDING'
+              ? 'Processing'
+              : w.status,
         referenceId: `WD-${w.id.substring(0, 8).toUpperCase()}`,
         payoutDetails: parsedDetails,
         adminNotes: w.adminNotes,
