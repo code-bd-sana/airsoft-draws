@@ -2,50 +2,92 @@
 
 import React from "react";
 
-export default function WithdrawalsStatsCards() {
+interface WithdrawalsStatsCardsProps {
+  withdrawals?: any[];
+  isLoading?: boolean;
+}
+
+export default function WithdrawalsStatsCards({ withdrawals = [], isLoading }: WithdrawalsStatsCardsProps) {
+  const pendingRequests = withdrawals.filter(w => w.status === 'PENDING' || w.status === 'Pending');
+  const pendingCount = pendingRequests.length;
+  
+  const totalPendingAmount = pendingRequests.reduce((acc, w) => acc + (w.amount || 0), 0);
+  
+  const totalCommissionEarned = withdrawals.reduce((acc, w) => {
+    const fee = w.feeAmount !== undefined ? w.feeAmount : (w.amount || 0) * 0.10;
+    return acc + fee;
+  }, 0);
+
+  const totalProcessedNet = withdrawals
+    .filter(w => w.status === 'COMPLETED' || w.status === 'APPROVED' || w.status === 'Paid')
+    .reduce((acc, w) => acc + (w.netAmount !== undefined ? w.netAmount : (w.amount || 0) * 0.90), 0);
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="bg-[#161810] border border-[#2D3C13] rounded-[16px] p-6 h-28 animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
       
       {/* Pending Requests */}
-      <div className="bg-[#161810] border border-[#2D3C13] rounded-[16px] p-6 flex flex-col gap-2">
+      <div className="bg-[#161810] border border-[#2D3C13] rounded-[16px] p-6 flex flex-col justify-between">
         <span className="font-sans text-[11px] font-medium text-[#5A752A] uppercase tracking-[1px]">
           Pending Requests
         </span>
-        <div className="flex flex-col gap-1 mt-1">
-          <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">2</span>
+        <div className="flex flex-col gap-1 mt-2">
+          <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">{pendingCount}</span>
           <div className="flex items-center gap-1.5 mt-2">
             <div className="px-2 py-0.5 rounded-full border border-[#D97706]/30 bg-[#78350F] flex items-center justify-center">
-              <span className="font-sans font-medium text-[10px] text-[#F59E0B]">Needs action</span>
+              <span className="font-sans font-medium text-[10px] text-[#F59E0B]">
+                {pendingCount > 0 ? `${pendingCount} Needs Action` : "All Processed"}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Total Pending Amount */}
-      <div className="bg-[#161810] border border-[#2D3C13] rounded-[16px] p-6 flex flex-col gap-2">
+      <div className="bg-[#161810] border border-[#2D3C13] rounded-[16px] p-6 flex flex-col justify-between">
         <span className="font-sans text-[11px] font-medium text-[#5A752A] uppercase tracking-[1px]">
           Total Pending Amount
         </span>
-        <div className="flex flex-col gap-1 mt-1">
-          <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">£3,240.00</span>
+        <div className="flex flex-col gap-1 mt-2">
+          <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">
+            £{totalPendingAmount.toFixed(2)}
+          </span>
+          <span className="font-sans text-[11px] text-[#72943A] mt-1">Gross requested payouts</span>
         </div>
       </div>
 
-      {/* Processed This Month */}
-      <div className="bg-[#161810] border border-[#2D3C13] rounded-[16px] p-6 flex flex-col gap-2">
+      {/* Platform Commission Earned (10%) */}
+      <div className="bg-[#161810] border border-[#2D3C13] rounded-[16px] p-6 flex flex-col justify-between">
         <span className="font-sans text-[11px] font-medium text-[#5A752A] uppercase tracking-[1px]">
-          Processed This Month
+          Platform Commission (10%)
         </span>
-        <div className="flex flex-col gap-1 mt-1">
-          <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">£18,640.00</span>
-          <div className="flex items-center gap-1.5 mt-2">
-            <div className="px-2 py-0.5 rounded-full border border-[#4ADE80]/30 bg-[#083b18] flex items-center justify-center">
-              <svg className="w-2.5 h-2.5 text-[#4ADE80] mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
-              </svg>
-              <span className="font-sans font-medium text-[10px] text-[#4ADE80]">9%</span>
-            </div>
-          </div>
+        <div className="flex flex-col gap-1 mt-2">
+          <span className="font-heading font-bold text-[32px] text-[#8CB34A] leading-none">
+            £{totalCommissionEarned.toFixed(2)}
+          </span>
+          <span className="font-sans text-[11px] text-[#72943A] mt-1">Platform revenue from withdrawals</span>
+        </div>
+      </div>
+
+      {/* Total Processed Payouts */}
+      <div className="bg-[#161810] border border-[#2D3C13] rounded-[16px] p-6 flex flex-col justify-between">
+        <span className="font-sans text-[11px] font-medium text-[#5A752A] uppercase tracking-[1px]">
+          Processed Net Payouts
+        </span>
+        <div className="flex flex-col gap-1 mt-2">
+          <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">
+            £{totalProcessedNet.toFixed(2)}
+          </span>
+          <span className="font-sans text-[11px] text-[#72943A] mt-1">Total transferred to hosts</span>
         </div>
       </div>
 

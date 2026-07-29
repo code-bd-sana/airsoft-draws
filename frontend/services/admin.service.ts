@@ -199,4 +199,14 @@ export const adminService = {
     const { data } = await api.post(`/admin/orders/${transactionId}/refund`, { reason });
     return data;
   },
+
+  async getAdminWithdrawals(): Promise<any[]> {
+    const { data } = await api.get('/admin/withdrawals');
+    return data;
+  },
+
+  async updateWithdrawalStatus(id: string, status: 'APPROVED' | 'COMPLETED' | 'REJECTED', adminNotes?: string): Promise<any> {
+    const { data } = await api.patch(`/admin/withdrawals/${id}/status`, { status, adminNotes });
+    return data;
+  },
 };

@@ -10,6 +10,9 @@ import { AdminWinnersService } from './winners/admin-winners.service';
 import { AdminDashboardController } from './dashboard/admin-dashboard.controller';
 import { AdminDashboardService } from './dashboard/admin-dashboard.service';
 
+import { AdminWithdrawalsController } from './withdrawals/admin-withdrawals.controller';
+import { AdminWithdrawalsService } from './withdrawals/admin-withdrawals.service';
+
 @Module({
   controllers: [
     AdminUsersController,
@@ -17,6 +20,7 @@ import { AdminDashboardService } from './dashboard/admin-dashboard.service';
     AdminOrdersController,
     AdminWinnersController,
     AdminDashboardController,
+    AdminWithdrawalsController,
   ],
   providers: [
     AdminUsersService,
@@ -24,6 +28,7 @@ import { AdminDashboardService } from './dashboard/admin-dashboard.service';
     AdminOrdersService,
     AdminWinnersService,
     AdminDashboardService,
+    AdminWithdrawalsService,
   ],
 })
 export class AdminModule {}

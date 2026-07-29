@@ -182,6 +182,8 @@ model Withdrawal {
   id            String   @id @default(uuid()) @db.VarChar(255)
   hostId        String   @map("host_id") @db.VarChar(255)
   amount        Decimal  @db.Decimal(10, 2)
+  feeAmount     Decimal? @default(0.00) @map("fee_amount") @db.Decimal(10, 2)
+  netAmount     Decimal? @default(0.00) @map("net_amount") @db.Decimal(10, 2)
   status        String   @default("PENDING") @db.VarChar(50) // PENDING, APPROVED, REJECTED, COMPLETED
   adminNotes    String?  @map("admin_notes") @db.Text
   payoutMethod  String?  @map("payout_method") @db.VarChar(100) // BANK_TRANSFER, PAYPAL
