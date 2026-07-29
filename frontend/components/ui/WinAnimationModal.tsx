@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface WinAnimationModalProps {
   isOpen: boolean;
@@ -35,7 +36,12 @@ function FastRollingNumbers() {
 }
 
 export default function WinAnimationModal({ isOpen, onClose, prizes }: WinAnimationModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [stage, setStage] = useState<"rolling" | "revealed">("rolling");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -48,11 +54,11 @@ export default function WinAnimationModal({ isOpen, onClose, prizes }: WinAnimat
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="relative bg-[#111210] border border-[#72943A]/50 p-1 rounded-[24px] shadow-[0_0_40px_rgba(114,148,58,0.2)] max-w-md w-[90%] overflow-hidden animate-in zoom-in-95 duration-500">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="relative bg-[#111210] border border-[#72943A]/50 p-1 rounded-[24px] shadow-[0_0_40px_rgba(114,148,58,0.2)] max-w-md w-[90%] overflow-hidden animate-in zoom-in-95 duration-500 z-[10000]">
         
         {/* Animated Glowing Border Background */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#8CB34A] via-[#E8EDD4] to-[#5A752A] opacity-20 animate-[spin_4s_linear_infinite]" />
@@ -116,4 +122,6 @@ export default function WinAnimationModal({ isOpen, onClose, prizes }: WinAnimat
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

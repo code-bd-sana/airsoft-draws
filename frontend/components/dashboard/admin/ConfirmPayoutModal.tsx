@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useUpdateWithdrawalStatusMutation } from "../../../hooks/useAdminHooks";
 
 export interface AdminPayoutData {
@@ -32,10 +33,15 @@ export default function ConfirmPayoutModal({
   payout,
   actionType,
 }: ConfirmPayoutModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [adminNotes, setAdminNotes] = useState("");
   const updateStatusMutation = useUpdateWithdrawalStatusMutation();
 
-  if (!isOpen || !payout) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !payout || !mounted) return null;
 
   const grossAmount = payout.amount || 0;
   const feeAmount = payout.feeAmount !== undefined ? payout.feeAmount : grossAmount * 0.10;
@@ -90,14 +96,10 @@ export default function ConfirmPayoutModal({
     );
   };
 
-  return (
-    <>
-      <div 
-        className="fixed inset-0 z-50 bg-[#0D0D0B]/80 backdrop-blur-sm transition-opacity" 
-        onClick={onClose} 
-      />
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
       
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-[540px] bg-[#161810] border border-[#2D3C13] rounded-[20px] shadow-2xl z-50 animate-fadeIn flex flex-col p-7 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-[90%] max-w-[540px] bg-[#161810] border border-[#2D3C13] rounded-[20px] shadow-2xl z-[10000] animate-fadeIn flex flex-col p-7 max-h-[90vh] overflow-y-auto">
         
         {/* Header */}
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#2D3C13]">
@@ -201,6 +203,8 @@ export default function ConfirmPayoutModal({
         </div>
 
       </div>
-    </>
+    </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

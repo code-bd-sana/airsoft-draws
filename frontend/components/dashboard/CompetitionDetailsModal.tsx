@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Ticket } from "./TicketsTable";
 
 interface CompetitionDetailsModalProps {
@@ -16,6 +17,12 @@ export default function CompetitionDetailsModal({
   ticket,
   allTickets = [],
 }: CompetitionDetailsModalProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Prevent scrolling when modal is open
   useEffect(() => {
     if (isOpen) {
@@ -53,7 +60,7 @@ export default function CompetitionDetailsModal({
     return () => clearInterval(timer);
   }, [isOpen, ticket]);
 
-  if (!isOpen || !ticket || !ticket.raw) return null;
+  if (!isOpen || !ticket || !ticket.raw || !mounted) return null;
 
   const raffle = ticket.raw.raffle;
   
@@ -70,10 +77,10 @@ export default function CompetitionDetailsModal({
 
   const hostName = raffle.host?.user ? `${raffle.host.user.firstName} ${raffle.host.user.lastName}` : "Host";
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn">
       {/* Modal Container */}
-      <div className="bg-[#0D0D0B] border border-[#2D3C13] rounded-[16px] w-full max-w-[900px] max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col relative animate-slideUp custom-scrollbar">
+      <div className="bg-[#0D0D0B] border border-[#2D3C13] rounded-[16px] w-full max-w-[900px] max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col relative z-[10000] animate-slideUp custom-scrollbar">
         
         {/* Header Bar */}
         <div className="flex items-center justify-between p-5 border-b border-[#2D3C13] sticky top-0 bg-[#0D0D0B] z-10">
@@ -122,7 +129,7 @@ export default function CompetitionDetailsModal({
               <div className="w-14 h-14 rounded-full bg-[#1A230A] border border-[#2D3C13] flex items-center justify-center shrink-0 overflow-hidden relative">
                  {/* Try to show the image if possible, else fallback */}
                  {raffle.mainImage ? (
-                   // Using img directly here for simplicity instead of next/image to avoid unoptimized issues in this modal if not needed
+                   // eslint-disable-next-line @next/next/no-img-element
                    <img src={raffle.mainImage} alt={raffle.title} className="w-full h-full object-cover" />
                  ) : (
                   <svg className="w-6 h-6 text-[#8CB34A]" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="4">
@@ -178,7 +185,7 @@ export default function CompetitionDetailsModal({
               </div>
             </div>
 
-            {/* Features Grid (Dynamic from Highlights if we had them, defaulting to basic terms) */}
+            {/* Features Grid */}
             <div className="grid grid-cols-2 gap-3">
               {[
                 "Certified Random Draw", 
@@ -217,7 +224,7 @@ export default function CompetitionDetailsModal({
             <div className="border border-[#2D3C13] rounded-[12px] p-5 flex flex-col gap-4 relative">
               <div className="absolute top-5 right-5 w-4 h-4 text-[#5A752A]">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 0 1 0 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 0 1 0-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375Z" />
                 </svg>
               </div>
               
@@ -302,4 +309,6 @@ export default function CompetitionDetailsModal({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

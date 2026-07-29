@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRequestWithdrawalMutation } from "../../../../hooks/useHostWalletHooks";
 import { cn } from "../../../../lib/utils";
 
@@ -15,8 +16,13 @@ export default function RequestWithdrawalModal({
   onClose,
   availableBalance,
 }: RequestWithdrawalModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [amount, setAmount] = useState<string>("");
   const [payoutMethod, setPayoutMethod] = useState<"BANK_TRANSFER" | "PAYPAL">("BANK_TRANSFER");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Bank transfer details
   const [accountHolderName, setAccountHolderName] = useState("");
@@ -32,7 +38,7 @@ export default function RequestWithdrawalModal({
 
   const withdrawMutation = useRequestWithdrawalMutation();
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const numAmount = parseFloat(amount) || 0;
   const feeAmount = numAmount * 0.10;
@@ -97,9 +103,9 @@ export default function RequestWithdrawalModal({
     );
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-[#161810] border border-[#2d3c13] rounded-[20px] w-full max-w-[540px] overflow-hidden shadow-2xl flex flex-col">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-[#161810] border border-[#2d3c13] rounded-[20px] w-full max-w-[540px] overflow-hidden shadow-2xl flex flex-col z-[10000]">
         
         {/* Header */}
         <div className="p-6 border-b border-[#2d3c13] flex items-center justify-between bg-[#111210]">
@@ -303,4 +309,6 @@ export default function RequestWithdrawalModal({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
