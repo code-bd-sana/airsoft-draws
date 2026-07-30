@@ -34,6 +34,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { RafflesService } from './raffles.service';
 import { CreateRaffleDto } from './dto/create-raffle.dto';
 import { UpdateRaffleDto } from './dto/update-raffle.dto';
+import { DrawWinnerDto } from './dto/draw-winner.dto';
 import {
   FindAllPublicRafflesQueryDto,
   FindHostRafflesQueryDto,
@@ -210,26 +211,45 @@ export class RafflesController {
     return this.rafflesService.remove(id, hostId);
   }
 
-  @Post('host/:id/draw')
+  @Post('admin/:id/draw')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('HOST')
+  @Roles('ADMIN')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Manually draw a winner for a competition' })
+  @ApiOperation({ summary: 'Admin draw or specify a winning ticket for a competition' })
   @ApiParam({
     name: 'id',
     description: 'The ID of the raffle to draw a winner',
   })
   @ApiResponse({ status: 200, description: 'Winner drawn successfully' })
-  @ApiResponse({
-    status: 400,
-    description: 'Cannot draw winner (e.g. no tickets sold or not ended)',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden' })
-  @ApiResponse({ status: 404, description: 'Raffle not found' })
-  drawWinner(@Req() req: Request, @Param('id') id: string) {
-    // Optionally check if host owns it in the service
-    return this.rafflesService.drawWinner(id);
+  adminDrawWinner(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() body?: DrawWinnerDto,
+  ) {
+    return this.rafflesService.drawWinner(id, body?.winningTicketNumber);
+  }
+
+  @Patch('winners/:winnerId/delivery')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST', 'ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update delivery status of a competition winner' })
+  updateDeliveryStatus(
+    @Param('winnerId') winnerId: string,
+    @Body() body: { deliveryStatus: string; trackingNumber?: string },
+  ) {
+    return this.rafflesService.updateWinnerDeliveryStatus(
+      winnerId,
+      body.deliveryStatus,
+      body.trackingNumber,
+    );
+  }
+
+  @Get(':id/tickets')
+  @ApiOperation({ summary: 'Get all sold tickets with buyer details for a competition' })
+  @ApiParam({ name: 'id', description: 'Raffle ID' })
+  getSoldTickets(@Param('id') id: string) {
+    return this.rafflesService.getRaffleSoldTickets(id);
   }
 
   @Get('host/:id/winners')

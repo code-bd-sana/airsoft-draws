@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { Raffle } from '../../../../services/raffle.service';
+import ManualWinnerSelectModal from '../../shared/ManualWinnerSelectModal';
 
 export default function DrawsTable({
   draws,
@@ -59,6 +60,8 @@ export default function DrawsTable({
     if (type.includes('Manual')) return 'text-[#F59E0B]';
     return 'text-[#E8EDD4]';
   };
+
+  const [selectedDrawForWinner, setSelectedDrawForWinner] = useState<Raffle | null>(null);
 
   return (
     <div className='w-full bg-[#161810] border border-[#2D3C13] rounded-[16px] overflow-hidden overflow-x-auto'>
@@ -144,11 +147,44 @@ export default function DrawsTable({
                   <div className='flex items-center justify-end gap-3'>
                     <button
                       onClick={() => onSelectDraw(draw)}
-                      className='font-sans font-medium text-[12px] text-[#72943A] hover:text-[#E8EDD4] transition-colors'
+                      className='px-3 py-1.5 rounded-[8px] bg-[#1A230A] border border-[#2D3C13] hover:border-[#8CB34A] text-[#72943A] hover:text-[#E8EDD4] font-sans font-medium text-[12px] transition-all'
                     >
-                      View
+                      Details
                     </button>
-                    {/* The Force Draw button is removed as Admin is just a monitor */}
+                    {(() => {
+                      const hasWinner = Boolean(
+                        (draw as any).winners?.some((w: any) => w.winType === 'MAIN_DRAW')
+                      );
+                      const isSoldOut = (draw.ticketsSold || 0) >= (draw.totalTickets || 1);
+                      const isExpired = draw.endDate ? new Date(draw.endDate) <= new Date() : false;
+                      const canDraw = !hasWinner && (isSoldOut || isExpired);
+
+                      if (hasWinner) {
+                        return (
+                          <span className='px-3 py-1.5 rounded-[8px] border border-[#4ADE80]/30 bg-[#4ADE80]/10 text-[#4ADE80] font-sans font-semibold text-[11px] flex items-center gap-1 shrink-0'>
+                            <span>✓</span> Winner Selected
+                          </span>
+                        );
+                      }
+
+                      if (canDraw) {
+                        return (
+                          <button
+                            onClick={() => setSelectedDrawForWinner(draw)}
+                            className='px-3 py-1.5 rounded-[8px] bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] font-sans font-bold text-[12px] shadow-[0_0_12px_rgba(140,179,74,0.35)] transition-all flex items-center gap-1.5 shrink-0'
+                          >
+                            <span>🏆</span>
+                            <span>Select Winner</span>
+                          </button>
+                        );
+                      }
+
+                      return (
+                        <span className='px-3 py-1 rounded-[6px] border border-[#2D3C13] bg-[#0D0D0B] text-[#5A752A] font-sans text-[11px] shrink-0' title="Available when sold out or expired">
+                          Live (In Progress)
+                        </span>
+                      );
+                    })()}
                   </div>
                 </td>
               </tr>
@@ -163,6 +199,18 @@ export default function DrawsTable({
           )}
         </tbody>
       </table>
+
+      {selectedDrawForWinner && (
+        <ManualWinnerSelectModal
+          isOpen={!!selectedDrawForWinner}
+          onClose={() => setSelectedDrawForWinner(null)}
+          raffle={selectedDrawForWinner}
+          isAdmin={true}
+          onSuccess={() => {
+            // Optional callback
+          }}
+        />
+      )}
     </div>
   );
 }

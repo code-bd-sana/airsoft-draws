@@ -7,6 +7,8 @@ import DrawAuditLogTab from "./DrawAuditLogTab";
 import { format } from "date-fns";
 import { Raffle } from "../../../../services/raffle.service";
 
+import ManualWinnerSelectModal from "../../shared/ManualWinnerSelectModal";
+
 interface DrawDetailsPanelProps {
   draw: Raffle;
   onClose: () => void;
@@ -14,6 +16,7 @@ interface DrawDetailsPanelProps {
 
 export default function DrawDetailsPanel({ draw, onClose }: DrawDetailsPanelProps) {
   const [activeTab, setActiveTab] = useState<"overview" | "entries" | "audit">("overview");
+  const [isWinnerModalOpen, setIsWinnerModalOpen] = useState(false);
 
   const getStatusString = (status: string) => {
     switch (status) {
@@ -43,9 +46,9 @@ export default function DrawDetailsPanel({ draw, onClose }: DrawDetailsPanelProp
       {/* Header Area */}
       <div className="flex flex-col p-6 pb-0 border-b border-[#2D3C13]">
         
-        {/* Title & Close */}
+        {/* Title & Actions */}
         <div className="flex items-start justify-between mb-2">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <h2 className="font-heading font-bold text-[20px] text-[#E8EDD4]">{draw.title}</h2>
             {/* Status Pills */}
             <div className="flex gap-2">
@@ -57,14 +60,50 @@ export default function DrawDetailsPanel({ draw, onClose }: DrawDetailsPanelProp
               </span>
             </div>
           </div>
-          <button 
-            onClick={onClose}
-            className="text-[#5A752A] hover:text-[#E8EDD4] transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-3">
+            {(() => {
+              const hasWinner = Boolean(
+                (draw as any).winners?.some((w: any) => w.winType === 'MAIN_DRAW')
+              );
+              const isSoldOut = (draw.ticketsSold || 0) >= (draw.totalTickets || 1);
+              const isExpired = draw.endDate ? new Date(draw.endDate) <= new Date() : false;
+              const canDraw = !hasWinner && (isSoldOut || isExpired);
+
+              if (hasWinner) {
+                return (
+                  <span className="px-3.5 py-1.5 rounded-[8px] border border-[#4ADE80]/30 bg-[#4ADE80]/10 text-[#4ADE80] font-sans font-semibold text-xs flex items-center gap-1.5">
+                    <span>✓</span> Winner Selected
+                  </span>
+                );
+              }
+
+              if (canDraw) {
+                return (
+                  <button
+                    onClick={() => setIsWinnerModalOpen(true)}
+                    className="px-4 py-2 rounded-[8px] bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] font-sans font-bold text-xs shadow-[0_0_15px_rgba(140,179,74,0.35)] transition-all flex items-center gap-1.5"
+                  >
+                    <span>🏆</span>
+                    <span>Select Winner</span>
+                  </button>
+                );
+              }
+
+              return (
+                <span className="px-3 py-1.5 rounded-[6px] border border-[#2D3C13] bg-[#0D0D0B] text-[#5A752A] font-sans text-xs">
+                  Live (In Progress)
+                </span>
+              );
+            })()}
+            <button 
+              onClick={onClose}
+              className="text-[#5A752A] hover:text-[#E8EDD4] transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Subtitle */}
@@ -134,6 +173,15 @@ export default function DrawDetailsPanel({ draw, onClose }: DrawDetailsPanelProp
         {activeTab === "entries" && <DrawEntriesTab />}
         {activeTab === "audit" && <DrawAuditLogTab />}
       </div>
+
+      {isWinnerModalOpen && (
+        <ManualWinnerSelectModal
+          isOpen={isWinnerModalOpen}
+          onClose={() => setIsWinnerModalOpen(false)}
+          raffle={draw}
+          isAdmin={true}
+        />
+      )}
 
     </div>
   );

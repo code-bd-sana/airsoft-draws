@@ -2,49 +2,20 @@
 
 import React, { useState } from "react";
 import { cn } from "../../../../lib/utils";
-import DrawConfirmationModal from "./DrawConfirmationModal";
-import { useHostRaffles, useDrawWinner } from "../../../../hooks/useRaffleHooks";
+import { useHostRaffles } from "../../../../hooks/useRaffleHooks";
 import WinnerDetailsModal from "./WinnerDetailsModal";
-import { toast } from "sonner";
 
 export default function WinnersTable() {
-  const [activeTab, setActiveTab] = useState<"Awaiting Draw" | "Drawn">("Awaiting Draw");
-  const [selectedDrawToRun, setSelectedDrawToRun] = useState<any | null>(null);
+  const [activeFilter, setActiveFilter] = useState<"All" | "ACTIVE" | "ENDED">("All");
   const [selectedDrawToView, setSelectedDrawToView] = useState<any | null>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
   
   const { data: response, isLoading } = useHostRaffles();
   const raffles = response?.data || [];
-  const drawWinnerMutation = useDrawWinner();
 
-  // Filter based on status
-  // Awaiting Draw = ACTIVE or PENDING_APPROVAL or DRAFT
-  // Drawn = ENDED
   const filteredDraws = raffles.filter((r: any) => {
-    if (activeTab === "Awaiting Draw") {
-      return r.status !== 'ENDED' && r.status !== 'CANCELLED';
-    } else {
-      return r.status === 'ENDED';
-    }
+    if (activeFilter === "All") return true;
+    return r.status === activeFilter;
   });
-
-  const handleConfirmDraw = async () => {
-    if (!selectedDrawToRun) return;
-    setIsDrawing(true);
-    try {
-      // Simulate an authentic "Draw" delay
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      await drawWinnerMutation.mutateAsync(selectedDrawToRun.id);
-      setSelectedDrawToRun(null);
-      toast.success("Draw completed successfully!");
-      setActiveTab("Drawn");
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Failed to draw winner");
-      setSelectedDrawToRun(null);
-    } finally {
-      setIsDrawing(false);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -71,18 +42,18 @@ export default function WinnersTable() {
                 <tr key={i} className="border-b border-[#2d3c13]/50 last:border-0">
                   <td className="py-[20px] px-[24px]">
                     <div className="flex flex-col gap-2">
-                      <div className="h-[18px] w-[180px] bg-[#2d3c13]/60 rounded animate-pulse" style={{ animationDelay: `${i * 150}ms` }}></div>
-                      <div className="h-[14px] w-[100px] bg-[#2d3c13]/40 rounded animate-pulse" style={{ animationDelay: `${i * 150}ms` }}></div>
+                      <div className="h-[18px] w-[180px] bg-[#2d3c13]/60 rounded animate-pulse"></div>
+                      <div className="h-[14px] w-[100px] bg-[#2d3c13]/40 rounded animate-pulse"></div>
                     </div>
                   </td>
                   <td className="py-[20px] px-[24px]">
-                    <div className="h-[16px] w-[90px] bg-[#2d3c13]/40 rounded animate-pulse" style={{ animationDelay: `${i * 150 + 50}ms` }}></div>
+                    <div className="h-[16px] w-[90px] bg-[#2d3c13]/40 rounded animate-pulse"></div>
                   </td>
                   <td className="py-[20px] px-[24px]">
-                    <div className="h-[16px] w-[70px] bg-[#2d3c13]/40 rounded animate-pulse" style={{ animationDelay: `${i * 150 + 100}ms` }}></div>
+                    <div className="h-[16px] w-[70px] bg-[#2d3c13]/40 rounded animate-pulse"></div>
                   </td>
                   <td className="py-[20px] px-[24px] text-right">
-                    <div className="h-[36px] w-[120px] bg-[#8cb34a]/20 rounded-[6px] animate-pulse ml-auto" style={{ animationDelay: `${i * 150 + 150}ms` }}></div>
+                    <div className="h-[36px] w-[120px] bg-[#8cb34a]/20 rounded-[6px] animate-pulse ml-auto"></div>
                   </td>
                 </tr>
               ))}
@@ -96,53 +67,45 @@ export default function WinnersTable() {
   return (
     <div className="w-full bg-[#161810] border border-[#2d3c13] rounded-[16px] overflow-hidden flex flex-col mt-[24px]">
       
-      {/* Header & Tabs */}
+      {/* Header & Filter Tabs */}
       <div className="p-[24px] border-b border-[#2d3c13] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[16px]">
         <div>
           <h3 className="font-heading font-medium text-[18px] text-[#e8edd4]">
-            Winners & Draws
+            My Competition Winners & Deliveries
           </h3>
           <p className="font-sans font-normal text-[14px] text-[#b3b8aa]">
-            Manage upcoming draws and view past winners.
+            View winners (Instant Wins & Main Draw) and update prize delivery status.
           </p>
         </div>
         
         <div className="flex items-center gap-[8px] bg-[#0d0d0b] p-[4px] rounded-[10px] border border-[#2d3c13]">
-          <button
-            onClick={() => setActiveTab("Awaiting Draw")}
-            className={cn(
-              "px-[16px] py-[6px] rounded-[6px] font-sans font-medium text-[13px] transition-colors",
-              activeTab === "Awaiting Draw"
-                ? "bg-[#2d3c13] text-[#e8edd4]"
-                : "text-[#5a752a] hover:text-[#b3b8aa]"
-            )}
-          >
-            Awaiting Draw
-          </button>
-          <button
-            onClick={() => setActiveTab("Drawn")}
-            className={cn(
-              "px-[16px] py-[6px] rounded-[6px] font-sans font-medium text-[13px] transition-colors",
-              activeTab === "Drawn"
-                ? "bg-[#2d3c13] text-[#e8edd4]"
-                : "text-[#5a752a] hover:text-[#b3b8aa]"
-            )}
-          >
-            Drawn
-          </button>
+          {(["All", "ACTIVE", "ENDED"] as const).map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setActiveFilter(filter)}
+              className={cn(
+                "px-[16px] py-[6px] rounded-[6px] font-sans font-medium text-[13px] transition-colors",
+                activeFilter === filter
+                  ? "bg-[#2d3c13] text-[#e8edd4]"
+                  : "text-[#5a752a] hover:text-[#b3b8aa]"
+              )}
+            >
+              {filter === "All" ? "All Competitions" : filter === "ACTIVE" ? "Active" : "Completed"}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Table */}
-      <div className="w-full overflow-x-auto min-h-[400px]">
+      <div className="w-full overflow-x-auto min-h-[350px]">
         <table className="w-full min-w-[800px] text-left border-collapse">
           <thead>
             <tr className="border-b border-[#2d3c13] bg-[#0d0d0b]/50">
               <th className="py-[16px] px-[24px] font-sans font-medium text-[12px] text-[#5a752a] uppercase tracking-wider">
-                Competition
+                Competition Name
               </th>
               <th className="py-[16px] px-[24px] font-sans font-medium text-[12px] text-[#5a752a] uppercase tracking-wider">
-                Draw Date
+                End / Draw Date
               </th>
               <th className="py-[16px] px-[24px] font-sans font-medium text-[12px] text-[#5a752a] uppercase tracking-wider">
                 Tickets Sold
@@ -156,7 +119,7 @@ export default function WinnersTable() {
             {filteredDraws.length === 0 ? (
               <tr>
                 <td colSpan={4} className="py-[48px] text-center text-[#5a752a] font-sans text-[14px]">
-                  No records found in this category.
+                  No competitions found.
                 </td>
               </tr>
             ) : (
@@ -173,14 +136,14 @@ export default function WinnersTable() {
                       <span className="font-sans font-medium text-[14px] text-[#e8edd4]">
                         {draw.title}
                       </span>
-                      <span className="font-sans text-[12px] text-[#5a752a]">
-                        {draw.status}
+                      <span className="font-sans text-[12px] text-[#72943A]">
+                        Status: <strong className="text-[#8CB34A] font-semibold">{draw.status}</strong>
                       </span>
                     </div>
                   </td>
                   <td className="py-[20px] px-[24px]">
                     <span className="font-sans font-medium text-[14px] text-[#b3b8aa]">
-                      {new Date(draw.endDate).toLocaleDateString()}
+                      {draw.endDate ? new Date(draw.endDate).toLocaleDateString() : 'N/A'}
                     </span>
                   </td>
                   <td className="py-[20px] px-[24px]">
@@ -189,26 +152,12 @@ export default function WinnersTable() {
                     </span>
                   </td>
                   <td className="py-[20px] px-[24px] text-right">
-                    {activeTab === "Awaiting Draw" ? (
-                      <button 
-                        onClick={() => setSelectedDrawToRun(draw)}
-                        disabled={draw.status !== 'ACTIVE' || drawWinnerMutation.isPending}
-                        className="h-[36px] px-[16px] bg-[#8cb34a] hover:bg-[#72943a] transition-colors rounded-[6px] inline-flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <span className="font-heading font-medium text-[13px] text-[#0d0d0b]">
-                          {drawWinnerMutation.isPending && selectedDrawToRun?.id === draw.id ? 'Running...' : 'Run Draw Now'}
-                        </span>
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={() => setSelectedDrawToView(draw)}
-                        className="h-[36px] px-[16px] bg-[#2d3c13] hover:bg-[#3a4d19] transition-colors rounded-[6px] inline-flex items-center justify-center"
-                      >
-                        <span className="font-heading font-medium text-[13px] text-[#e8edd4]">
-                          View Details & Winners
-                        </span>
-                      </button>
-                    )}
+                    <button 
+                      onClick={() => setSelectedDrawToView(draw)}
+                      className="h-[36px] px-[16px] bg-[#1A230A] border border-[#8CB34A] text-[#8CB34A] hover:bg-[#8CB34A] hover:text-[#0D0D0B] transition-all rounded-[6px] inline-flex items-center justify-center font-sans font-semibold text-[12px]"
+                    >
+                      🏆 View Winners & Delivery
+                    </button>
                   </td>
                 </tr>
               ))
@@ -217,19 +166,9 @@ export default function WinnersTable() {
         </table>
       </div>
 
-      {selectedDrawToRun && (
-        <DrawConfirmationModal 
-          draw={{ name: selectedDrawToRun.title } as any}
-          isOpen={!!selectedDrawToRun}
-          isDrawing={isDrawing}
-          onClose={() => !isDrawing && setSelectedDrawToRun(null)}
-          onConfirm={handleConfirmDraw}
-        />
-      )}
-
       {selectedDrawToView && (
         <WinnerDetailsModal
-          isOpen={true}
+          isOpen={!!selectedDrawToView}
           onClose={() => setSelectedDrawToView(null)}
           raffle={selectedDrawToView}
         />

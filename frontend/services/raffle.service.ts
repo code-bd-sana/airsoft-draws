@@ -197,5 +197,25 @@ export const raffleService = {
   async adminDeleteRaffle(id: string): Promise<void> {
     const response = await api.delete(`/raffles/admin/${id}`);
     return response.data;
+  },
+
+  async updateDeliveryStatus(winnerId: string, deliveryStatus: string, trackingNumber?: string): Promise<any> {
+    const response = await api.patch(`/raffles/winners/${winnerId}/delivery`, {
+      deliveryStatus,
+      trackingNumber,
+    });
+    return response.data;
+  },
+
+  async getSoldTickets(raffleId: string): Promise<any[]> {
+    const response = await api.get(`/raffles/${raffleId}/tickets`);
+    return response.data;
+  },
+
+  async adminDrawWinner(raffleId: string, winningTicketNumber?: number): Promise<any> {
+    const response = await api.post(`/raffles/admin/${raffleId}/draw`, {
+      winningTicketNumber,
+    });
+    return response.data;
   }
 };
