@@ -174,7 +174,7 @@ export class TicketsService {
       },
     );
 
-    // 8. Outside the transaction, check if we need to trigger auto-draw for sold out
+    // 8. Outside the transaction, check if we need to trigger auto-draw or close manual draw
     if (
       result.updatedRaffle.isAutoDraw &&
       result.updatedRaffle.autoDrawSoldOut &&
@@ -185,6 +185,19 @@ export class TicketsService {
         await this.rafflesService.drawWinner(result.updatedRaffle.id);
       } catch (err) {
         console.error('Failed to trigger auto draw on sold out:', err);
+      }
+    } else if (
+      !result.updatedRaffle.isAutoDraw &&
+      result.updatedRaffle.ticketsSold >= result.updatedRaffle.totalTickets &&
+      result.updatedRaffle.status === 'ACTIVE'
+    ) {
+      try {
+        await this.prisma.raffle.update({
+          where: { id: result.updatedRaffle.id },
+          data: { status: 'ENDED' },
+        });
+      } catch (err) {
+        console.error('Failed to update manual raffle status on sold out:', err);
       }
     }
 

@@ -14,10 +14,10 @@ export class DrawSchedulerService {
 
   @Cron(CronExpression.EVERY_MINUTE)
   async handleAutoDraws() {
-    this.logger.log('Checking for competitions that need to be auto-drawn...');
     const now = new Date();
 
-    const expiredRaffles = await this.prisma.raffle.findMany({
+    // 1. Process Auto-Draw Competitions
+    const autoDrawRaffles = await this.prisma.raffle.findMany({
       where: {
         status: 'ACTIVE',
         isAutoDraw: true,
@@ -28,26 +28,47 @@ export class DrawSchedulerService {
       },
     });
 
-    if (expiredRaffles.length === 0) {
-      return;
-    }
-
-    this.logger.log(
-      `Found ${expiredRaffles.length} competition(s) to auto-draw.`,
-    );
-
-    for (const raffle of expiredRaffles) {
+    for (const raffle of autoDrawRaffles) {
       try {
         this.logger.log(
-          `Drawing winner for competition ID: ${raffle.id} - ${raffle.title}`,
+          `Auto-drawing winner for competition ID: ${raffle.id} - ${raffle.title}`,
         );
         await this.rafflesService.drawWinner(raffle.id);
         this.logger.log(
-          `Successfully drawn winner for competition ID: ${raffle.id}`,
+          `Successfully auto-drawn winner for competition ID: ${raffle.id}`,
         );
       } catch (error: any) {
         this.logger.error(
-          `Failed to draw winner for competition ID: ${raffle.id}`,
+          `Failed to auto-draw winner for competition ID: ${raffle.id}`,
+          error.stack,
+        );
+      }
+    }
+
+    // 2. Process Manual Draw Competitions (close when expired/sold out, wait for host/admin manual input)
+    const manualDrawRaffles = await this.prisma.raffle.findMany({
+      where: {
+        status: 'ACTIVE',
+        isAutoDraw: false,
+        OR: [
+          { endDate: { lte: now } },
+          { ticketsSold: { gte: this.prisma.raffle.fields.totalTickets } },
+        ],
+      },
+    });
+
+    for (const raffle of manualDrawRaffles) {
+      try {
+        this.logger.log(
+          `Closing manual-draw competition ID: ${raffle.id} - waiting for host/admin manual winner selection`,
+        );
+        await this.prisma.raffle.update({
+          where: { id: raffle.id },
+          data: { status: 'ENDED' },
+        });
+      } catch (error: any) {
+        this.logger.error(
+          `Failed to close manual-draw competition ID: ${raffle.id}`,
           error.stack,
         );
       }

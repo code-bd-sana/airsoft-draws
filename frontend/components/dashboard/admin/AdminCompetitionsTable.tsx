@@ -4,12 +4,14 @@ import React, { useState, useEffect } from "react";
 import { useAdminAllRaffles, useAdminDeleteRaffle } from "../../../hooks/useRaffleHooks";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import ManualWinnerSelectModal from "../shared/ManualWinnerSelectModal";
 
 export default function AdminCompetitionsTable() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [selectedCompForWinner, setSelectedCompForWinner] = useState<any | null>(null);
 
   // Debounce search
   useEffect(() => {
@@ -191,6 +193,40 @@ export default function AdminCompetitionsTable() {
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center justify-end gap-3">
+                      {(() => {
+                        const hasWinner = Boolean(
+                          comp.winners?.some((w: any) => w.winType === 'MAIN_DRAW')
+                        );
+                        const isSoldOut = (comp.ticketsSold || 0) >= (comp.totalTickets || 1);
+                        const isExpired = comp.endDate ? new Date(comp.endDate) <= new Date() : false;
+                        const canDraw = !hasWinner && (isSoldOut || isExpired);
+
+                        if (hasWinner) {
+                          return (
+                            <span className="px-2.5 py-1 rounded-[6px] border border-[#4ADE80]/30 bg-[#4ADE80]/10 text-[#4ADE80] font-sans font-semibold text-[11px] flex items-center gap-1 shrink-0">
+                              <span>✓</span> Winner Selected
+                            </span>
+                          );
+                        }
+
+                        if (canDraw) {
+                          return (
+                            <button
+                              onClick={() => setSelectedCompForWinner(comp)}
+                              className="px-3 py-1 rounded-[6px] bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] font-sans font-bold text-[11px] shadow-[0_0_10px_rgba(140,179,74,0.3)] transition-all flex items-center gap-1 shrink-0"
+                            >
+                              <span>🏆</span>
+                              <span>Select Winner</span>
+                            </button>
+                          );
+                        }
+
+                        return (
+                          <span className="px-2.5 py-1 rounded-[6px] border border-[#2D3C13] bg-[#0D0D0B] text-[#5A752A] font-sans text-[11px] shrink-0" title="Available when sold out or expired">
+                            Live (In Progress)
+                          </span>
+                        );
+                      })()}
                       {/* Delete Action */}
                       <button 
                         onClick={() => handleDelete(comp.id)}
@@ -210,6 +246,15 @@ export default function AdminCompetitionsTable() {
           </tbody>
         </table>
       </div>
+
+      {selectedCompForWinner && (
+        <ManualWinnerSelectModal
+          isOpen={!!selectedCompForWinner}
+          onClose={() => setSelectedCompForWinner(null)}
+          raffle={selectedCompForWinner}
+          isAdmin={true}
+        />
+      )}
     </div>
   );
 }

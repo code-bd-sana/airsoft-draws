@@ -97,13 +97,13 @@ export default function TicketPurchaseSuccessModal({
           {instantWins.length > 0 && (
             <div className="bg-gradient-to-r from-[#1a230a] via-[#23310d] to-[#1a230a] border border-[#EAB308]/60 rounded-2xl p-4 sm:p-5 shadow-[0_0_25px_rgba(234,179,8,0.2)] animate-in slide-in-from-top duration-500">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xl">🏆</span>
+                <span className="text-2xl">🎉</span>
                 <div>
                   <h3 className="font-heading font-bold text-base text-[#EAB308]">
-                    INSTANT WIN DETECTED!
+                    INSTANT WIN PRIZE CLAIMED!
                   </h3>
-                  <p className="font-sans text-xs text-[#E8EDD4]">
-                    Congratulations! You won {instantWins.length} instant prize(s) with your ticket order:
+                  <p className="font-sans text-xs text-[#E8EDD4] mt-0.5">
+                    Congratulations! You instantly won {instantWins.length} prize(s) with your purchase!
                   </p>
                 </div>
               </div>
@@ -123,10 +123,15 @@ export default function TicketPurchaseSuccessModal({
                       </span>
                     </div>
                     <span className="text-[10px] font-sans font-bold text-[#4ADE80] bg-[#4ADE80]/10 border border-[#4ADE80]/30 px-2 py-0.5 rounded-full">
-                      Claimed & Pending Delivery
+                      Instant Win Claimed
                     </span>
                   </div>
                 ))}
+              </div>
+
+              <div className="mt-3.5 pt-3 border-t border-[#EAB308]/20 flex items-center gap-2 text-[11px] text-[#A0D056]">
+                <span>ℹ️</span>
+                <span>Note: Your ticket(s) also remain 100% entered for the Main Competition Draw when the timer closes!</span>
               </div>
             </div>
           )}

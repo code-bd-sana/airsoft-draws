@@ -462,7 +462,7 @@ export class RafflesService {
     });
   }
 
-  async drawWinner(raffleId: string) {
+  async drawWinner(raffleId: string, winningTicketNumber?: number) {
     return this.prisma.$transaction(async (tx) => {
       // 1. Get the raffle and check its status
       const raffle = await tx.raffle.findUnique({
@@ -489,9 +489,23 @@ export class RafflesService {
         );
       }
 
-      // 2. Select a random ticket
-      const randomIndex = Math.floor(Math.random() * raffle.tickets.length);
-      const winningTicket = raffle.tickets[randomIndex];
+      let winningTicket: any;
+
+      if (winningTicketNumber !== undefined && winningTicketNumber !== null && !isNaN(Number(winningTicketNumber))) {
+        const targetNum = Number(winningTicketNumber);
+        winningTicket = raffle.tickets.find(
+          (t) => t.ticketNumber === targetNum,
+        );
+        if (!winningTicket) {
+          throw new BadRequestException(
+            `Ticket #${targetNum} was not sold in this competition. Please enter a valid sold ticket number.`,
+          );
+        }
+      } else {
+        // Pick random winning ticket
+        const randomIndex = Math.floor(Math.random() * raffle.tickets.length);
+        winningTicket = raffle.tickets[randomIndex];
+      }
 
       // 3. Create the Winner record
       const winner = await tx.winner.create({
@@ -512,6 +526,99 @@ export class RafflesService {
       });
 
       return winner;
+    });
+  }
+
+  async getRaffleSoldTickets(raffleId: string) {
+    const tickets = await this.prisma.ticket.findMany({
+      where: { raffleId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+      },
+      orderBy: { ticketNumber: 'asc' },
+    });
+
+    return tickets.map((t) => ({
+      id: t.id,
+      ticketNumber: t.ticketNumber,
+      userId: t.userId,
+      userName: t.user.firstName ? `${t.user.firstName} ${t.user.lastName || ''}`.trim() : (t.user.email ? t.user.email.split('@')[0] : 'User'),
+      userEmail: t.user.email,
+      avatarUrl: t.user.avatarUrl,
+      createdAt: t.createdAt,
+    }));
+  }
+
+  async updateWinnerDeliveryStatus(
+    winnerId: string,
+    deliveryStatus: string,
+    trackingNumber?: string,
+  ) {
+    if (!winnerId || winnerId === 'null' || winnerId === 'undefined') {
+      throw new BadRequestException('Invalid winner ID provided');
+    }
+
+    // 1. Try finding Winner by id directly
+    let winner = await this.prisma.winner.findUnique({
+      where: { id: winnerId },
+    });
+
+    // 2. If not found by winner.id, check if winnerId is an InstantWin ID
+    if (!winner) {
+      const instantWin = await this.prisma.instantWin.findUnique({
+        where: { id: winnerId },
+      });
+
+      if (instantWin) {
+        // Find ticket purchased for this instantWin ticketNumber
+        const ticket = await this.prisma.ticket.findFirst({
+          where: {
+            raffleId: instantWin.raffleId,
+            ticketNumber: instantWin.ticketNumber,
+          },
+        });
+
+        if (ticket) {
+          winner = await this.prisma.winner.findFirst({
+            where: { ticketId: ticket.id },
+          });
+
+          if (!winner) {
+            winner = await this.prisma.winner.create({
+              data: {
+                userId: ticket.userId,
+                raffleId: ticket.raffleId,
+                ticketId: ticket.id,
+                winType: 'INSTANT_WIN',
+                prizeName: instantWin.prizeName,
+                deliveryStatus: deliveryStatus,
+                trackingNumber: trackingNumber || null,
+              },
+            });
+            return winner;
+          }
+        }
+      }
+    }
+
+    if (!winner) {
+      throw new NotFoundException(`Winner record not found for ID ${winnerId}`);
+    }
+
+    return this.prisma.winner.update({
+      where: { id: winner.id },
+      data: {
+        deliveryStatus,
+        trackingNumber: trackingNumber || winner.trackingNumber,
+      },
     });
   }
 
@@ -574,20 +681,38 @@ export class RafflesService {
       },
     });
 
-    // Map instant wins with the user who bought that ticket
+    // Map instant wins with the user who bought that ticket & delivery status
     const mappedInstantWins = raffle.instantWins.map((iw) => {
       const winningTicket = instantWinTickets.find(
         (t) => t.ticketNumber === iw.ticketNumber,
       );
+      const winnerRec = winningTicket
+        ? raffle.winners.find((w) => w.ticketId === winningTicket.id)
+        : null;
+
       return {
         ...iw,
-        winner: winningTicket ? winningTicket.user : null,
+        winner: winningTicket
+          ? {
+              ...winningTicket.user,
+              winnerRecordId: winnerRec?.id || null,
+              deliveryStatus: winnerRec?.deliveryStatus || 'PENDING',
+              trackingNumber: winnerRec?.trackingNumber || null,
+            }
+          : null,
         ticket: winningTicket ? winningTicket : null,
       };
     });
 
+    const mainDrawWinners = raffle.winners
+      .filter((w) => w.winType === 'MAIN_DRAW')
+      .map((w) => ({
+        ...w,
+        winnerRecordId: w.id,
+      }));
+
     return {
-      mainDraw: raffle.winners.filter((w) => w.winType === 'MAIN_DRAW'),
+      mainDraw: mainDrawWinners,
       instantWins: mappedInstantWins,
     };
   }
