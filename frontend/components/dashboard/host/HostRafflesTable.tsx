@@ -6,6 +6,7 @@ import { useHostRaffles, useDeleteRaffle, useDrawWinner } from "../../../hooks/u
 import { cn } from "../../../lib/utils";
 import { Pagination } from "../../ui/Pagination";
 import { toast } from "sonner";
+import ConfirmDeleteRaffleModal, { RaffleDeleteTarget } from "../shared/ConfirmDeleteRaffleModal";
 
 const filters = ["All", "Live", "Pending Review", "Ended", "Drafts"];
 
@@ -14,6 +15,8 @@ export default function HostRafflesTable() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [drawingId, setDrawingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [selectedCompForDelete, setSelectedCompForDelete] = useState<RaffleDeleteTarget | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: response, isLoading } = useHostRaffles({ page, limit: 10, status: activeFilter });
   const raffles = response?.data || [];
@@ -23,6 +26,20 @@ export default function HostRafflesTable() {
 
   const toggleRow = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedCompForDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteMutation.mutateAsync(selectedCompForDelete.id);
+      toast.success("Competition deleted successfully");
+      setSelectedCompForDelete(null);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to delete competition");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -280,11 +297,10 @@ export default function HostRafflesTable() {
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (confirm('Are you sure you want to delete this competition?')) {
-                                deleteMutation.mutate(raffle.id);
-                              }
+                              setSelectedCompForDelete(raffle);
                             }}
-                            className="font-sans font-medium text-[12px] text-red-500 hover:text-red-400 transition-colors flex items-center gap-1 group ml-[8px]"
+                            disabled={deleteMutation.isPending || isDeleting}
+                            className="font-sans font-medium text-[12px] text-red-500 hover:text-red-400 transition-colors flex items-center gap-1 group ml-[8px] cursor-pointer disabled:opacity-50"
                           >
                             Delete Competition
                           </button>
@@ -310,6 +326,16 @@ export default function HostRafflesTable() {
           currentPage={meta.page}
           totalPages={meta.totalPages}
           onPageChange={setPage}
+        />
+      )}
+
+      {selectedCompForDelete && (
+        <ConfirmDeleteRaffleModal
+          isOpen={!!selectedCompForDelete}
+          onClose={() => setSelectedCompForDelete(null)}
+          onConfirm={handleConfirmDelete}
+          isLoading={isDeleting}
+          raffle={selectedCompForDelete}
         />
       )}
     </div>

@@ -5,6 +5,7 @@ import { useAdminAllRaffles, useAdminDeleteRaffle } from "../../../hooks/useRaff
 import { toast } from "sonner";
 import { format } from "date-fns";
 import ManualWinnerSelectModal from "../shared/ManualWinnerSelectModal";
+import ConfirmDeleteRaffleModal, { RaffleDeleteTarget } from "../shared/ConfirmDeleteRaffleModal";
 
 export default function AdminCompetitionsTable() {
   const [activeFilter, setActiveFilter] = useState("All");
@@ -12,6 +13,8 @@ export default function AdminCompetitionsTable() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [selectedCompForWinner, setSelectedCompForWinner] = useState<any | null>(null);
+  const [selectedCompForDelete, setSelectedCompForDelete] = useState<RaffleDeleteTarget | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Debounce search
   useEffect(() => {
@@ -32,14 +35,17 @@ export default function AdminCompetitionsTable() {
   const deleteMutation = useAdminDeleteRaffle();
   const raffles = data?.data || [];
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this competition? This action cannot be undone.")) {
-      try {
-        await deleteMutation.mutateAsync(id);
-        toast.success("Competition deleted successfully");
-      } catch (err: any) {
-        toast.error(err?.response?.data?.message || "Failed to delete competition");
-      }
+  const handleConfirmDelete = async () => {
+    if (!selectedCompForDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteMutation.mutateAsync(selectedCompForDelete.id);
+      toast.success("Competition deleted successfully");
+      setSelectedCompForDelete(null);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to delete competition");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -229,10 +235,10 @@ export default function AdminCompetitionsTable() {
                       })()}
                       {/* Delete Action */}
                       <button 
-                        onClick={() => handleDelete(comp.id)}
-                        disabled={deleteMutation.isPending}
-                        className="text-[#5A752A] hover:text-[#EF4444] transition-colors disabled:opacity-50" 
-                        title="Delete"
+                        onClick={() => setSelectedCompForDelete(comp)}
+                        disabled={deleteMutation.isPending || isDeleting}
+                        className="text-[#5A752A] hover:text-[#EF4444] transition-colors disabled:opacity-50 cursor-pointer" 
+                        title="Delete Competition"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
@@ -253,6 +259,16 @@ export default function AdminCompetitionsTable() {
           onClose={() => setSelectedCompForWinner(null)}
           raffle={selectedCompForWinner}
           isAdmin={true}
+        />
+      )}
+
+      {selectedCompForDelete && (
+        <ConfirmDeleteRaffleModal
+          isOpen={!!selectedCompForDelete}
+          onClose={() => setSelectedCompForDelete(null)}
+          onConfirm={handleConfirmDelete}
+          isLoading={isDeleting}
+          raffle={selectedCompForDelete}
         />
       )}
     </div>

@@ -447,8 +447,11 @@ export class RafflesService {
 
     if (!raffle) throw new NotFoundException('Raffle not found');
 
-    return this.prisma.raffle.delete({
-      where: { id },
+    return this.prisma.$transaction(async (tx) => {
+      await tx.winner.deleteMany({ where: { raffleId: id } });
+      await tx.ticket.deleteMany({ where: { raffleId: id } });
+      await tx.instantWin.deleteMany({ where: { raffleId: id } });
+      return tx.raffle.delete({ where: { id } });
     });
   }
 
@@ -784,8 +787,11 @@ export class RafflesService {
     const raffle = await this.prisma.raffle.findUnique({ where: { id } });
     if (!raffle) throw new NotFoundException('Raffle not found');
 
-    return this.prisma.raffle.delete({
-      where: { id },
+    return this.prisma.$transaction(async (tx) => {
+      await tx.winner.deleteMany({ where: { raffleId: id } });
+      await tx.ticket.deleteMany({ where: { raffleId: id } });
+      await tx.instantWin.deleteMany({ where: { raffleId: id } });
+      return tx.raffle.delete({ where: { id } });
     });
   }
 
