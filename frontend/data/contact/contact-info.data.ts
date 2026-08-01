@@ -24,4 +24,5 @@ export const CONTACT_INFO_ITEMS: ContactInfoCardItem[] = [
     value: "Within 24 hours",
     type: "time",
   },
+  
 ];

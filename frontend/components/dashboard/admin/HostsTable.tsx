@@ -56,6 +56,48 @@ export default function HostsTable() {
     },
   });
 
+  const handleExportCSV = () => {
+    const hosts = data?.hosts || [];
+    if (hosts.length === 0) return;
+
+    const headers = [
+      "ID",
+      "Business Name",
+      "Email",
+      "Plan",
+      "Active Raffles",
+      "Revenue (£)",
+      "Status",
+      "Verified"
+    ];
+
+    const rows = hosts.map((host: HostData) => [
+      host.id,
+      host.businessName || "N/A",
+      host.email,
+      host.plan || "Free",
+      host.raffles || 0,
+      (host.revenue || 0).toFixed(2),
+      host.isBlocked ? "Blocked" : "Active",
+      host.isVerified ? "Yes" : "No"
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `hosts_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleReview = (host: HostData) => {
     // Construct detailed data for the modal based on the selected row
     setSelectedHost({
@@ -124,6 +166,18 @@ export default function HostsTable() {
             ))}
           </div>
         </div>
+
+        {/* Right: Export CSV */}
+        <button 
+          onClick={handleExportCSV}
+          disabled={!data?.hosts || data.hosts.length === 0}
+          className="h-[40px] px-4 bg-[#111210] border border-[#2D3C13] hover:border-[#5A752A] hover:bg-[#1A230A] rounded-[8px] flex items-center justify-center gap-2 transition-colors disabled:opacity-50 cursor-pointer shrink-0"
+        >
+          <svg className="w-4 h-4 text-[#8CB34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">Export CSV</span>
+        </button>
       </div>
 
       {/* Table Container */}
@@ -279,6 +333,27 @@ export default function HostsTable() {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {data && data.totalPages > 1 && (
+        <div className="flex justify-between items-center bg-[#161810] border border-[#2D3C13] rounded-[16px] px-6 py-4">
+          <button 
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="text-[13px] font-sans font-medium text-[#E8EDD4] disabled:text-[#5A752A] hover:text-[#8CB34A] transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            Previous
+          </button>
+          <span className="text-[13px] font-sans text-[#72943A]">Page {page} of {data.totalPages}</span>
+          <button 
+            onClick={() => setPage(p => Math.min(data.totalPages, p + 1))}
+            disabled={page === data.totalPages}
+            className="text-[13px] font-sans font-medium text-[#E8EDD4] disabled:text-[#5A752A] hover:text-[#8CB34A] transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       <ReviewHostModal 
         isOpen={isModalOpen} 

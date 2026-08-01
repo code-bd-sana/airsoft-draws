@@ -61,6 +61,64 @@ export default function WinnersTrackingTable() {
     setIsModalOpen(true);
   };
 
+  const handleExportCSV = () => {
+    if (winners.length === 0) return;
+
+    const headers = [
+      "ID",
+      "Winner Name",
+      "User Email",
+      "Competition Won",
+      "Win Type",
+      "Prize Name",
+      "Draw Date",
+      "Verification Status",
+      "Delivery Status"
+    ];
+
+    const rows = winners.map((winner: Winner) => {
+      const name = `${winner.user?.firstName || ''} ${winner.user?.lastName || ''}`.trim() || 'Unknown';
+      const email = winner.user?.email || 'N/A';
+      const competition = winner.raffle?.title || 'Unknown Raffle';
+      const winType = winner.winType === 'INSTANT_WIN' ? 'Instant Win' : 'Main Draw';
+      const prize = winner.prizeName || 'N/A';
+      const drawDate = winner.createdAt ? format(new Date(winner.createdAt), 'dd MMM yyyy HH:mm') : 'N/A';
+      const verificationStatus = winner.verificationStatus || 'N/A';
+      const deliveryStatus = winner.deliveryStatus || 'N/A';
+
+      return [
+        winner.id,
+        name,
+        email,
+        competition,
+        winType,
+        prize,
+        drawDate,
+        verificationStatus,
+        deliveryStatus
+      ];
+    });
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+
+    const filterTag = activeFilter.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const winTypeTag = winTypeFilter.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    link.setAttribute("download", `winners_export_${filterTag}_${winTypeTag}_${new Date().toISOString().slice(0, 10)}.csv`);
+
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Ensure this handles the verification correctly locally if we are mocking the modal API call inside it,
   // or we can refresh the table on modal close
   const handleModalClose = () => {
@@ -106,21 +164,35 @@ export default function WinnersTrackingTable() {
           ))}
         </div>
 
-        {/* Win Type Filters */}
-        <div className='flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0'>
-          {winTypeFilters.map((filter) => (
-            <button
-              key={filter}
-              onClick={() => setWinTypeFilter(filter)}
-              className={`px-4 py-2 rounded-[8px] font-sans font-medium text-[12px] whitespace-nowrap transition-colors ${
-                winTypeFilter === filter
-                  ? 'bg-transparent border border-[#8CB34A] text-[#E8EDD4]'
-                  : 'bg-transparent border border-[#2D3C13] text-[#72943A] hover:bg-[#1A230A] hover:text-[#A0D056]'
-              }`}
-            >
-              {filter}
-            </button>
-          ))}
+        {/* Win Type Filters & Export CSV */}
+        <div className='flex flex-wrap items-center gap-4'>
+          <div className='flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0'>
+            {winTypeFilters.map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setWinTypeFilter(filter)}
+                className={`px-4 py-2 rounded-[8px] font-sans font-medium text-[12px] whitespace-nowrap transition-colors ${
+                  winTypeFilter === filter
+                    ? 'bg-transparent border border-[#8CB34A] text-[#E8EDD4]'
+                    : 'bg-transparent border border-[#2D3C13] text-[#72943A] hover:bg-[#1A230A] hover:text-[#A0D056]'
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+
+          <button 
+            onClick={handleExportCSV}
+            disabled={winners.length === 0}
+            className="h-[36px] px-4 bg-[#111210] border border-[#2D3C13] hover:border-[#5A752A] hover:bg-[#1A230A] rounded-[8px] flex items-center justify-center gap-2 transition-colors disabled:opacity-50 cursor-pointer shrink-0"
+            title="Export filtered winners to CSV"
+          >
+            <svg className="w-4 h-4 text-[#8CB34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            <span className="font-sans font-medium text-[12px] text-[#E8EDD4]">Export CSV</span>
+          </button>
         </div>
       </div>
 

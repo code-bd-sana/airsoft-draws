@@ -128,3 +128,18 @@ body {
 .animate-marquee {
   animation: marquee 20s linear infinite;
 }
+
+/* Print / PDF Export Styles */
+@media print {
+  body {
+    background-color: #0D0D0B !important;
+    color: #E8EDD4 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .no-print,
+  nav,
+  aside {
+    display: none !important;
+  }
+}
