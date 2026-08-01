@@ -773,12 +773,16 @@ export class RafflesService {
       this.prisma.raffle.count({ where: whereClause }),
     ]);
 
+    const lastPage = Math.ceil(total / Number(limit)) || 1;
+
     return {
       data: raffles,
       meta: {
         total,
         page: Number(page),
-        lastPage: Math.ceil(total / Number(limit)) || 1,
+        limit: Number(limit),
+        lastPage,
+        totalPages: lastPage,
       },
     };
   }

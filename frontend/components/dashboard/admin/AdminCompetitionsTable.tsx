@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import ManualWinnerSelectModal from "../shared/ManualWinnerSelectModal";
 import ConfirmDeleteRaffleModal, { RaffleDeleteTarget } from "../shared/ConfirmDeleteRaffleModal";
+import { Pagination } from "../../ui/Pagination";
 
 export default function AdminCompetitionsTable() {
   const [activeFilter, setActiveFilter] = useState("All");
@@ -34,6 +35,9 @@ export default function AdminCompetitionsTable() {
 
   const deleteMutation = useAdminDeleteRaffle();
   const raffles = data?.data || [];
+  const meta = data?.meta;
+  const totalPages = meta?.totalPages || (meta as any)?.lastPage || 1;
+  const totalItems = meta?.total || 0;
 
   const handleConfirmDelete = async () => {
     if (!selectedCompForDelete) return;
@@ -252,6 +256,29 @@ export default function AdminCompetitionsTable() {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {!isLoading && raffles.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#111210] p-4 rounded-[16px] border border-[#2D3C13]">
+          <div className="font-sans text-[13px] text-[#72943A]">
+            Showing <span className="text-[#E8EDD4] font-medium">{raffles.length}</span> of{" "}
+            <span className="text-[#E8EDD4] font-medium">{totalItems}</span> competitions
+            {totalPages > 1 && (
+              <span> (Page <span className="text-[#8CB34A] font-medium">{page}</span> of {totalPages})</span>
+            )}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="[&>div]:mt-0">
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={(newPage) => setPage(newPage)}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {selectedCompForWinner && (
         <ManualWinnerSelectModal
