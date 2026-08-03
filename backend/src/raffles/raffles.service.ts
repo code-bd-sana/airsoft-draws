@@ -533,6 +533,14 @@ export class RafflesService {
   }
 
   async getRaffleSoldTickets(raffleId: string) {
+    const raffle = await this.prisma.raffle.findUnique({
+      where: { id: raffleId },
+      include: {
+        host: { include: { user: true } },
+        instantWins: true,
+      },
+    });
+
     const tickets = await this.prisma.ticket.findMany({
       where: { raffleId },
       include: {
@@ -542,22 +550,71 @@ export class RafflesService {
             firstName: true,
             lastName: true,
             email: true,
+            phone: true,
+            location: true,
             avatarUrl: true,
           },
         },
+        transaction: {
+          select: {
+            id: true,
+            amount: true,
+            paymentGateway: true,
+            gatewayTransactionId: true,
+            status: true,
+          },
+        },
+        winners: true,
       },
       orderBy: { ticketNumber: 'asc' },
     });
 
-    return tickets.map((t) => ({
-      id: t.id,
-      ticketNumber: t.ticketNumber,
-      userId: t.userId,
-      userName: t.user.firstName ? `${t.user.firstName} ${t.user.lastName || ''}`.trim() : (t.user.email ? t.user.email.split('@')[0] : 'User'),
-      userEmail: t.user.email,
-      avatarUrl: t.user.avatarUrl,
-      createdAt: t.createdAt,
-    }));
+    const instantWinsMap = new Map<number, any>();
+    if (raffle?.instantWins) {
+      raffle.instantWins.forEach((iw) => {
+        instantWinsMap.set(iw.ticketNumber, iw);
+      });
+    }
+
+    return tickets.map((t) => {
+      const mainWin = t.winners?.find((w) => w.winType === 'MAIN_DRAW');
+      const instantWin = instantWinsMap.get(t.ticketNumber);
+
+      let winStatus = 'Regular Entry';
+      if (mainWin) {
+        winStatus = `Main Draw Winner (${mainWin.prizeName || 'Main Prize'})`;
+      } else if (instantWin) {
+        winStatus = `Instant Winner (${instantWin.prizeName})`;
+      }
+
+      return {
+        id: t.id,
+        ticketNumber: t.ticketNumber,
+        raffleId: t.raffleId,
+        raffleTitle: raffle?.title || 'Unknown Competition',
+        raffleCategory: raffle?.category || 'N/A',
+        pricePerTicket: raffle?.pricePerTicket ? Number(raffle.pricePerTicket) : 0,
+        hostName: raffle?.host?.businessName || (raffle?.host?.user ? `${raffle.host.user.firstName || ''} ${raffle.host.user.lastName || ''}`.trim() : 'Unknown Host'),
+        hostEmail: raffle?.host?.user?.email || 'N/A',
+        userId: t.userId,
+        buyerName: (t.user?.firstName || t.user?.lastName)
+          ? `${t.user.firstName || ''} ${t.user.lastName || ''}`.trim()
+          : (t.user?.email ? t.user.email : 'N/A'),
+        userName: (t.user?.firstName || t.user?.lastName)
+          ? `${t.user.firstName || ''} ${t.user.lastName || ''}`.trim()
+          : (t.user?.email ? t.user.email : 'N/A'),
+        userEmail: t.user?.email || 'N/A',
+        userPhone: t.user?.phone || 'N/A',
+        userLocation: t.user?.location || 'N/A',
+        avatarUrl: t.user?.avatarUrl,
+        transactionId: t.transactionId,
+        gatewayTransactionId: t.transaction?.gatewayTransactionId || t.transactionId || 'N/A',
+        paymentGateway: t.transaction?.paymentGateway || 'N/A',
+        paymentStatus: t.transaction?.status || 'COMPLETED',
+        winStatus,
+        createdAt: t.createdAt,
+      };
+    });
   }
 
   async updateWinnerDeliveryStatus(

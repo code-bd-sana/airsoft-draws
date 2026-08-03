@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { useAdminAllRaffles, useAdminDeleteRaffle } from "../../../hooks/useRaffleHooks";
+import { raffleService } from "../../../services/raffle.service";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import ManualWinnerSelectModal from "../shared/ManualWinnerSelectModal";
 import ConfirmDeleteRaffleModal, { RaffleDeleteTarget } from "../shared/ConfirmDeleteRaffleModal";
+import ViewSoldTicketsModal from "../shared/ViewSoldTicketsModal";
 import { Pagination } from "../../ui/Pagination";
 
 export default function AdminCompetitionsTable() {
@@ -15,7 +17,9 @@ export default function AdminCompetitionsTable() {
   const [page, setPage] = useState(1);
   const [selectedCompForWinner, setSelectedCompForWinner] = useState<any | null>(null);
   const [selectedCompForDelete, setSelectedCompForDelete] = useState<RaffleDeleteTarget | null>(null);
+  const [selectedCompForTickets, setSelectedCompForTickets] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [exportingRaffleId, setExportingRaffleId] = useState<string | null>(null);
 
   // Debounce search
   useEffect(() => {
@@ -50,6 +54,102 @@ export default function AdminCompetitionsTable() {
       toast.error(err?.response?.data?.message || "Failed to delete competition");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleExportRaffleTicketsCSV = async (comp: any) => {
+    if ((comp.ticketsSold || 0) === 0) {
+      toast.info(`No tickets have been purchased for "${comp.title}" yet.`);
+      return;
+    }
+
+    setExportingRaffleId(comp.id);
+    try {
+      const tickets = await raffleService.getSoldTickets(comp.id);
+      
+      if (!tickets || tickets.length === 0) {
+        toast.info(`No ticket records found for "${comp.title}".`);
+        return;
+      }
+
+      // Standard Tabular CSV Column Headers (Grid starting at Line 1 for 100% Excel column alignment)
+      const headers = [
+        "Ticket Number",
+        "Competition Title",
+        "Category",
+        "Buyer / Client Name",
+        "Buyer Email",
+        "Buyer Phone",
+        "Buyer Location",
+        "Ticket Price (£)",
+        "Win Status",
+        "Transaction ID",
+        "Gateway Transaction ID",
+        "Payment Gateway",
+        "Payment Status",
+        "Purchase Date & Time"
+      ];
+
+      // Standard Tabular Data Rows
+      const rows = tickets.map((t: any) => {
+        const ticketNum = `#${t.ticketNumber}`;
+        const raffleTitle = t.raffleTitle || comp.title || "N/A";
+        const category = t.raffleCategory || comp.category || "N/A";
+        const buyerName = t.buyerName || t.userName || "N/A";
+        const buyerEmail = t.userEmail || "N/A";
+        const phone = t.userPhone || "N/A";
+        const location = t.userLocation || "N/A";
+        const price = Number(t.pricePerTicket || comp.pricePerTicket || 0).toFixed(2);
+        const winStatus = t.winStatus || "Regular Entry";
+        const txId = t.transactionId || "N/A";
+        const gatewayTxId = t.gatewayTransactionId || "N/A";
+        const gateway = t.paymentGateway || "N/A";
+        const payStatus = t.paymentStatus || "COMPLETED";
+        const purchaseDate = t.createdAt ? format(new Date(t.createdAt), "dd MMM yyyy HH:mm:ss") : "N/A";
+
+        return [
+          ticketNum,
+          raffleTitle,
+          category,
+          buyerName,
+          buyerEmail,
+          phone,
+          location,
+          price,
+          winStatus,
+          txId,
+          gatewayTxId,
+          gateway,
+          payStatus,
+          purchaseDate
+        ];
+      });
+
+      // Construct pure CSV string starting directly with table headers
+      const csvContent = [
+        headers.map(h => `"${String(h).replace(/"/g, '""')}"`).join(","),
+        ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
+      ].join("\n");
+
+      // Download file with UTF-8 Byte Order Mark (\uFEFF) for Excel unicode compatibility
+      const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+
+      const safeTitle = String(comp.title).toLowerCase().replace(/[^a-z0-9]/g, '_').slice(0, 30);
+      link.setAttribute("download", `tickets_${safeTitle}_${new Date().toISOString().slice(0, 10)}.csv`);
+
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success(`Exported ${tickets.length} tickets for "${comp.title}" successfully!`);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to export ticket details CSV");
+    } finally {
+      setExportingRaffleId(null);
     }
   };
 
@@ -180,8 +280,18 @@ export default function AdminCompetitionsTable() {
                     <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">£{Number(comp.pricePerTicket).toFixed(2)}</span>
                   </td>
                   <td className="py-4 px-6">
-                    <div className="flex flex-col gap-2 w-full max-w-[180px]">
-                      <span className="font-sans font-medium text-[12px] text-[#E8EDD4]">{comp.ticketsSold}/{comp.totalTickets}</span>
+                    <div className="flex flex-col gap-1.5 w-full max-w-[180px]">
+                      <div className="flex items-center justify-between w-full">
+                        <span className="font-sans font-medium text-[12px] text-[#E8EDD4]">{comp.ticketsSold}/{comp.totalTickets}</span>
+                        <button
+                          onClick={() => setSelectedCompForTickets(comp)}
+                          className="text-[11px] font-sans font-medium text-[#8CB34A] hover:text-[#A0D056] hover:underline cursor-pointer flex items-center gap-0.5"
+                          title="View Ticket Numbers & Buyer Details"
+                        >
+                          <span>🎟️</span>
+                          <span>View</span>
+                        </button>
+                      </div>
                       <div className="flex items-center gap-2">
                         <div className="w-full h-1 bg-[#0D0D0B] rounded-full overflow-hidden border border-[#2D3C13]">
                           <div 
@@ -237,11 +347,38 @@ export default function AdminCompetitionsTable() {
                           </span>
                         );
                       })()}
+                      {/* View Tickets Modal Action */}
+                      <button 
+                        onClick={() => setSelectedCompForTickets(comp)}
+                        className="text-[#5A752A] hover:text-[#8CB34A] transition-colors cursor-pointer p-1 rounded hover:bg-[#1A230A]" 
+                        title="View Ticket Numbers & Buyer Details"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-12v.75m0 3v.75m0 3v.75m0 3V18M3 7.5A2.25 2.25 0 0 1 5.25 5h13.5A2.25 2.25 0 0 1 21 7.5v9a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 16.5v-9z" />
+                        </svg>
+                      </button>
+
+                      {/* Export Tickets CSV Action */}
+                      <button 
+                        onClick={() => handleExportRaffleTicketsCSV(comp)}
+                        disabled={exportingRaffleId === comp.id}
+                        className="text-[#5A752A] hover:text-[#8CB34A] transition-colors disabled:opacity-50 cursor-pointer p-1 rounded hover:bg-[#1A230A]" 
+                        title={comp.ticketsSold > 0 ? "Export Competition Ticket Sales CSV" : "No tickets sold yet"}
+                      >
+                        {exportingRaffleId === comp.id ? (
+                          <div className="w-4 h-4 border-2 border-[#8CB34A] border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                          </svg>
+                        )}
+                      </button>
+
                       {/* Delete Action */}
                       <button 
                         onClick={() => setSelectedCompForDelete(comp)}
                         disabled={deleteMutation.isPending || isDeleting}
-                        className="text-[#5A752A] hover:text-[#EF4444] transition-colors disabled:opacity-50 cursor-pointer" 
+                        className="text-[#5A752A] hover:text-[#EF4444] transition-colors disabled:opacity-50 cursor-pointer p-1 rounded hover:bg-[#1A230A]" 
                         title="Delete Competition"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -296,6 +433,14 @@ export default function AdminCompetitionsTable() {
           onConfirm={handleConfirmDelete}
           isLoading={isDeleting}
           raffle={selectedCompForDelete}
+        />
+      )}
+
+      {selectedCompForTickets && (
+        <ViewSoldTicketsModal
+          isOpen={Boolean(selectedCompForTickets)}
+          onClose={() => setSelectedCompForTickets(null)}
+          raffle={selectedCompForTickets}
         />
       )}
     </div>
