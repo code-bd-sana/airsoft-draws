@@ -22,6 +22,11 @@ export class TicketsService {
       throw new BadRequestException('Quantity must be at least 1');
     }
 
+    // If USE_TEST_PAYMENT is false, redirect to Cashflows Payment Gateway
+    if (process.env.USE_TEST_PAYMENT === 'false') {
+      return this.createCashflowsTicketCheckout(userId, raffleId, quantity);
+    }
+
     const result = await this.prisma.$transaction(
       async (tx) => {
         // 1. Fetch the active raffle and lock it for update if needed.
@@ -237,4 +242,135 @@ export class TicketsService {
       orderBy: { createdAt: 'desc' },
     });
   }
+
+  async createCashflowsTicketCheckout(
+    userId: string,
+    raffleId: string,
+    quantity: number,
+  ) {
+    const raffle = await this.prisma.raffle.findUnique({
+      where: { id: raffleId },
+    });
+
+    if (!raffle) {
+      throw new NotFoundException('Competition not found');
+    }
+
+    if (raffle.status !== 'ACTIVE') {
+      throw new BadRequestException('This competition is not active');
+    }
+
+    if (raffle.ticketsSold + quantity > raffle.totalTickets) {
+      throw new BadRequestException(
+        `Only ${raffle.totalTickets - raffle.ticketsSold} tickets remaining`,
+      );
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const baseUrl =
+      process.env.CASHFLOWS_BASE_URL || 'https://gateway-int.cashflows.com';
+    const configId = process.env.CASHFLOWS_CONFIGURATION_ID || '';
+    const apiKey = process.env.CASHFLOWS_API_KEY || '';
+
+    const totalAmount = (Number(raffle.pricePerTicket) * quantity).toFixed(2);
+    const orderNumber = `TCK_${raffleId.slice(0, 8)}_${userId.slice(0, 8)}_${Date.now()}`;
+
+    const innerRequestPayload = {
+      type: 'Payment',
+      amountToCollect: totalAmount,
+      currency: 'GBP',
+      order: {
+        orderNumber: orderNumber,
+        note: `Ticket purchase: ${quantity} ticket(s) for ${raffle.title}`,
+      },
+      customer: {
+        email: user?.email || '',
+        firstName: user?.firstName || '',
+        lastName: user?.lastName || '',
+      },
+      returnUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/live-raffles/${raffle.slug || raffle.id}?payment=success`,
+      cancelUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/live-raffles/${raffle.slug || raffle.id}?payment=cancel`,
+    };
+
+    const innerRequestString = JSON.stringify(innerRequestPayload);
+    const hash = crypto
+      .createHash('sha512')
+      .update(apiKey + innerRequestString)
+      .digest('hex')
+      .toUpperCase();
+
+    const fullPayload = {
+      ConfigurationId: configId,
+      Hash: hash,
+      Request: innerRequestPayload,
+    };
+
+    try {
+      console.log(`Sending Cashflows Ticket Checkout request to ${baseUrl}/api/gateway/payment-jobs`);
+      const response = await fetch(`${baseUrl}/api/gateway/payment-jobs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ConfigurationId: configId,
+          Hash: hash,
+        },
+        body: innerRequestString,
+      });
+
+      const responseText = await response.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        data = { rawText: responseText };
+      }
+
+      if (!response.ok) {
+        console.error('Cashflows Ticket API Error Response:', data);
+        throw new BadRequestException(
+          data.message || data.error || `Cashflows Gateway Error (${response.status})`,
+        );
+      }
+
+      console.log('CASHFLOWS SUCCESS RESPONSE DATA:', JSON.stringify(data, null, 2));
+
+      let redirectUrl =
+        data.links?.action?.url ||
+        (typeof data.links?.action === 'string' ? data.links.action : null) ||
+        data.redirectUrl ||
+        data.paymentUrl ||
+        data.url ||
+        data.hostedPaymentPageUrl ||
+        data.checkoutUrl ||
+        data.href ||
+        data.link;
+
+      if (!redirectUrl && Array.isArray(data.actions)) {
+        const checkoutAction = data.actions.find(
+          (a: any) => a.rel === 'checkout' || a.rel === 'payment' || a.rel === 'redirect' || a.rel === 'hosted_checkout',
+        );
+        if (checkoutAction) redirectUrl = checkoutAction.href || checkoutAction.url;
+      }
+
+      if (!redirectUrl && data.data?.reference) {
+        redirectUrl = `${baseUrl}/payment?ref=${data.data.reference}`;
+      }
+
+      if (!redirectUrl) {
+        console.error('Cashflows Ticket API response payload:', JSON.stringify(data, null, 2));
+        throw new BadRequestException(`Cashflows gateway response: ${JSON.stringify(data)}`);
+      }
+
+      return {
+        url: redirectUrl,
+      };
+    } catch (error: any) {
+      console.error(`Cashflow Ticket Checkout Error: ${error.message}`);
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(`Cashflows Gateway Error: ${error.message}`);
+    }
+  }
 }
+

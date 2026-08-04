@@ -77,6 +77,11 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
     setStatusMessage(null);
     purchaseMutation.mutate(quantity, {
       onSuccess: (data) => {
+        if (data?.url) {
+          window.location.href = data.url;
+          return;
+        }
+
         const formattedWins = (data.instantWins || []).map((iw: any) => {
           const tk = (data.tickets || []).find((t: any) => t.id === iw.ticketId);
           return {
