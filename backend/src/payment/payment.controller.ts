@@ -63,24 +63,20 @@ export class PaymentController {
   }
 
   @Post('webhook')
-  @ApiOperation({ summary: 'Cashflow Webhook Endpoint' })
-  @ApiHeader({
-    name: 'cashflow-signature',
-    description: 'Secure signature for verifying payment gateway events',
-    required: true,
-  })
+  @ApiOperation({ summary: 'Cashflows Webhook Endpoint' })
   @ApiResponse({
     status: 200,
     description: 'Webhook events processed successfully',
   })
-  @ApiResponse({ status: 400, description: 'Missing or invalid signature' })
   async handleWebhook(
-    @Headers('cashflow-signature') signature: string,
     @Req() req: any,
+    @Headers() headers: Record<string, string>,
   ) {
-    if (!signature) {
-      throw new BadRequestException('Missing cashflow-signature header');
-    }
+    const signature =
+      headers['hash'] ||
+      headers['signature'] ||
+      headers['cashflow-signature'] ||
+      '';
     return this.paymentService.handleWebhook(signature, req.body);
   }
 }
