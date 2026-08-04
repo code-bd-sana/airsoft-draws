@@ -94,7 +94,7 @@ export class PaymentService {
     }
 
     // Generate unique order number
-    const orderNumber = `SUB_${hostId.slice(0, 8)}_${Date.now()}`;
+    const orderNumber = `SUB_${hostId}_${planId}_${Date.now()}`;
 
     // Request payload for Cashflows Hosted Payment Page / Checkout
     const requestPayload = {
@@ -246,10 +246,54 @@ export class PaymentService {
 
     try {
       const data = parsedPayload.data || parsedPayload;
-      const orderNumber = data.order?.orderNumber || data.orderNumber;
-      const status = (data.paymentStatus || data.status || parsedPayload.event || '').toString().toUpperCase();
+      let orderNumber = data.order?.orderNumber || data.orderNumber;
+      let status = (data.paymentStatus || data.status || parsedPayload.event || '').toString().toUpperCase();
 
-      this.logger.log(`Webhook Event Status: ${status}, OrderNumber: ${orderNumber}`);
+      const paymentJobRef = parsedPayload.paymentJobReference || parsedPayload.paymentReference || data.paymentJobReference;
+
+      // If webhook carries a paymentJobReference, fetch the full payment job details from Cashflows API
+      if (paymentJobRef) {
+        this.logger.log(`Fetching Cashflows payment-job details for reference: ${paymentJobRef}`);
+        const apiKey = process.env.CASHFLOWS_API_KEY || '';
+        const configId = process.env.CASHFLOWS_CONFIGURATION_ID || '';
+        const baseUrl = process.env.CASHFLOWS_BASE_URL || 'https://gateway-int.cashflows.com';
+
+        const getHash = crypto
+          .createHash('sha512')
+          .update(apiKey)
+          .digest('hex')
+          .toUpperCase();
+
+        try {
+          const jobResponse = await fetch(`${baseUrl}/api/gateway/payment-jobs/${paymentJobRef}`, {
+            method: 'GET',
+            headers: {
+              ConfigurationId: configId,
+              Hash: getHash,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          const jobData = await jobResponse.json();
+          console.log('=====================================================');
+          console.log('CASHFLOWS FETCHED PAYMENT JOB DETAILS:');
+          console.log(JSON.stringify(jobData, null, 2));
+          console.log('=====================================================');
+
+          const fetchedOrder = jobData.data?.order || jobData.order;
+          if (fetchedOrder?.orderNumber) {
+            orderNumber = fetchedOrder.orderNumber;
+          }
+          const fetchedStatus = jobData.data?.paymentStatus || jobData.paymentStatus || jobData.status;
+          if (fetchedStatus) {
+            status = fetchedStatus.toString().toUpperCase();
+          }
+        } catch (fetchErr: any) {
+          this.logger.error(`Failed to fetch payment job details for ${paymentJobRef}: ${fetchErr.message}`);
+        }
+      }
+
+      this.logger.log(`Webhook Processing - Event Status: "${status}", OrderNumber: "${orderNumber}"`);
 
       // Handle Ticket Purchase Order (orderNumber format: TCK_raffleId_userId_quantity_timestamp)
       if (orderNumber && orderNumber.startsWith('TCK_')) {
@@ -261,27 +305,22 @@ export class PaymentService {
         if (raffleId && userId && quantity > 0) {
           this.logger.log(`Allocating ${quantity} tickets for user ${userId} in raffle ${raffleId} via webhook...`);
           
-          // Use USE_TEST_PAYMENT="true" mode inside purchaseTickets by temporarily bypassing flag
           const currentFlag = process.env.USE_TEST_PAYMENT;
           process.env.USE_TEST_PAYMENT = 'true';
           try {
             const ticketResult: any = await this.ticketsService.purchaseTickets(userId, raffleId, quantity);
-            this.logger.log(`Successfully allocated tickets via webhook: ${JSON.stringify(ticketResult?.tickets?.map((t: any) => t.ticketNumber))}`);
+            this.logger.log(`Successfully allocated ${quantity} ticket(s) via webhook: ${JSON.stringify(ticketResult?.tickets?.map((t: any) => t.ticketNumber))}`);
           } finally {
             process.env.USE_TEST_PAYMENT = currentFlag;
           }
         }
       }
 
-      // Handle Host Subscription Order (orderNumber format: SUB_hostId_timestamp or data.hostId)
-      if (
-        status.includes('COMPLETED') ||
-        status.includes('PAID') ||
-        status.includes('CAPTURED') ||
-        status.includes('SUCCESS')
-      ) {
-        const hostId = data.hostId || (orderNumber && orderNumber.startsWith('SUB_') ? orderNumber.split('_')[1] : null);
-        const planId = data.planId;
+      // Handle Host Subscription Order (orderNumber format: SUB_hostId_planId_timestamp)
+      if (orderNumber && orderNumber.startsWith('SUB_')) {
+        const parts = orderNumber.split('_');
+        const hostId = parts[1];
+        const planId = parts[2];
 
         if (hostId && planId) {
           const plan = await this.prisma.subscriptionPlan.findUnique({
