@@ -304,14 +304,11 @@ export class PaymentService {
 
         if (raffleId && userId && quantity > 0) {
           this.logger.log(`Allocating ${quantity} tickets for user ${userId} in raffle ${raffleId} via webhook...`);
-          
-          const currentFlag = process.env.USE_TEST_PAYMENT;
-          process.env.USE_TEST_PAYMENT = 'true';
           try {
-            const ticketResult: any = await this.ticketsService.purchaseTickets(userId, raffleId, quantity);
+            const ticketResult: any = await this.ticketsService.allocateTicketsInDatabase(userId, raffleId, quantity);
             this.logger.log(`Successfully allocated ${quantity} ticket(s) via webhook: ${JSON.stringify(ticketResult?.tickets?.map((t: any) => t.ticketNumber))}`);
-          } finally {
-            process.env.USE_TEST_PAYMENT = currentFlag;
+          } catch (tckErr: any) {
+            this.logger.warn(`Webhook ticket allocation notice: ${tckErr.message}`);
           }
         }
       }
@@ -362,5 +359,117 @@ export class PaymentService {
       this.logger.error(`Cashflow webhook error: ${err.message}`);
       return { success: false, error: err.message };
     }
+  }
+
+  async confirmPaymentReturn(params: {
+    paymentJobRef?: string;
+    orderNumber?: string;
+  }) {
+    let orderNumber = params.orderNumber;
+    const paymentJobRef = params.paymentJobRef;
+
+    this.logger.log(`confirmPaymentReturn called with paymentJobRef: "${paymentJobRef}", orderNumber: "${orderNumber}"`);
+
+    if (!orderNumber && paymentJobRef) {
+      const apiKey = process.env.CASHFLOWS_API_KEY || '';
+      const configId = process.env.CASHFLOWS_CONFIGURATION_ID || '';
+      const baseUrl = process.env.CASHFLOWS_BASE_URL || 'https://gateway-int.cashflows.com';
+      const getHash = crypto.createHash('sha512').update(apiKey).digest('hex').toUpperCase();
+
+      try {
+        const jobResponse = await fetch(`${baseUrl}/api/gateway/payment-jobs/${paymentJobRef}`, {
+          method: 'GET',
+          headers: {
+            ConfigurationId: configId,
+            Hash: getHash,
+            'Content-Type': 'application/json',
+          },
+        });
+        const jobData = await jobResponse.json();
+        const fetchedOrder = jobData.data?.order || jobData.order;
+        if (fetchedOrder?.orderNumber) {
+          orderNumber = fetchedOrder.orderNumber;
+        }
+      } catch (err: any) {
+        this.logger.error(`Failed to fetch job ref ${paymentJobRef} in confirmation: ${err.message}`);
+      }
+    }
+
+    if (!orderNumber) {
+      throw new BadRequestException('Order number or payment job reference is required');
+    }
+
+    // Process Ticket Purchase Order
+    if (orderNumber.startsWith('TCK_')) {
+      const parts = orderNumber.split('_');
+      const raffleId = parts[1];
+      const userId = parts[2];
+      const quantity = parseInt(parts[3] || '1', 10);
+
+      if (raffleId && userId && quantity > 0) {
+        try {
+          const result: any = await this.ticketsService.allocateTicketsInDatabase(userId, raffleId, quantity);
+          this.logger.log(`Confirmed & allocated ${quantity} tickets for user ${userId} in raffle ${raffleId}`);
+          return {
+            success: true,
+            type: 'TICKET_PURCHASE',
+            ...result,
+          };
+        } catch (err: any) {
+          this.logger.warn(`Ticket confirmation notice: ${err.message}`);
+          return {
+            success: true,
+            type: 'TICKET_PURCHASE',
+            message: err.message || 'Tickets confirmed',
+          };
+        }
+      }
+    }
+
+    // Process Host Subscription Order
+    if (orderNumber.startsWith('SUB_')) {
+      const parts = orderNumber.split('_');
+      const hostId = parts[1];
+      const planId = parts[2];
+
+      if (hostId && planId) {
+        const plan = await this.prisma.subscriptionPlan.findUnique({
+          where: { id: planId },
+        });
+        const host = await this.prisma.hostProfile.findUnique({
+          where: { userId: hostId },
+        });
+
+        if (plan && host) {
+          const startDate = new Date();
+          const endDate = new Date();
+          endDate.setDate(endDate.getDate() + plan.durationDays);
+
+          await this.prisma.hostSubscription.updateMany({
+            where: { hostId: host.id, status: 'ACTIVE' },
+            data: { status: 'EXPIRED' },
+          });
+
+          const sub = await this.prisma.hostSubscription.create({
+            data: {
+              hostId: host.id,
+              planId,
+              status: 'ACTIVE',
+              startDate,
+              endDate,
+            },
+          });
+
+          this.logger.log(`Confirmed subscription for host ${hostId} with plan ${plan.name}`);
+          return {
+            success: true,
+            type: 'SUBSCRIPTION',
+            subscription: sub,
+          };
+        }
+      }
+    }
+
+    return { success: true, message: 'Payment confirmation completed' };
   }
 }

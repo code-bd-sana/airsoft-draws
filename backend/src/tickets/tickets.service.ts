@@ -27,6 +27,14 @@ export class TicketsService {
       return this.createCashflowsTicketCheckout(userId, raffleId, quantity);
     }
 
+    return this.allocateTicketsInDatabase(userId, raffleId, quantity);
+  }
+
+  async allocateTicketsInDatabase(userId: string, raffleId: string, quantity: number) {
+    if (quantity <= 0) {
+      throw new BadRequestException('Quantity must be at least 1');
+    }
+
     const result = await this.prisma.$transaction(
       async (tx) => {
         // 1. Fetch the active raffle and lock it for update if needed.
