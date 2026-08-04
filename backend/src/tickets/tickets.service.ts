@@ -273,7 +273,7 @@ export class TicketsService {
     const apiKey = process.env.CASHFLOWS_API_KEY || '';
 
     const totalAmount = (Number(raffle.pricePerTicket) * quantity).toFixed(2);
-    const orderNumber = `TCK_${raffleId.slice(0, 8)}_${userId.slice(0, 8)}_${Date.now()}`;
+    const orderNumber = `TCK_${raffleId}_${userId}_${quantity}_${Date.now()}`;
 
     const innerRequestPayload = {
       type: 'Payment',

@@ -9,5 +9,6 @@ import { RafflesModule } from '../raffles/raffles.module';
   imports: [PrismaModule, JwtModule, forwardRef(() => RafflesModule)],
   controllers: [TicketsController],
   providers: [TicketsService],
+  exports: [TicketsService],
 })
 export class TicketsModule {}
