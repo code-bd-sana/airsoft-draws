@@ -45,9 +45,9 @@ npm run prisma:seed # Runs seeds for active categories, plans, and demo users
 ### 1.3 Baseline Test Accounts Matrix
 | Account Role | Test Email | Default Password | Initial State |
 | :--- | :--- | :--- | :--- |
-| **Admin** | `admin@airsoftdraws.com` | `Admin123!` | Active, System Control |
-| **Host** | `host@airsoftdraws.com` | `Host123!` | Active Profile, Verified |
-| **Client/User** | `client@airsoftdraws.com` | `User123!` | Email Verified, Active |
+| **Admin** | `admin@gmail.com` | `admin@gmail.com` | Active, System Admin Control |
+| **Host** | `host@gmail.com` | `host@gmail.com` | Active Verified Profile, Active `Pro` Subscription, £150 Wallet |
+| **Client/User** | `client@gmail.com` | `client@gmail.com` | Email Verified, Active |
 
 ---
 
