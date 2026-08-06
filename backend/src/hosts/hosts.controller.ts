@@ -53,6 +53,18 @@ export class HostsController {
     return this.hostsService.findAllVerifiedPublic();
   }
 
+  @Get('dashboard')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current host overview dashboard metrics and analytics' })
+  @ApiResponse({ status: 200, description: 'Host dashboard metrics' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  getDashboardOverview(@Req() req: Request) {
+    const userId = this.extractUserId(req);
+    return this.hostsService.getHostDashboardOverview(userId);
+  }
+
   @Get('wallet')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')

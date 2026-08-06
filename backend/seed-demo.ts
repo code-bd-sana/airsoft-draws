@@ -11,6 +11,7 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   const salt = await bcrypt.genSalt(10);
+
   // 1. Admin
   const adminPassword = await bcrypt.hash('admin@gmail.com', salt);
   await prisma.user.upsert({
@@ -19,7 +20,7 @@ async function main() {
       passwordHash: adminPassword,
       role: 'ADMIN',
       isEmailVerified: true,
-      firstName: 'Demo',
+      firstName: 'System',
       lastName: 'Admin',
     },
     create: {
@@ -27,33 +28,32 @@ async function main() {
       passwordHash: adminPassword,
       role: 'ADMIN',
       isEmailVerified: true,
-      firstName: 'Demo',
+      firstName: 'System',
       lastName: 'Admin',
     },
   });
 
   // 2. Host
-  const hostPassword = await bcrypt.hash('password123', salt);
+  const hostPassword = await bcrypt.hash('host@gmail.com', salt);
   const hostUser = await prisma.user.upsert({
-    where: { email: 'host@airsoftdraw.demo' },
+    where: { email: 'host@gmail.com' },
     update: {
       passwordHash: hostPassword,
       role: 'HOST',
       isEmailVerified: true,
-      firstName: 'Demo',
+      firstName: 'Tactical',
       lastName: 'Host',
     },
     create: {
-      email: 'host@airsoftdraw.demo',
+      email: 'host@gmail.com',
       passwordHash: hostPassword,
       role: 'HOST',
       isEmailVerified: true,
-      firstName: 'Demo',
+      firstName: 'Tactical',
       lastName: 'Host',
     },
   });
 
-  // Create host profile if missing
   const hostProfile = await prisma.hostProfile.findUnique({
     where: { userId: hostUser.id },
   });
@@ -61,34 +61,37 @@ async function main() {
     await prisma.hostProfile.create({
       data: {
         userId: hostUser.id,
-        businessName: 'Demo Host Business',
+        businessName: 'Airsoft Tactical Armory',
+        slug: 'airsoft-tactical-armory',
+        bio: 'Official verified supplier of custom airsoft builds.',
         isVerified: true,
+        walletBalance: 150.00,
       },
     });
   }
 
   // 3. Client
-  const clientPassword = await bcrypt.hash('password123', salt);
+  const clientPassword = await bcrypt.hash('client@gmail.com', salt);
   await prisma.user.upsert({
-    where: { email: 'user@airsoftdraw.demo' },
+    where: { email: 'client@gmail.com' },
     update: {
       passwordHash: clientPassword,
       role: 'CLIENT',
       isEmailVerified: true,
-      firstName: 'Demo',
-      lastName: 'User',
+      firstName: 'John',
+      lastName: 'Player',
     },
     create: {
-      email: 'user@airsoftdraw.demo',
+      email: 'client@gmail.com',
       passwordHash: clientPassword,
       role: 'CLIENT',
       isEmailVerified: true,
-      firstName: 'Demo',
-      lastName: 'User',
+      firstName: 'John',
+      lastName: 'Player',
     },
   });
 
-  console.log('Seed completed!');
+  console.log('Seed demo completed successfully!');
 }
 
 main()

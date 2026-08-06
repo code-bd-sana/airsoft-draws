@@ -36,7 +36,53 @@ export interface WithdrawalHistoryItem {
   adminNotes?: string;
 }
 
+export interface HostDashboardOverviewData {
+  kpiStats: {
+    totalNetRevenue: number;
+    totalGrossRevenue: number;
+    availableBalance: number;
+    activeCompetitionsCount: number;
+    totalCompetitionsCount: number;
+    totalTicketsSold: number;
+    totalWinnersCount: number;
+  };
+  activeRaffles: Array<{
+    id: string;
+    slug: string;
+    title: string;
+    image: string;
+    ticketPrice: number;
+    totalTickets: number;
+    ticketsSold: number;
+    percentageSold: number;
+    endDate: string;
+    status: string;
+    revenue: number;
+  }>;
+  upcomingDraws: Array<{
+    id: string;
+    title: string;
+    endDate: string;
+    ticketsSold: number;
+    totalTickets: number;
+    status: string;
+  }>;
+  recentActivity: Array<{
+    id: string;
+    ticketNumber: number;
+    raffleTitle: string;
+    buyerName: string;
+    amount: number;
+    createdAt: string;
+  }>;
+}
+
 export const hostWalletService = {
+  async getDashboardOverview(): Promise<HostDashboardOverviewData> {
+    const response = await api.get('/hosts/dashboard');
+    return response.data;
+  },
+
   async getWalletStats(): Promise<WalletStats> {
     const response = await api.get('/hosts/wallet');
     return response.data;

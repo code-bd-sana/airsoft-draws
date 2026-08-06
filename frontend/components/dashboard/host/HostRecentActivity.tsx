@@ -39,31 +39,72 @@ const ActivityIcon = ({ type }: { type: IHostRecentActivity["type"] }) => {
   }
 };
 
-export default function HostRecentActivity() {
+interface HostRecentActivityProps {
+  activities?: Array<{
+    id: string;
+    ticketNumber: number;
+    raffleTitle: string;
+    buyerName: string;
+    amount: number;
+    createdAt: string;
+  }>;
+  isLoading?: boolean;
+}
+
+export default function HostRecentActivity({ activities, isLoading }: HostRecentActivityProps) {
   return (
     <div className="w-full flex flex-col gap-[20px] mt-4">
       <h2 className="font-heading font-normal text-[16px] leading-[normal] text-[#e8edd4]">
-        Recent Activity
+        Recent Ticket Purchases & Sales Activity
       </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-[16px]">
-        {hostRecentActivities.map((activity) => (
-          <div key={activity.id} className="bg-[#161810] border border-[#2d3c13] rounded-[12px] p-[16px] flex gap-[12px] items-start">
-            <div className="w-[24px] h-[24px] rounded-[6px] bg-[#1a230a] border border-[#2d3c13] flex items-center justify-center shrink-0 mt-[2px]">
-              <ActivityIcon type={activity.type} />
-            </div>
-            <div className="flex flex-col gap-[4px] min-w-0">
-              <p className="font-sans font-normal text-[12px] leading-[18px] text-[#5a752a] truncate">
-                {activity.title} —
-                <br />
-                <span className="text-[#a0d056]">{activity.description}</span>
-              </p>
-              <p className="font-sans font-normal text-[10px] text-[#5a752a]">
-                {activity.timeAgo}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
+
+      {isLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-[16px]">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="bg-[#161810] border border-[#2d3c13] rounded-[12px] p-[16px] h-[70px] animate-pulse" />
+          ))}
+        </div>
+      )}
+
+      {!isLoading && (!activities || activities.length === 0) && (
+        <div className="bg-[#161810] border border-[#2d3c13] rounded-[12px] p-6 text-center text-[#5a752a] text-sm">
+          No recent ticket purchases or sales activity recorded yet.
+        </div>
+      )}
+
+      {!isLoading && activities && activities.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-[16px]">
+          {activities.map((activity) => {
+            const timeFormatted = new Date(activity.createdAt).toLocaleDateString("en-GB", {
+              day: "numeric",
+              month: "short",
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+
+            return (
+              <div key={activity.id} className="bg-[#161810] border border-[#2d3c13] rounded-[12px] p-[16px] flex gap-[12px] items-start">
+                <div className="w-[24px] h-[24px] rounded-[6px] bg-[#1a230a] border border-[#2d3c13] flex items-center justify-center shrink-0 mt-[2px]">
+                  <ActivityIcon type="purchase" />
+                </div>
+                <div className="flex flex-col gap-[4px] min-w-0">
+                  <p className="font-sans font-normal text-[12px] leading-[18px] text-[#5a752a] truncate">
+                    Ticket #{activity.ticketNumber} Purchased —
+                    <br />
+                    <span className="text-[#a0d056]">{activity.buyerName}</span>
+                  </p>
+                  <p className="font-sans font-medium text-[11px] text-[#8cb34a] truncate">
+                    {activity.raffleTitle} (£{Number(activity.amount).toFixed(2)})
+                  </p>
+                  <p className="font-sans font-normal text-[10px] text-[#5a752a]">
+                    {timeFormatted}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

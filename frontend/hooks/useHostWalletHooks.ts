@@ -1,6 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { hostWalletService, RequestWithdrawalPayload } from '../services/host-wallet.service';
 
+export const useHostDashboardOverview = () => {
+  return useQuery({
+    queryKey: ['host-dashboard-overview'],
+    queryFn: hostWalletService.getDashboardOverview,
+    staleTime: 30 * 1000,
+  });
+};
+
 export const useHostWalletStats = () => {
   return useQuery({
     queryKey: ['host-wallet-stats'],

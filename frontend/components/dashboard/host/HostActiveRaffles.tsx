@@ -4,9 +4,15 @@ import React from "react";
 import { useHostRaffles } from "../../../hooks/useRaffleHooks";
 import Link from "next/link";
 
-export default function HostActiveRaffles() {
-  const { data: response, isLoading } = useHostRaffles({ limit: 5, status: "Live" });
-  const activeRaffles = response?.data || [];
+interface HostActiveRafflesProps {
+  raffles?: any[];
+  isLoading?: boolean;
+}
+
+export default function HostActiveRaffles({ raffles, isLoading: propIsLoading }: HostActiveRafflesProps) {
+  const { data: response, isLoading: queryIsLoading } = useHostRaffles({ limit: 5, status: "Live" });
+  const activeRaffles = raffles ?? (response?.data || []);
+  const isLoading = propIsLoading ?? queryIsLoading;
 
   return (
     <div className="bg-[#161810] border border-[#2d3c13] rounded-[16px] p-[25px] w-full flex flex-col min-h-[330px]">

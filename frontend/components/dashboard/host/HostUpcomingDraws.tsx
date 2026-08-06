@@ -4,13 +4,19 @@ import React from "react";
 import { useHostRaffles } from "../../../hooks/useRaffleHooks";
 import Link from "next/link";
 
-export default function HostUpcomingDraws() {
-  const { data: response, isLoading } = useHostRaffles({ limit: 10, status: "Live" });
+interface HostUpcomingDrawsProps {
+  draws?: any[];
+  isLoading?: boolean;
+}
+
+export default function HostUpcomingDraws({ draws, isLoading: propIsLoading }: HostUpcomingDrawsProps) {
+  const { data: response, isLoading: queryIsLoading } = useHostRaffles({ limit: 10, status: "Live" });
   
-  // Sort by endDate ascending to get the soonest draws, take top 5
-  const upcomingDraws = (response?.data || [])
+  const upcomingDraws = draws ?? (response?.data || [])
     .sort((a: any, b: any) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime())
     .slice(0, 5);
+
+  const isLoading = propIsLoading ?? queryIsLoading;
 
   return (
     <div className="bg-[#161810] border border-[#2d3c13] rounded-[16px] p-[25px] w-full flex flex-col min-h-[330px]">

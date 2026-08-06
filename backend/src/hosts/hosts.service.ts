@@ -317,4 +317,102 @@ export class HostsService {
       };
     });
   }
+
+  async getHostDashboardOverview(userId: string) {
+    const host = await this.getHostProfileByUserId(userId);
+
+    // Fetch all host raffles
+    const hostRaffles = await this.prisma.raffle.findMany({
+      where: { hostId: host.id },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        instantWins: true,
+        _count: {
+          select: { tickets: true, winners: true },
+        },
+      },
+    });
+
+    const activeRaffles = hostRaffles.filter((r) => r.status === 'ACTIVE');
+    const totalTicketsSold = hostRaffles.reduce((sum, r) => sum + r.ticketsSold, 0);
+
+    const totalGrossRevenue = hostRaffles.reduce(
+      (sum, r) => sum + Number(r.pricePerTicket) * r.ticketsSold,
+      0,
+    );
+    const totalNetRevenue = totalGrossRevenue * 0.9; // 10% platform fee deducted
+
+    const totalWinnersCount = await this.prisma.winner.count({
+      where: { raffle: { hostId: host.id } },
+    });
+
+    // Recent Activity / Ticket Sales
+    const recentTickets = await this.prisma.ticket.findMany({
+      where: { raffle: { hostId: host.id } },
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { select: { firstName: true, lastName: true, email: true } },
+        raffle: { select: { title: true, pricePerTicket: true } },
+      },
+    });
+
+    const recentActivity = recentTickets.map((t) => ({
+      id: t.id,
+      ticketNumber: t.ticketNumber,
+      raffleTitle: t.raffle?.title || 'Airsoft Competition',
+      buyerName: `${t.user?.firstName || 'User'} ${t.user?.lastName || ''}`.trim() || t.user?.email || 'Anonymous Client',
+      amount: Number(t.raffle?.pricePerTicket || 0),
+      createdAt: t.createdAt,
+    }));
+
+    // Formatted Active Raffles for UI
+    const formattedActiveRaffles = activeRaffles.map((r) => {
+      const percentageSold = r.totalTickets > 0 
+        ? Math.min(100, Math.round((r.ticketsSold / r.totalTickets) * 100)) 
+        : 0;
+
+      return {
+        id: r.id,
+        slug: r.slug || r.id,
+        title: r.title,
+        image: r.mainImage || '/images/default-raffle.png',
+        ticketPrice: Number(r.pricePerTicket),
+        totalTickets: r.totalTickets,
+        ticketsSold: r.ticketsSold,
+        percentageSold,
+        endDate: r.endDate,
+        status: r.status,
+        revenue: Number(r.pricePerTicket) * r.ticketsSold,
+      };
+    });
+
+    // Upcoming Draws (Active or Ended raffles closest to expiry)
+    const upcomingDraws = hostRaffles
+      .filter((r) => r.status === 'ACTIVE' || r.status === 'ENDED')
+      .slice(0, 5)
+      .map((r) => ({
+        id: r.id,
+        title: r.title,
+        endDate: r.endDate,
+        ticketsSold: r.ticketsSold,
+        totalTickets: r.totalTickets,
+        status: r.status,
+      }));
+
+    return {
+      kpiStats: {
+        totalNetRevenue,
+        totalGrossRevenue,
+        availableBalance: Number(host.walletBalance),
+        activeCompetitionsCount: activeRaffles.length,
+        totalCompetitionsCount: hostRaffles.length,
+        totalTicketsSold,
+        totalWinnersCount,
+      },
+      activeRaffles: formattedActiveRaffles,
+      upcomingDraws,
+      recentActivity,
+    };
+  }
 }

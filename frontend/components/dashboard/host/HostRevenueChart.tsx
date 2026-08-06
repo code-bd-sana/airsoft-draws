@@ -1,6 +1,12 @@
-import React from "react";
+interface HostRevenueChartProps {
+  totalRevenue?: number;
+}
 
-export default function HostRevenueChart() {
+export default function HostRevenueChart({ totalRevenue }: HostRevenueChartProps) {
+  const displayRevenue = totalRevenue !== undefined 
+    ? `£${Number(totalRevenue).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : "£0.00";
+
   return (
     <div className="bg-[#161810] border border-[#2d3c13] rounded-[16px] p-[25px] w-full flex flex-col h-full min-h-[362px]">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -29,11 +35,11 @@ export default function HostRevenueChart() {
 
       <div className="flex items-center gap-[12px] pt-[16px]">
         <p className="font-heading font-bold text-[32px] leading-[48px] text-[#e8edd4]">
-          £4,999.95
+          {displayRevenue}
         </p>
         <div className="bg-[#083b18] rounded-[99px] h-[24px] px-[10px] flex items-center justify-center">
           <p className="font-sans font-normal text-[12px] leading-[18px] text-[#4ade80]">
-            ▲ 20%
+            ▲ Live
           </p>
         </div>
       </div>
