@@ -46,7 +46,7 @@ export const trustBenefitsData: TrustBenefit[] = [
   {
     id: "benefit-3",
     title: "Verified Random Draws",
-    description: "All draws are conducted live on stream using public third-party random number generators. Verifiable and fully transparent.",
+    description: "All draws are conducted live on stream using our lottery ball machine. Verifiable and fully transparent.",
     iconName: "SparklesIcon",
   },
 ];
