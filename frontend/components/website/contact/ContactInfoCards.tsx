@@ -106,7 +106,7 @@ export default function ContactInfoCards() {
 
       {/* Direct WhatsApp Callout Banner */}
       <a
-        href="https://wa.me/447984594833?text=Hello%20Airsoft%20Draws%20Support%2C%20I%20have%20an%20inquiry"
+        href="https://wa.me/447497113316?text=Hello%20Airsoft%20Draws%20Support%2C%20I%20have%20an%20inquiry"
         target="_blank"
         rel="noopener noreferrer"
         className="bg-gradient-to-r from-[#0d2818] via-[#163820] to-[#0d2818] border border-[#25D366]/50 rounded-[14px] p-5 flex items-center justify-between group hover:shadow-[0_0_20px_rgba(37,211,102,0.2)] transition-all duration-300"
@@ -120,7 +120,7 @@ export default function ContactInfoCards() {
               Chat on WhatsApp
             </h4>
             <p className="font-sans text-xs text-[#72943A]">
-              Connect directly with Admin Support (+44 7984 594833)
+              Connect directly with Admin Support (+44 7497 113316)
             </p>
           </div>
         </div>

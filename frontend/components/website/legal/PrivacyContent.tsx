@@ -131,16 +131,16 @@ export default function PrivacyContent() {
                   Legal Entity Name: <strong>Airsoft Draws Ltd</strong>
                 </p>
                 <p className="text-xs text-[#B3B8AA]">
-                  Data Privacy Manager: <strong>L McManus</strong>
+                  Data Privacy Manager: <strong>C Deane</strong>
                 </p>
                 <p className="text-xs text-[#B3B8AA]">
                   Correspondence Address: Synergy House, Lawson Street, North Shields NE29 6TG
                 </p>
                 <p className="text-xs text-[#B3B8AA]">
-                  Phone: <a href="tel:+447984594833" className="text-[#8CB34A] hover:underline">+44 (0) 7984 594833</a>
+                  Phone: <a href="tel:+447497113316" className="text-[#8CB34A] hover:underline">+44 (0) 7497113316</a>
                 </p>
                 <p className="text-xs text-[#B3B8AA]">
-                  Email: <a href="mailto:privacy@airsoftdraws.com" className="text-[#8CB34A] hover:underline">privacy@airsoftdraws.com</a> / <a href="mailto:win@airsoftdraws.com" className="text-[#8CB34A] hover:underline">win@airsoftdraws.com</a>
+                  Email: <a href="mailto:info@airsoftdraws.com" className="text-[#8CB34A] hover:underline">info@airsoftdraws.com</a>
                 </p>
               </div>
               <p className="text-xs text-[#72943A]">
@@ -209,7 +209,7 @@ export default function PrivacyContent() {
                 You will receive marketing communications from Airsoft Draws if you have requested information, purchased tickets, entered a competition, or explicitly subscribed to our newsletter.
               </p>
               <p>
-                <strong className="text-[#E8EDD4]">Opting Out:</strong> You can unsubscribe from marketing communications at any time by clicking the "Unsubscribe" link in any promotional email or contacting us directly at <a href="mailto:win@airsoftdraws.com" className="text-[#8CB34A] underline">win@airsoftdraws.com</a>. Opting out of marketing does not affect essential transaction emails (e.g. ticket purchase receipts or winner notifications).
+                <strong className="text-[#E8EDD4]">Opting Out:</strong> You can unsubscribe from marketing communications at any time by clicking the "Unsubscribe" link in any promotional email or contacting us directly at <a href="mailto:info@airsoftdraws.com" className="text-[#8CB34A] underline">info@airsoftdraws.com</a>. Opting out of marketing does not affect essential transaction emails (e.g. ticket purchase receipts or winner notifications).
               </p>
             </section>
 
@@ -277,7 +277,7 @@ export default function PrivacyContent() {
                 <li><strong>Data Portability:</strong> Request transfer of your data in a structured, machine-readable format.</li>
               </ul>
               <p className="text-xs text-[#72943A] pt-2">
-                To exercise any of your rights, contact our Data Privacy Manager at <a href="mailto:privacy@airsoftdraws.com" className="text-[#8CB34A] underline">privacy@airsoftdraws.com</a>. We aim to respond within 30 days.
+                To exercise any of your rights, contact our Data Privacy Manager at <a href="mailto:info@airsoftdraws.com" className="text-[#8CB34A] underline">info@airsoftdraws.com</a>. We aim to respond within 30 days.
               </p>
             </section>
 

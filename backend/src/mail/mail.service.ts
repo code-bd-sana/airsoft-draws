@@ -21,7 +21,7 @@ export class MailService {
   }
 
   async sendContactFormEmail(dto: ContactFormDto) {
-    const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER || 'win@airsoftdraws.com';
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER || 'info@airsoftdraws.com';
     const subject = `[Contact Form] ${dto.subject || 'New Inquiry from ' + dto.name}`;
 
     try {
