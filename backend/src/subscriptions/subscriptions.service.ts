@@ -18,8 +18,7 @@ export class SubscriptionsService {
   async getMySubscription(hostId: string) {
     const host = await this.prisma.hostProfile.findUnique({
       where: { userId: hostId },
-    });
-    if (!host) return null;
+    }); if (!host) return null;
 
     const sub = await this.prisma.hostSubscription.findFirst({
       where: { hostId: host.id },

@@ -13,9 +13,18 @@ interface DashboardTopbarProps {
   onMenuClick: () => void;
   title?: string;
   subtitle?: string;
+  isCollapsed?: boolean;
+  onToggleSidebar?: () => void;
 }
 
-export default function DashboardTopbar({ account, onMenuClick, title = "Dashboard Overview", subtitle = "Host Portal / Dashboard Overview" }: DashboardTopbarProps) {
+export default function DashboardTopbar({
+  account,
+  onMenuClick,
+  title = "Dashboard Overview",
+  subtitle = "Host Portal / Dashboard Overview",
+  isCollapsed = false,
+  onToggleSidebar,
+}: DashboardTopbarProps) {
   const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -33,11 +42,25 @@ export default function DashboardTopbar({ account, onMenuClick, title = "Dashboa
         <button
           onClick={onMenuClick}
           className="lg:hidden p-2 -ml-2 text-[#E8EDD4] hover:bg-[#161810] rounded-md transition-colors"
+          title="Open Menu"
         >
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>
         </button>
+
+        {/* Desktop Sidebar Toggle Button */}
+        {onToggleSidebar && (
+          <button
+            onClick={onToggleSidebar}
+            className="hidden lg:flex items-center justify-center p-2 rounded-lg bg-[#161810] border border-[#2D3C13] text-[#72943A] hover:text-[#8CB34A] hover:bg-[#1A230A] transition-colors"
+            title={isCollapsed ? "Expand Sidebar Menu" : "Collapse Sidebar Menu"}
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </button>
+        )}
 
         {/* 1-Tap Quick Switcher to Public Website */}
         <Link

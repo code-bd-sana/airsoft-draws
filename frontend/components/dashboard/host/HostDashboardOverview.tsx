@@ -65,15 +65,15 @@ export default function HostDashboardOverview() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex flex-col xl:flex-row gap-[20px] w-full items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-[20px] w-full items-start">
         {/* Left Column (Earnings + Active Raffles) */}
-        <div className="flex flex-col gap-[20px] w-full xl:w-[924px] shrink-0">
+        <div className="xl:col-span-7 2xl:col-span-7 flex flex-col gap-[20px] w-full min-w-0">
           <HostRevenueChart totalRevenue={dashboardData?.kpiStats?.totalNetRevenue} />
           <HostActiveRaffles raffles={dashboardData?.activeRaffles} isLoading={isLoading} />
         </div>
 
         {/* Right Column (Profit Calculator + Upcoming Draws) */}
-        <div className="flex flex-col gap-[20px] w-full xl:w-[635px] shrink-0">
+        <div className="xl:col-span-5 2xl:col-span-5 flex flex-col gap-[20px] w-full min-w-0">
           <RaffleProfitCalculator />
           <HostUpcomingDraws draws={dashboardData?.upcomingDraws} isLoading={isLoading} />
         </div>

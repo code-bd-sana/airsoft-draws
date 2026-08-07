@@ -28,10 +28,11 @@ export default function HowItWorksSection() {
         </svg>
       ),
     },
+
     {
       stepNumber: 2,
       title: "Enter Your Tickets",
-      description: "Answer a quick entry question and buy your tickets securely from £1. Buy multiple tickets to increase your odds.",
+      description: "Select the amount of tickets you would like, purchasing multiple will increase your odds of winning",
       renderIcon: () => (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -50,9 +51,11 @@ export default function HowItWorksSection() {
       ),
     },
     {
+
+
       stepNumber: 3,
       title: "Win Your Gear",
-      description: "When the timer ends or tickets sell out, a winner is selected live on stream using public third-party randomizers.",
+      description: "A winner is then selected either automatically by our system or live on our Instagram using our lottery ball machine depending on the competition.",
       renderIcon: () => (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -93,7 +96,7 @@ export default function HowItWorksSection() {
   return (
     <section id="how-it-works" className="py-20 bg-surface border-t border-divider">
       <div className="container-custom">
-        
+
         {/* Section Header */}
         <SectionHeader
           badgeText="SIMPLE PROCESS"
@@ -109,7 +112,7 @@ export default function HowItWorksSection() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 relative z-10">
             {steps.map((step) => (
               <div key={step.stepNumber} className="flex flex-col items-center text-center px-4">
-                
+
                 {/* Step Circle with Icon */}
                 <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-accent-bg border border-primary shadow-glow mb-6">
                   {step.renderIcon()}
@@ -122,7 +125,7 @@ export default function HowItWorksSection() {
                 <h3 className="font-heading font-bold text-lg text-text-primary mb-3">
                   {step.title}
                 </h3>
-                
+
                 <p className="font-sans text-xs md:text-sm text-text-muted leading-relaxed max-w-sm">
                   {step.description}
                 </p>

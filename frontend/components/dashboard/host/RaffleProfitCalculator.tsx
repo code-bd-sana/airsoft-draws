@@ -27,7 +27,7 @@ export default function RaffleProfitCalculator() {
   };
 
   return (
-    <div className="bg-[#161810] border border-[#2d3c13] rounded-[16px] p-[25px] w-full flex flex-col gap-[16px] h-[362px] shrink-0 xl:w-[635px]">
+    <div className="bg-[#161810] border border-[#2d3c13] rounded-[16px] p-[25px] w-full flex flex-col gap-[16px] min-h-[362px]">
       <div className="w-full">
         <h2 className="font-heading font-bold text-[16px] leading-[normal] text-[#e8edd4]">
           Raffle Profit Calculator

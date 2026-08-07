@@ -93,8 +93,8 @@ export class PaymentService {
       };
     }
 
-    // Generate unique order number
-    const orderNumber = `SUB_${hostId}_${planId}_${Date.now()}`;
+    // Generate unique order number (max 35 chars for Cashflows API)
+    const orderNumber = `SUB_${hostId.slice(0, 8)}_${planId.slice(0, 8)}_${Date.now()}`;
 
     // Request payload for Cashflows Hosted Payment Page / Checkout
     const requestPayload = {
@@ -124,14 +124,14 @@ export class PaymentService {
       currency: 'GBP',
       order: {
         orderNumber: orderNumber,
+        note: `Subscription Plan: ${plan.name}`,
       },
-      recurring: true,
       customer: {
         email: host.user.email,
-        firstName: host.user.firstName || '',
-        lastName: host.user.lastName || '',
+        firstName: host.user.firstName || 'Valued',
+        lastName: host.user.lastName || 'Customer',
       },
-      returnUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard/host/billing?status=success`,
+      returnUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard/host/billing?status=success&ordernumber=${orderNumber}`,
       cancelUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard/host/billing?status=cancel`,
     };
 
@@ -142,14 +142,15 @@ export class PaymentService {
       .digest('hex')
       .toUpperCase();
 
-    const fullPayload = {
-      ConfigurationId: configId,
-      Hash: hash,
-      Request: innerRequestPayload,
-    };
-
     try {
-      this.logger.log(`Initiating Cashflows subscription checkout to ${baseUrl}/api/gateway/payment-jobs`);
+      console.log('=====================================================');
+      console.log('CASHFLOWS SUBSCRIPTION CHECKOUT REQUEST:');
+      console.log('URL:', `${baseUrl}/api/gateway/payment-jobs`);
+      console.log('ConfigurationId:', configId);
+      console.log('Hash:', hash);
+      console.log('Body Payload:', innerRequestString);
+      console.log('=====================================================');
+
       const response = await fetch(`${baseUrl}/api/gateway/payment-jobs`, {
         method: 'POST',
         headers: {
@@ -161,6 +162,11 @@ export class PaymentService {
       });
 
       const responseText = await response.text();
+      console.log('=====================================================');
+      console.log(`CASHFLOWS SUBSCRIPTION RESPONSE (Status: ${response.status}):`);
+      console.log(responseText);
+      console.log('=====================================================');
+
       let data: any = {};
       try {
         data = JSON.parse(responseText);
@@ -169,9 +175,9 @@ export class PaymentService {
       }
 
       if (!response.ok) {
-        this.logger.error('Cashflows Subscription API error', data);
+        this.logger.error(`Cashflows Subscription API error (${response.status}): ${responseText}`, data);
         throw new BadRequestException(
-          data.message || data.error || `Cashflows API error (${response.status})`,
+          data.message || data.error || `Cashflows API error (${response.status}): ${responseText || 'Empty response'}`,
         );
       }
 
@@ -295,36 +301,45 @@ export class PaymentService {
 
       this.logger.log(`Webhook Processing - Event Status: "${status}", OrderNumber: "${orderNumber}"`);
 
-      // Handle Ticket Purchase Order (orderNumber format: TCK_raffleId_userId_quantity_timestamp)
+      // Handle Ticket Purchase Order (orderNumber format: TCK_raffleIdPrefix_userIdPrefix_quantity_timestamp)
       if (orderNumber && orderNumber.startsWith('TCK_')) {
         const parts = orderNumber.split('_');
-        const raffleId = parts[1];
-        const userId = parts[2];
+        const rafflePrefix = parts[1];
+        const userPrefix = parts[2];
         const quantity = parseInt(parts[3] || '1', 10);
 
-        if (raffleId && userId && quantity > 0) {
-          this.logger.log(`Allocating ${quantity} tickets for user ${userId} in raffle ${raffleId} via webhook...`);
-          try {
-            const ticketResult: any = await this.ticketsService.allocateTicketsInDatabase(userId, raffleId, quantity);
-            this.logger.log(`Successfully allocated ${quantity} ticket(s) via webhook: ${JSON.stringify(ticketResult?.tickets?.map((t: any) => t.ticketNumber))}`);
-          } catch (tckErr: any) {
-            this.logger.warn(`Webhook ticket allocation notice: ${tckErr.message}`);
+        if (rafflePrefix && userPrefix && quantity > 0) {
+          const raffle = await this.prisma.raffle.findFirst({
+            where: { id: { startsWith: rafflePrefix } },
+          });
+          const user = await this.prisma.user.findFirst({
+            where: { id: { startsWith: userPrefix } },
+          });
+
+          if (raffle && user) {
+            this.logger.log(`Allocating ${quantity} tickets for user ${user.id} in raffle ${raffle.id} via webhook...`);
+            try {
+              const ticketResult: any = await this.ticketsService.allocateTicketsInDatabase(user.id, raffle.id, quantity);
+              this.logger.log(`Successfully allocated ${quantity} ticket(s) via webhook: ${JSON.stringify(ticketResult?.tickets?.map((t: any) => t.ticketNumber))}`);
+            } catch (tckErr: any) {
+              this.logger.warn(`Webhook ticket allocation notice: ${tckErr.message}`);
+            }
           }
         }
       }
 
-      // Handle Host Subscription Order (orderNumber format: SUB_hostId_planId_timestamp)
+      // Handle Host Subscription Order (orderNumber format: SUB_hostIdPrefix_planIdPrefix_timestamp)
       if (orderNumber && orderNumber.startsWith('SUB_')) {
         const parts = orderNumber.split('_');
-        const hostId = parts[1];
-        const planId = parts[2];
+        const hostPrefix = parts[1];
+        const planPrefix = parts[2];
 
-        if (hostId && planId) {
-          const plan = await this.prisma.subscriptionPlan.findUnique({
-            where: { id: planId },
+        if (hostPrefix && planPrefix) {
+          const plan = await this.prisma.subscriptionPlan.findFirst({
+            where: { id: { startsWith: planPrefix } },
           });
-          const host = await this.prisma.hostProfile.findUnique({
-            where: { userId: hostId },
+          const host = await this.prisma.hostProfile.findFirst({
+            where: { OR: [{ id: { startsWith: hostPrefix } }, { userId: { startsWith: hostPrefix } }] },
           });
 
           if (plan && host) {
@@ -340,7 +355,7 @@ export class PaymentService {
             await this.prisma.hostSubscription.create({
               data: {
                 hostId: host.id,
-                planId,
+                planId: plan.id,
                 status: 'ACTIVE',
                 startDate,
                 endDate,
@@ -348,7 +363,7 @@ export class PaymentService {
             });
 
             this.logger.log(
-              `Activated subscription for host ${hostId} with plan ${plan.name} via webhook`,
+              `Activated subscription for host ${host.id} with plan ${plan.name} via webhook`,
             );
           }
         }
@@ -402,26 +417,35 @@ export class PaymentService {
     // Process Ticket Purchase Order
     if (orderNumber.startsWith('TCK_')) {
       const parts = orderNumber.split('_');
-      const raffleId = parts[1];
-      const userId = parts[2];
+      const rafflePrefix = parts[1];
+      const userPrefix = parts[2];
       const quantity = parseInt(parts[3] || '1', 10);
 
-      if (raffleId && userId && quantity > 0) {
-        try {
-          const result: any = await this.ticketsService.allocateTicketsInDatabase(userId, raffleId, quantity);
-          this.logger.log(`Confirmed & allocated ${quantity} tickets for user ${userId} in raffle ${raffleId}`);
-          return {
-            success: true,
-            type: 'TICKET_PURCHASE',
-            ...result,
-          };
-        } catch (err: any) {
-          this.logger.warn(`Ticket confirmation notice: ${err.message}`);
-          return {
-            success: true,
-            type: 'TICKET_PURCHASE',
-            message: err.message || 'Tickets confirmed',
-          };
+      if (rafflePrefix && userPrefix && quantity > 0) {
+        const raffle = await this.prisma.raffle.findFirst({
+          where: { id: { startsWith: rafflePrefix } },
+        });
+        const user = await this.prisma.user.findFirst({
+          where: { id: { startsWith: userPrefix } },
+        });
+
+        if (raffle && user) {
+          try {
+            const result: any = await this.ticketsService.allocateTicketsInDatabase(user.id, raffle.id, quantity);
+            this.logger.log(`Confirmed & allocated ${quantity} tickets for user ${user.id} in raffle ${raffle.id}`);
+            return {
+              success: true,
+              type: 'TICKET_PURCHASE',
+              ...result,
+            };
+          } catch (err: any) {
+            this.logger.warn(`Ticket confirmation notice: ${err.message}`);
+            return {
+              success: true,
+              type: 'TICKET_PURCHASE',
+              message: err.message || 'Tickets confirmed',
+            };
+          }
         }
       }
     }
@@ -429,15 +453,15 @@ export class PaymentService {
     // Process Host Subscription Order
     if (orderNumber.startsWith('SUB_')) {
       const parts = orderNumber.split('_');
-      const hostId = parts[1];
-      const planId = parts[2];
+      const hostPrefix = parts[1];
+      const planPrefix = parts[2];
 
-      if (hostId && planId) {
-        const plan = await this.prisma.subscriptionPlan.findUnique({
-          where: { id: planId },
+      if (hostPrefix && planPrefix) {
+        const plan = await this.prisma.subscriptionPlan.findFirst({
+          where: { id: { startsWith: planPrefix } },
         });
-        const host = await this.prisma.hostProfile.findUnique({
-          where: { userId: hostId },
+        const host = await this.prisma.hostProfile.findFirst({
+          where: { OR: [{ id: { startsWith: hostPrefix } }, { userId: { startsWith: hostPrefix } }] },
         });
 
         if (plan && host) {
@@ -453,14 +477,14 @@ export class PaymentService {
           const sub = await this.prisma.hostSubscription.create({
             data: {
               hostId: host.id,
-              planId,
+              planId: plan.id,
               status: 'ACTIVE',
               startDate,
               endDate,
             },
           });
 
-          this.logger.log(`Confirmed subscription for host ${hostId} with plan ${plan.name}`);
+          this.logger.log(`Confirmed subscription for host ${host.id} with plan ${plan.name}`);
           return {
             success: true,
             type: 'SUBSCRIPTION',
