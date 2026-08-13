@@ -245,35 +245,62 @@ export default function TermsContent() {
               </p>
             </section>
 
-            {/* 7. Winners & 8. Claiming */}
+            {/* 7. Winners */}
             <section id="winners" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
               <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
-                7. Winners & Claiming Prizes
+                7. Winners
               </h2>
               <p>
                 7.1. Winners will be contacted personally via phone or email within 7 days of the Draw Date.
               </p>
               <p>
-                7.2. <strong className="text-[#E8EDD4]">21-Day Claim Limit:</strong> Winners have 21 days from notification to claim their prize. If uncontactable after 21 days, an alternate winner will be selected via random redraw.
-              </p>
-              <p>
-                7.3. Cash prizes will be transferred directly to the winner's verified UK bank account. The winner must prove sole or joint beneficiary ownership of the account.
+                7.2. The winner's full name and town may be published on the Website and social media channels following live draw verification.
               </p>
             </section>
 
-            {/* 9. Limitation of Liability & 10. Data */}
+            {/* 8. Claiming the Prize */}
+            <section id="claiming-prize" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
+              <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
+                8. Claiming the Prize
+              </h2>
+              <p>
+                8.1. <strong className="text-[#E8EDD4]">21-Day Claim Limit:</strong> Winners have 21 days from notification to claim their prize. If uncontactable after 21 days, an alternate winner will be selected via random redraw.
+              </p>
+              <p>
+                8.2. Cash prizes will be transferred directly to the winner&apos;s verified UK bank account. The winner must prove sole or joint beneficiary ownership of the account.
+              </p>
+              <p>
+                8.3. Physical prizes will be delivered via insured courier to the registered UK postal address.
+              </p>
+            </section>
+
+            {/* 9. Limitation of Liability */}
             <section id="liability" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
               <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
-                9. Limitation of Liability & Data Protection
+                9. Limitation of Liability
               </h2>
               <p>
                 9.1. Airsoft Draws accepts no liability for technical failures, network outages, or delayed entries.
               </p>
               <p>
+                9.2. To the fullest extent permitted by law, the Promoter shall not be liable for any loss, damage, or personal injury suffered by any Entrant as a result of entering the competition or accepting any prize.
+              </p>
+            </section>
+
+            {/* 10. Data Protection & Publicity */}
+            <section id="data-protection" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
+              <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
+                10. Data Protection & Publicity
+              </h2>
+              <p>
                 10.1. Personal information provided will be processed strictly in accordance with our Privacy Policy and UK GDPR regulations.
               </p>
               <p>
                 10.2. Winners consent to the publication of their full name and town for statutory Advertising Standards Authority (ASA) compliance proof.
+              </p>
+              <p>
+                10.3. Entrants may request removal or correction of their personal data by contacting our Data Protection team at{" "}
+                <a href="mailto:info@airsoftdraws.com" className="text-[#8CB34A] underline">info@airsoftdraws.com</a>.
               </p>
             </section>
 
