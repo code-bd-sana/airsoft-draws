@@ -4,7 +4,6 @@ import React from "react";
 import HostStatCard from "./HostStatCard";
 import HostRevenueChart from "./HostRevenueChart";
 import HostActiveRaffles from "./HostActiveRaffles";
-import RaffleProfitCalculator from "./RaffleProfitCalculator";
 import HostUpcomingDraws from "./HostUpcomingDraws";
 import HostRecentActivity from "./HostRecentActivity";
 import { useHostDashboardOverview } from "../../../hooks/useHostWalletHooks";
@@ -64,20 +63,21 @@ export default function HostDashboardOverview() {
         ))}
       </div>
 
-      {/* Main Content Area */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-[20px] w-full items-start">
-        {/* Left Column (Earnings + Active Raffles) */}
-        <div className="xl:col-span-7 2xl:col-span-7 flex flex-col gap-[20px] w-full min-w-0">
+      {/* Analytics & Upcoming Draws Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-[20px] w-full items-stretch">
+        {/* Earnings Chart */}
+        <div className="xl:col-span-7 2xl:col-span-8 flex flex-col w-full min-w-0">
           <HostRevenueChart totalRevenue={dashboardData?.kpiStats?.totalNetRevenue} />
-          <HostActiveRaffles raffles={dashboardData?.activeRaffles} isLoading={isLoading} />
         </div>
 
-        {/* Right Column (Profit Calculator + Upcoming Draws) */}
-        <div className="xl:col-span-5 2xl:col-span-5 flex flex-col gap-[20px] w-full min-w-0">
-          <RaffleProfitCalculator />
+        {/* Upcoming Draws */}
+        <div className="xl:col-span-5 2xl:col-span-4 flex flex-col w-full min-w-0">
           <HostUpcomingDraws draws={dashboardData?.upcomingDraws} isLoading={isLoading} />
         </div>
       </div>
+
+      {/* Active Competitions Table */}
+      <HostActiveRaffles raffles={dashboardData?.activeRaffles} isLoading={isLoading} />
 
       {/* Bottom Row (Recent Activity) */}
       <HostRecentActivity activities={dashboardData?.recentActivity} isLoading={isLoading} />
