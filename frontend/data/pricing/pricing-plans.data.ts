@@ -2,6 +2,26 @@ import { PricingPlan } from "../../types/pricing.types";
 
 export const PRICING_PLANS: PricingPlan[] = [
   {
+    id: "free",
+    name: "Free",
+    description: "Ideal for new hosts testing the platform with basic features.",
+    monthlyPrice: 0,
+    yearlyPrice: 0,
+    commissionLabel: "15% commission",
+    ctaLabel: "Get Started Free",
+    features: [
+      { id: "active-draws", label: "2 active draws max", included: true },
+      { id: "host-dashboard", label: "Host dashboard access", included: true },
+      { id: "support", label: "Standard email support", included: true },
+      { id: "featured-slots", label: "Featured listing slots", included: false },
+      { id: "priority-payout", label: "Priority payout", included: false },
+      { id: "instant-wins", label: "Access to Instant Wins", included: false },
+      { id: "custom-branding", label: "Custom branding", included: false },
+      { id: "analytics", label: "Advanced analytics", included: false },
+      { id: "account-manager", label: "Dedicated account manager", included: false },
+    ],
+  },
+  {
     id: "premium",
     name: "Premium",
     description: "Designed for active hosts seeking maximum visibility and lower commission.",

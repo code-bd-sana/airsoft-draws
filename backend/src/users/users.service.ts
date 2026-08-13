@@ -75,9 +75,26 @@ export class UsersService {
             });
           } else if (businessName !== undefined) {
             // Need businessName at minimum to create
-            await prisma.hostProfile.create({
+            const newHp = await prisma.hostProfile.create({
               data: { userId, ...hostProfileData },
             });
+            const freePlan = await prisma.subscriptionPlan.findFirst({
+              where: { name: 'Free' },
+            });
+            if (freePlan) {
+              const startDate = new Date();
+              const endDate = new Date();
+              endDate.setDate(endDate.getDate() + freePlan.durationDays);
+              await prisma.hostSubscription.create({
+                data: {
+                  hostId: newHp.id,
+                  planId: freePlan.id,
+                  status: 'ACTIVE',
+                  startDate,
+                  endDate,
+                },
+              });
+            }
           }
         }
       }

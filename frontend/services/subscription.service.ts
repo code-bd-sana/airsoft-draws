@@ -52,7 +52,7 @@ export const subscriptionService = {
     return response.data;
   },
 
-  async createCheckoutSession(planId: string): Promise<{ url?: string; isTest?: boolean; transactionId?: string; message?: string }> {
+  async createCheckoutSession(planId: string): Promise<{ url?: string; isTest?: boolean; isFree?: boolean; transactionId?: string; message?: string }> {
     const response = await api.post('/payment/checkout/subscription', { planId });
     return response.data;
   },

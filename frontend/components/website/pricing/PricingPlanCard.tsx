@@ -46,11 +46,11 @@ export default function PricingPlanCard({ plan, billingCycle, dbPlan }: PricingP
     setLoading(true);
     createCheckout.mutate(dbPlan.id, {
       onSuccess: (data) => {
-        if (data.isTest) {
+        if (data.isFree || data.isTest) {
           setTimeout(() => {
             setLoading(false);
             setShowSuccessModal(true);
-          }, 2500); // Simulate network loading
+          }, 800); // Quick smooth feedback
         } else if (data.url) {
           window.location.href = data.url;
         } else {
@@ -92,10 +92,10 @@ export default function PricingPlanCard({ plan, billingCycle, dbPlan }: PricingP
         {/* Price Tag */}
         <div className="flex items-baseline gap-1 mt-3">
           <span className="font-heading font-bold text-4xl text-text-brand select-none">
-            £{isYearly ? price * 12 : price}
+            {price === 0 ? "£0" : `£${isYearly ? price * 12 : price}`}
           </span>
           <span className="font-sans text-xs text-text-muted select-none">
-            {isYearly ? " billed yearly" : "/month"}
+            {price === 0 ? "/forever" : isYearly ? " billed yearly" : "/month"}
           </span>
         </div>
         

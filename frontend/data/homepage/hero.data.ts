@@ -29,13 +29,13 @@ export const heroData: HeroData = {
     },
     {
       id: "hero-stat-2",
-      value: "£1",
-      label: "Minimum Entry",
+      value: "1,500+",
+      label: "Happy Winners",
     },
     {
       id: "hero-stat-3",
-      value: "Verified",
-      label: "Fair Draws",
+      value: "100%",
+      label: "Fair & Verified",
     },
   ],
   featuredDraw: {

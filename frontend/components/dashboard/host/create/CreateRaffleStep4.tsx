@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { RaffleFormData } from "./CreateRaffleWizard";
+import { useMySubscription } from "../../../../hooks/useSubscriptionHooks";
 
 interface Props {
   formData: RaffleFormData;
@@ -9,11 +10,15 @@ interface Props {
 }
 
 export default function CreateRaffleStep4({ formData, updateForm, onNext, onPrev }: Props) {
+  const { data: subscription } = useMySubscription();
+  const isFreeTier = !subscription || subscription.plan.name === 'Free' || Number(subscription.plan.price) === 0;
+
   const [numInstantWins, setNumInstantWins] = useState(
     formData.instantWins.length > 0 ? formData.instantWins.length.toString() : "1"
   );
 
   const handleToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isFreeTier) return;
     const hasInstantWins = e.target.checked;
     updateForm({ hasInstantWins });
     if (hasInstantWins && formData.instantWins.length === 0) {
@@ -91,11 +96,30 @@ export default function CreateRaffleStep4({ formData, updateForm, onNext, onPrev
       </div>
 
       <div className="flex flex-col gap-[24px]">
-        <label className="flex items-center gap-3 cursor-pointer">
+        {isFreeTier && (
+          <div className="bg-[#241a08] border border-[#f59e0b]/40 rounded-[12px] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-[#f59e0b] text-xl">🔒</span>
+              <p className="font-sans text-xs text-[#fef3c7]">
+                Instant Wins is a <strong>Premium & Pro feature</strong>. Upgrade your subscription to add instant wins to your competition.
+              </p>
+            </div>
+            <a
+              href="/pricing"
+              target="_blank"
+              className="px-4 py-2 bg-[#f59e0b] hover:bg-[#d97706] text-[#0d0d0b] font-semibold text-xs rounded-lg transition-colors shrink-0 text-center"
+            >
+              Upgrade Plan
+            </a>
+          </div>
+        )}
+
+        <label className={`flex items-center gap-3 ${isFreeTier ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
           <input 
             type="checkbox" 
-            className="w-5 h-5 rounded border-[#2d3c13] bg-[#1a230a] text-[#8cb34a] focus:ring-[#8cb34a] focus:ring-offset-[#111210]"
-            checked={formData.hasInstantWins}
+            disabled={isFreeTier}
+            className="w-5 h-5 rounded border-[#2d3c13] bg-[#1a230a] text-[#8cb34a] focus:ring-[#8cb34a] focus:ring-offset-[#111210] disabled:cursor-not-allowed"
+            checked={isFreeTier ? false : formData.hasInstantWins}
             onChange={handleToggle}
           />
           <span className="font-sans font-medium text-[15px] text-[#e8edd4]">Enable Instant Wins</span>

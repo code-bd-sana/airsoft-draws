@@ -46,6 +46,54 @@ export class PaymentService {
       process.env.CASHFLOWS_BASE_URL || 'https://gateway-int.cashflows.com';
     const configId = process.env.CASHFLOWS_CONFIGURATION_ID || '';
 
+    // Free Tier Payment Flow (Always activate immediately without payment gateway)
+    if (Number(plan.price) === 0) {
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + plan.durationDays);
+
+      // Deactivate existing subscriptions
+      await this.prisma.hostSubscription.updateMany({
+        where: { hostId: host.id, status: 'ACTIVE' },
+        data: { status: 'EXPIRED' },
+      });
+
+      // Create new active subscription
+      const newSub = await this.prisma.hostSubscription.create({
+        data: {
+          hostId: host.id,
+          planId: plan.id,
+          status: 'ACTIVE',
+          startDate,
+          endDate,
+        },
+      });
+
+      // Create a transaction record for Free tier
+      const transactionId = `FREE_SUB_${crypto.randomUUID()}`;
+      await this.prisma.transaction.create({
+        data: {
+          userId: host.user.id,
+          type: 'SUBSCRIPTION_FEE',
+          amount: 0,
+          status: 'COMPLETED',
+          paymentGateway: 'FREE',
+          gatewayTransactionId: transactionId,
+          relatedEntityId: newSub.id,
+        },
+      });
+
+      this.logger.log(
+        `Activated Free Tier subscription for host ${hostId} with plan ${plan.name}`,
+      );
+      return {
+        isTest: true,
+        isFree: true,
+        transactionId,
+        message: 'Free Tier subscription activated successfully!',
+      };
+    }
+
     // Test Payment Flow (Enabled if USE_TEST_PAYMENT=true in .env)
     if (process.env.USE_TEST_PAYMENT === 'true') {
       const startDate = new Date();

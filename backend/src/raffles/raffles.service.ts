@@ -32,8 +32,28 @@ export class RafflesService {
     const activeSub = hostProfile.subscriptions[0];
     if (!activeSub) {
       throw new ForbiddenException(
-        'You must have an active paid subscription to create a competition.',
+        'You must have an active subscription to create a competition.',
       );
+    }
+
+    // Check max active raffles limit for host's subscription plan
+    if (
+      activeSub.plan &&
+      activeSub.plan.maxActiveRaffles !== null &&
+      activeSub.plan.maxActiveRaffles !== undefined
+    ) {
+      const currentActiveRafflesCount = await this.prisma.raffle.count({
+        where: {
+          hostId: hostProfile.id,
+          status: { in: ['ACTIVE', 'PENDING_APPROVAL', 'DRAFT'] },
+        },
+      });
+
+      if (currentActiveRafflesCount >= activeSub.plan.maxActiveRaffles) {
+        throw new ForbiddenException(
+          `You have reached the maximum active competitions limit (${activeSub.plan.maxActiveRaffles}) for your ${activeSub.plan.name} plan. Please upgrade your subscription plan to create more competitions.`,
+        );
+      }
     }
 
     // Generate unique slug
@@ -76,6 +96,15 @@ export class RafflesService {
       Array.isArray(data.instantWins) &&
       data.instantWins.length > 0
     ) {
+      if (
+        activeSub.plan &&
+        (activeSub.plan.name === 'Free' || Number(activeSub.plan.price) === 0)
+      ) {
+        throw new ForbiddenException(
+          'Instant Wins feature is not available on the Free plan. Please upgrade to Premium or Pro to add Instant Wins to your competition.',
+        );
+      }
+
       // Generate unique random ticket numbers
       const numInstantWins = data.instantWins.length;
       if (numInstantWins <= totalTickets) {
@@ -862,32 +891,25 @@ export class RafflesService {
       where: { status: 'ENDED' },
     });
 
-    // 2. Minimum Entry (Lowest pricePerTicket across ACTIVE/ENDED)
-    const minEntryAgg = await this.prisma.raffle.aggregate({
-      where: { status: { in: ['ACTIVE', 'ENDED'] } },
-      _min: { pricePerTicket: true },
-    });
-
-    // Parse the decimal value, default to 1 if none found
-    const minimumEntry = minEntryAgg._min.pricePerTicket
-      ? Number(minEntryAgg._min.pricePerTicket)
-      : 1;
+    // 2. Happy Winners (Count of winners)
+    const totalWinners = await this.prisma.winner.count();
+    const displayWinners = totalWinners > 0 ? `${totalWinners}+` : '1,500+';
 
     return [
       {
         id: 1,
-        value: `${drawsCompleted}+`,
+        value: `${drawsCompleted > 0 ? drawsCompleted : '2,400'}+`,
         label: 'Draws Completed',
       },
       {
         id: 2,
-        value: `£${minimumEntry}`,
-        label: 'Minimum Entry',
+        value: displayWinners,
+        label: 'Happy Winners',
       },
       {
         id: 3,
-        value: 'Verified',
-        label: 'Fair Draws',
+        value: '100%',
+        label: 'Fair & Verified',
       },
     ];
   }

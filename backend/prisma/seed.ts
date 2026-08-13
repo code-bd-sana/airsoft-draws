@@ -16,6 +16,12 @@ async function main() {
   console.log('Seeding Subscription Plans...');
   const plans = [
     {
+      name: 'Free',
+      price: 0,
+      durationDays: 30,
+      maxActiveRaffles: 2,
+    },
+    {
       name: 'Premium',
       price: 29.99,
       durationDays: 30,
@@ -23,9 +29,9 @@ async function main() {
     },
     {
       name: 'Pro',
-      price: 99.99,
+      price: 79.99,
       durationDays: 30,
-      maxActiveRaffles: 999999,
+      maxActiveRaffles: null,
     },
   ];
 

@@ -61,7 +61,7 @@ export class AuthService {
       });
 
       if (role === 'HOST') {
-        await prisma.hostProfile.create({
+        const hostProfile = await prisma.hostProfile.create({
           data: {
             userId: newUser.id,
             businessName: registerDto.businessName!,
@@ -70,6 +70,27 @@ export class AuthService {
             address: registerDto.address,
           },
         });
+
+        // Automatically assign Free Tier subscription to new hosts
+        const freePlan = await prisma.subscriptionPlan.findFirst({
+          where: { name: 'Free' },
+        });
+
+        if (freePlan) {
+          const startDate = new Date();
+          const endDate = new Date();
+          endDate.setDate(endDate.getDate() + freePlan.durationDays);
+
+          await prisma.hostSubscription.create({
+            data: {
+              hostId: hostProfile.id,
+              planId: freePlan.id,
+              status: 'ACTIVE',
+              startDate,
+              endDate,
+            },
+          });
+        }
       }
 
       return newUser;

@@ -55,6 +55,8 @@ export default function CurrentPlanCard() {
   const remainingDays = Math.max(0, Math.ceil((endDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24)));
   const tx = subscription.transaction;
 
+  const isFreePlan = Number(subscription.plan.price) === 0;
+
   return (
     <div className="w-full bg-[#1a230a] border border-[#2d3c13] rounded-[16px] p-[24px] lg:p-[32px] flex flex-col sm:flex-row sm:items-center justify-between gap-[24px]">
       
@@ -64,9 +66,10 @@ export default function CurrentPlanCard() {
           Current Plan: {subscription.plan.name}
         </h2>
         <p className="font-sans font-medium text-[14px] text-[#8cb34a]">
-          £{subscription.plan.price}/month · Renews {formattedEndDate} ({remainingDays} days left)
+          {isFreePlan ? "£0/forever" : `£${subscription.plan.price}/month`} · Renews {formattedEndDate} ({remainingDays} days left)
         </p>
         <div className="font-sans text-[12px] text-text-muted mt-2 space-y-1">
+          <p><strong>Competition Limit:</strong> {subscription.plan.maxActiveRaffles ? `${subscription.plan.maxActiveRaffles} active competitions max` : 'Unlimited active competitions'}</p>
           <p><strong>Start Date:</strong> {formattedStartDate}</p>
           <p><strong>Payment Status:</strong> {tx?.status || 'COMPLETED'}</p>
           {tx?.gatewayTransactionId && <p><strong>Transaction ID:</strong> {tx.gatewayTransactionId}</p>}
@@ -74,7 +77,13 @@ export default function CurrentPlanCard() {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-[24px]">
+      <div className="flex items-center gap-[16px]">
+        <a 
+          href="/pricing"
+          className="h-[38px] flex items-center justify-center px-[20px] bg-[#8cb34a] hover:bg-[#72943a] rounded-[8px] font-sans font-semibold text-[13px] text-[#1a230a] transition-colors"
+        >
+          Upgrade Plan
+        </a>
         <button 
           onClick={handleCancel} 
           disabled={isCancelling}

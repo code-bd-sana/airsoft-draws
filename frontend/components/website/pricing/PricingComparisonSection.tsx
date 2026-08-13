@@ -57,13 +57,16 @@ export default function PricingComparisonSection() {
             {/* Table Header */}
             <thead>
               <tr className="bg-surface border-b border-border h-[58px]">
-                <th className="font-heading font-bold text-xs md:text-sm text-text-secondary px-6 uppercase tracking-wider w-1/2">
+                <th className="font-heading font-bold text-xs md:text-sm text-text-secondary px-6 uppercase tracking-wider w-2/5">
                   Feature
                 </th>
-                <th className="font-heading font-bold text-xs md:text-sm text-text-primary text-center px-6 uppercase tracking-wider w-1/4">
+                <th className="font-heading font-bold text-xs md:text-sm text-text-primary text-center px-4 uppercase tracking-wider w-1/5">
+                  Free
+                </th>
+                <th className="font-heading font-bold text-xs md:text-sm text-text-primary text-center px-4 uppercase tracking-wider w-1/5">
                   Premium
                 </th>
-                <th className="font-heading font-bold text-xs md:text-sm text-text-primary text-center px-6 uppercase tracking-wider w-1/4">
+                <th className="font-heading font-bold text-xs md:text-sm text-text-primary text-center px-4 uppercase tracking-wider w-1/5">
                   Pro
                 </th>
               </tr>
@@ -81,13 +84,18 @@ export default function PricingComparisonSection() {
                     {row.featureName}
                   </td>
                   
+                  {/* Free Value */}
+                  <td className="text-center px-4 py-4.5 border-l border-divider/50">
+                    {renderCell(row.freeValue)}
+                  </td>
+
                   {/* Premium Value */}
-                  <td className="text-center px-6 py-4.5 border-l border-divider/50">
+                  <td className="text-center px-4 py-4.5 border-l border-divider/50">
                     {renderCell(row.premiumValue)}
                   </td>
                   
                   {/* Pro Value */}
-                  <td className="text-center px-6 py-4.5 border-l border-divider/50">
+                  <td className="text-center px-4 py-4.5 border-l border-divider/50">
                     {renderCell(row.proValue)}
                   </td>
                 </tr>

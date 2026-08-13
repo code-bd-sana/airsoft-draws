@@ -20,13 +20,13 @@ export const trustStatsData: StatItem[] = [
   },
   {
     id: "trust-stat-3",
-    value: "12,000+",
+    value: "1,500+",
     label: "Happy Winners",
   },
   {
     id: "trust-stat-4",
-    value: "£1.00",
-    label: "Minimum Entry",
+    value: "100%",
+    label: "Fair & Verified",
   },
 ];
 
