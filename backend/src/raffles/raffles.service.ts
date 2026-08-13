@@ -893,12 +893,12 @@ export class RafflesService {
 
     // 2. Happy Winners (Count of winners)
     const totalWinners = await this.prisma.winner.count();
-    const displayWinners = totalWinners > 0 ? `${totalWinners}+` : '1,500+';
+    const displayWinners = totalWinners > 0 ? `${totalWinners}+` : '1,500';
 
     return [
       {
         id: 1,
-        value: `${drawsCompleted > 0 ? drawsCompleted : '2,400'}+`,
+        value: `${drawsCompleted > 0 ? drawsCompleted : '2,400'}`,
         label: 'Draws Completed',
       },
       {
