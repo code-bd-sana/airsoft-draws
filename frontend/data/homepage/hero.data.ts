@@ -24,18 +24,18 @@ export const heroData: HeroData = {
   stats: [
     {
       id: "hero-stat-1",
-      value: "2,400",
+      value: "22+",
       label: "Draws Completed",
     },
     {
       id: "hero-stat-2",
-      value: "1,500",
-      label: "Winning Operators",
+      value: "68+",
+      label: "Happy Winners",
     },
     {
       id: "hero-stat-3",
-      value: "100%",
-      label: "Fair & Verified",
+      value: "£1,000",
+      label: "Won in prizes!",
     },
   ],
   featuredDraw: {
