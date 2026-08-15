@@ -175,7 +175,9 @@ export default function HostRegistrationForm({
           lastName: formData.lastName,
           location: formData.city ? `${formData.city}, ${formData.country}` : formData.country,
           role: 'HOST',
-          businessName: formData.businessName || `${formData.firstName} ${formData.lastName}`, // Fallback for individual
+          businessName: formData.businessName || `${formData.firstName} ${formData.lastName}`,
+          bio: formData.businessBio || formData.bio,
+          phone: formData.phone || formData.businessPhone,
         });
         
         showToast("Host registration successful! Check your email to verify.");
@@ -470,48 +472,6 @@ export default function HostRegistrationForm({
                 </span>
               </div>
 
-              {/* Profile Photo Uploader */}
-              <div className="flex flex-col gap-2">
-                <label className="font-sans font-medium text-xs md:text-sm text-text-primary">
-                  Profile Photo
-                </label>
-                <div className="flex items-center gap-5">
-                  <div
-                    onClick={() => profilePhotoInputRef.current?.click()}
-                    className="w-20 h-20 md:w-22 md:h-22 rounded-full border-2 border-dashed border-border hover:border-primary bg-bg flex items-center justify-center cursor-pointer overflow-hidden transition-all duration-200"
-                  >
-                    {formData.profilePhoto ? (
-                      <img
-                        alt="Profile photo preview"
-                        src={formData.profilePhoto}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      /* User Avatar SVG */
-                      <svg className="w-8 h-8 text-text-muted/40" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-                      </svg>
-                    )}
-                  </div>
-                  <input
-                    type="file"
-                    ref={profilePhotoInputRef}
-                    onChange={(e) => handlePhotoUpload(e, "profilePhoto")}
-                    accept="image/png, image/jpeg, image/jpg"
-                    className="hidden"
-                  />
-                  <div className="flex flex-col gap-1">
-                    <p className="font-sans text-xs md:text-sm text-text-primary">
-                      Upload a clear, professional photo.
-                    </p>
-                    <p className="font-sans text-[11px] text-text-secondary/70">
-                      Square, PNG or JPG, minimum 200×200px.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
               {/* First Name & Last Name (Grid) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
@@ -642,32 +602,6 @@ export default function HostRegistrationForm({
                       </svg>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Short Bio */}
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="bio" className="font-sans font-medium text-xs md:text-sm text-text-primary">
-                    Short Bio
-                  </label>
-                  <span className="text-[10px] md:text-xs bg-accent-bg border border-divider px-2 py-0.5 rounded-badge text-text-secondary/70">
-                    optional
-                  </span>
-                </div>
-                <div className="relative w-full">
-                  <textarea
-                    id="bio"
-                    name="bio"
-                    maxLength={300}
-                    placeholder="Tell guests a bit about yourself and your hosting experience..."
-                    value={formData.bio}
-                    onChange={handleInputChange}
-                    className="w-full bg-bg border border-border rounded-button px-4 py-3 h-28 font-sans text-xs md:text-sm text-text-primary placeholder:text-text-muted/40 transition-all duration-200 outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 resize-none"
-                  />
-                  <span className="absolute bottom-2.5 right-3 font-sans text-[10px] text-text-secondary/70 select-none">
-                    {formData.bio.length} / 300
-                  </span>
                 </div>
               </div>
 
@@ -873,30 +807,32 @@ export default function HostRegistrationForm({
               <div className="flex flex-col gap-1.5 pb-2 border-b border-divider">
                 <div className="flex items-center justify-between text-xs font-medium text-text-secondary">
                   <span>Step 4 of 8</span>
-                  <span className="text-[11px] bg-accent-bg border border-border px-2 py-0.5 rounded-badge text-text-brand">Logo &amp; Branding</span>
+                  <span className="text-[11px] bg-accent-bg border border-border px-2 py-0.5 rounded-badge text-text-brand">
+                    {formData.hostType === "individual" ? "Photo & Bio" : "Logo & Branding"}
+                  </span>
                 </div>
                 <h2 className="font-heading font-semibold text-xl md:text-2xl text-text-primary mt-1">
-                  Upload Logo &amp; Branding
+                  {formData.hostType === "individual" ? "Upload Photo & Bio" : "Upload Logo & Branding"}
                 </h2>
                 <p className="font-sans text-xs md:text-sm text-text-secondary">
-                  Configure visual branding features for entrants to see on your page.
+                  Configure visual profile features for entrants to see on your host page.
                 </p>
               </div>
 
-              {/* Logo Upload Box */}
+              {/* Logo / Profile Photo Upload Box */}
               <div className="flex flex-col gap-2">
                 <label className="font-sans font-medium text-xs md:text-sm text-text-primary">
-                  Business Logo
+                  {formData.hostType === "individual" ? "Profile Photo / Avatar" : "Business Logo"}
                 </label>
                 <div className="flex gap-4 items-start">
                   <div
                     onClick={() => businessLogoInputRef.current?.click()}
                     className="w-32 h-32 bg-bg border border-dashed border-border hover:border-primary rounded-card flex flex-col items-center justify-center cursor-pointer overflow-hidden text-center transition-all duration-200"
                   >
-                    {formData.businessLogo ? (
+                    {formData.businessLogo || formData.profilePhoto ? (
                       <img
-                        alt="Business Logo preview"
-                        src={formData.businessLogo}
+                        alt="Profile image preview"
+                        src={formData.businessLogo || formData.profilePhoto || ""}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -922,17 +858,21 @@ export default function HostRegistrationForm({
                 </div>
               </div>
 
-              {/* Short Business Bio */}
+              {/* Short Bio */}
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="businessBio" className="font-sans font-medium text-xs md:text-sm text-text-primary">
-                  Short Business Bio
+                  {formData.hostType === "individual" ? "Host Bio / About You" : "Short Business Bio"}
                 </label>
                 <div className="relative w-full">
                   <textarea
                     id="businessBio"
                     name="businessBio"
                     maxLength={300}
-                    placeholder="Tell entrants a bit about your business..."
+                    placeholder={
+                      formData.hostType === "individual"
+                        ? "Tell entrants a bit about yourself and your hosting background..."
+                        : "Tell entrants a bit about your business..."
+                    }
                     value={formData.businessBio}
                     onChange={handleInputChange}
                     className={cn(
