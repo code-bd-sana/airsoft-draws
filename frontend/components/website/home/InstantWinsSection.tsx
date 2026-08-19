@@ -112,7 +112,7 @@ export default function InstantWinsSection() {
             ))}
           </div>
         ) : (
-          <div className="text-center text-text-muted py-10">
+          <div className="text-center text-text-muted py-10 px-6">
             No instant win competitions found.
           </div>
         )}

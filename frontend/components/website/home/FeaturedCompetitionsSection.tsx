@@ -136,7 +136,7 @@ export default function FeaturedCompetitionsSection() {
             </button>
           </div>
         ) : (
-          <div className="text-center py-16 bg-surface border border-border border-dashed rounded-card max-w-md mx-auto">
+          <div className="text-center py-16 px-6 sm:px-8 bg-surface border border-border border-dashed rounded-card max-w-md mx-auto">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -154,7 +154,7 @@ export default function FeaturedCompetitionsSection() {
             <h3 className="font-heading font-bold text-base text-text-primary mb-1">
               No Competitions Found
             </h3>
-            <p className="font-sans text-xs text-text-muted">
+            <p className="font-sans text-xs text-text-muted leading-relaxed">
               There are no active competitions in this category right now. Check back soon!
             </p>
           </div>

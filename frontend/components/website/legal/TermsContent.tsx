@@ -10,15 +10,17 @@ const SECTIONS = [
   { id: "how-to-enter", title: "3. How to Enter" },
   { id: "free-entry", title: "3.11. Free Postal Entry Route" },
   { id: "choosing-winner", title: "4. Choosing a Winner" },
-  { id: "eligibility", title: "5. Eligibility" },
-  { id: "prize", title: "6. The Prize" },
-  { id: "winners", title: "7. Winners" },
-  { id: "claiming-prize", title: "8. Claiming the Prize" },
-  { id: "liability", title: "9. Limitation of Liability" },
-  { id: "data-protection", title: "10. Data Protection & Publicity" },
-  { id: "general", title: "11. General Terms" },
-  { id: "aml-policy", title: "12. Anti-Money Laundering (AML)" },
-  { id: "fair-play", title: "13. Fair Play & One Account Policy" },
+  { id: "eligibility", title: "5. Eligibility & Age Verification" },
+  { id: "product-classification", title: "6. Product Classification & RIF Defence Checks (UKARA)" },
+  { id: "claiming-prize", title: "7. Claiming Prize & Cash Alternative Process" },
+  { id: "discreet-shipping", title: "8. Discreet Packaging & Controlled Fulfilment" },
+  { id: "responsible-marketing", title: "9. Responsible Advertising & Marketing" },
+  { id: "non-transferability", title: "10. Non-Transferability of Prizes" },
+  { id: "liability", title: "11. Limitation of Liability" },
+  { id: "data-protection", title: "12. Data Protection & Privacy" },
+  { id: "general", title: "13. General Terms & Governing Law" },
+  { id: "aml-policy", title: "14. Anti-Money Laundering (AML) Policy" },
+  { id: "fair-play", title: "15. Fair Play & One Account Policy" },
 ];
 
 export default function TermsContent() {
@@ -66,12 +68,12 @@ export default function TermsContent() {
               Terms & Conditions
             </h1>
             <p className="font-sans text-sm sm:text-base text-[#72943A] max-w-2xl">
-              Official rules governing all prize competitions, free postal entries, eligibility, anti-money laundering policies, and fair play on Airsoft Draws.
+              Official rules governing all prize competitions, age verification, RIF compliance, UKARA legal defence, discreet fulfilment, and fair play on Airsoft Draws.
             </p>
             <div className="flex items-center gap-4 text-xs font-sans text-[#5A752A] pt-2">
-              <span>Last Updated: July 2026</span>
+              <span>Last Updated: August 2026</span>
               <span>•</span>
-              <span>Effective Version: 2.4</span>
+              <span>Effective Version: 3.0</span>
             </div>
           </div>
         </div>
@@ -208,144 +210,179 @@ export default function TermsContent() {
                 4.1. All valid Entrants will be placed into a draw and the winner will be chosen by a secure random number generator (RNG) live draw within 7 days of the Closing Date (“Draw Date”).
               </p>
               <p>
-                4.2. All Entrants will have their names and entry numbers included in a entry spreadsheet published on the Website during the live draw. If you wish to censor your name on the live spreadsheet, notify us at{" "}
+                4.2. All Entrants will have their names and entry numbers included in an entry spreadsheet published on the Website during the live draw. If you wish to censor your name on the live spreadsheet, notify us at{" "}
                 <a href="mailto:info@airsoftdraws.com" className="text-[#8CB34A] underline">info@airsoftdraws.com</a> at least 48 hours prior to the draw.
               </p>
             </section>
 
-            {/* 5. Eligibility */}
+            {/* 5. Eligibility & Mandatory Age Verification */}
             <section id="eligibility" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
               <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
-                5. Eligibility
+                5. Eligibility & Mandatory Age Verification
               </h2>
               <p>
-                5.1. Competitions are open to residents in the United Kingdom aged <strong className="text-[#E8EDD4]">18 years or over</strong>, except employees of Airsoft Draws, their immediate families, or agents directly connected with competition administration.
+                5.1. Eligibility is strictly restricted to winners and participants aged <strong className="text-[#E8EDD4]">18 years or over</strong> who are legal residents of the United Kingdom. Employees of Airsoft Draws, their immediate families, or agents directly connected with competition administration are excluded from participating.
               </p>
               <p>
-                5.2. Proof of age and UK residency will be required prior to releasing any major prize.
+                5.2. <strong className="text-[#E8EDD4]">Formal Age Verification:</strong> Following a successful prize claim, you will be required to provide evidence of your age using a valid form of government-issued photo identification (e.g. UK Driving Licence or Passport) prior to the release or dispatch of any prize.
               </p>
               <p>
-                5.3. Fraudulent activity, hacking, site interference, or rude/abusive behavior toward staff will result in immediate disqualification and account termination.
+                5.3. Fraudulent activity, account misrepresentation under 18 years of age, hacking, or abusive behavior toward staff will result in immediate entry disqualification and account termination.
               </p>
             </section>
 
-            {/* 6. The Prize */}
-            <section id="prize" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
+            {/* 6. Product Classification & Legal Defence Requirements (RIF / UKARA) */}
+            <section id="product-classification" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
               <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
-                6. The Prize
+                6. Product Classification & Legal Defence Requirements (RIF / UKARA)
               </h2>
               <p>
-                6.1. The prize details are described on the Website. Prizes are non-transferable and subject to availability.
+                6.1. <strong className="text-[#E8EDD4]">Product Classification:</strong> All physical airsoft replica prizes offered on Airsoft Draws are strictly classified as Realistic Imitation Firearms (RIFs) or two-tone devices under the UK Violent Crime Reduction Act 2006 (VCRA). We exclusively offer RIFs as physical replica prizes.
               </p>
               <p>
-                6.2. Vehicle & Airsoft Replica Prizes: Winners are solely responsible for ensuring appropriate UKARA / defence registration, safety gear, valid insurance, and lawful usage on public/private property.
+                6.2. <strong className="text-[#E8EDD4]">Legal Defence Check Prior to Release:</strong> If a prize is claimed for a RIF, the winner must provide evidence of a valid legal defence under UK law before the prize can be released (such as verifiable evidence that the winner is a regular, insured airsoft skirmisher).
               </p>
               <p>
-                6.3. Airsoft Draws reserves the right to substitute a prize with an equivalent cash alternative if circumstances beyond reasonable control make it necessary.
+                6.3. <strong className="text-[#E8EDD4]">UKARA Registration Status:</strong> An active UKARA registration database entry is acceptable evidence of a legal defence. However, UKARA registration shall not be described, construed, or represented as a "license".
+              </p>
+              <p>
+                6.4. Merchants and the Promoter must evidence age checks, legal defence checks for RIFs, product classification, and safe fulfilment arrangements before any sale, transfer, or prize release is executed.
               </p>
             </section>
 
-            {/* 7. Winners */}
-            <section id="winners" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
-              <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
-                7. Winners
-              </h2>
-              <p>
-                7.1. Winners will be contacted personally via phone or email within 7 days of the Draw Date.
-              </p>
-              <p>
-                7.2. The winner's full name and town may be published on the Website and social media channels following live draw verification.
-              </p>
-            </section>
-
-            {/* 8. Claiming the Prize */}
+            {/* 7. Claiming Prize & Cash Alternative Process */}
             <section id="claiming-prize" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
               <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
-                8. Claiming the Prize
+                7. Claiming Prize & Cash Alternative Process
               </h2>
               <p>
-                8.1. <strong className="text-[#E8EDD4]">21-Day Claim Limit:</strong> Winners have 21 days from notification to claim their prize. If uncontactable after 21 days, an alternate winner will be selected via random redraw.
+                7.1. <strong className="text-[#E8EDD4]">21-Day Claim Period:</strong> Winners will be notified via phone or email within 7 days of the Draw Date and have 21 days from initial notification to complete verification and claim their prize.
               </p>
               <p>
-                8.2. Cash prizes will be transferred directly to the winner&apos;s verified UK bank account. The winner must prove sole or joint beneficiary ownership of the account.
+                7.2. <strong className="text-[#E8EDD4]">Substitution & Cash-Equivalent Process:</strong> If a winner cannot lawfully receive the prize (for example, if UKARA registration or skirmisher defence is not valid or cannot be verified), the winner will be given the advertised cash alternative instead.
               </p>
               <p>
-                8.3. Physical prizes will be delivered via insured courier to the registered UK postal address.
+                7.3. Cash prizes and cash alternatives will be paid directly into the winner's verified UK bank account via secure bank transfer.
+              </p>
+              <p>
+                7.4. If a winner fails to claim the prize or cash alternative within 21 days, or refuses verification, the prize will be forfeited and an alternate winner may be drawn.
               </p>
             </section>
 
-            {/* 9. Limitation of Liability */}
+            {/* 8. Discreet Packaging & Controlled Fulfilment */}
+            <section id="discreet-shipping" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
+              <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
+                8. Discreet Packaging & Controlled Fulfilment
+              </h2>
+              <p>
+                8.1. <strong className="text-[#E8EDD4]">Discreet Packaging:</strong> Airsoft devices must be transported discreetly, covered or cased, and not displayed in public. If a prize is claimed for a RIF (we only offer RIFs), all shipped prizes are transported discreetly wrapped in opaque black shrink wrap or securely boxed.
+              </p>
+              <p>
+                8.2. <strong className="text-[#E8EDD4]">Tracked Recorded Delivery:</strong> All shipped prizes are sent via recorded courier delivery with full tracking information provided to the winner upon dispatch.
+              </p>
+              <p>
+                8.3. <strong className="text-[#E8EDD4]">Controlled Delivery & Handover:</strong> Fulfilment is strictly controlled, including mandatory proof of identity, age verification, tracked release, and delivery or collection arrangements that completely avoid public display or unsafe handover.
+              </p>
+            </section>
+
+            {/* 9. Responsible Advertising & Marketing Standards */}
+            <section id="responsible-marketing" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
+              <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
+                9. Responsible Advertising & Marketing Standards
+              </h2>
+              <p>
+                9.1. We agree to ensure our advertising and marketing strictly avoids glamourising weapons, threatening imagery, irresponsible use, or content likely to appeal to minors.
+              </p>
+              <p>
+                9.2. If you have any questions or concerns regarding our advertising or marketing practices, please contact us immediately at{" "}
+                <a href="mailto:info@airsoftdraws.com" className="text-[#8CB34A] font-semibold hover:underline">
+                  info@airsoftdraws.com
+                </a>.
+              </p>
+            </section>
+
+            {/* 10. Non-Transferability of Prizes */}
+            <section id="non-transferability" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
+              <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
+                10. Non-Transferability of Prizes
+              </h2>
+              <p>
+                10.1. Prizes are strictly awarded to the winning ticket holder and cannot be transferred, assigned, or gifted to another person unless full lawful eligibility checks (including formal photo age verification and UKARA / legal defence checks) are repeated and satisfied for the recipient prior to release.
+              </p>
+            </section>
+
+            {/* 11. Limitation of Liability */}
             <section id="liability" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
               <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
-                9. Limitation of Liability
+                11. Limitation of Liability
               </h2>
               <p>
-                9.1. Airsoft Draws accepts no liability for technical failures, network outages, or delayed entries.
+                11.1. Airsoft Draws accepts no liability for technical failures, network outages, or delayed entries.
               </p>
               <p>
-                9.2. To the fullest extent permitted by law, the Promoter shall not be liable for any loss, damage, or personal injury suffered by any Entrant as a result of entering the competition or accepting any prize.
+                11.2. To the fullest extent permitted by law, the Promoter shall not be liable for any loss, damage, or personal injury suffered by any Entrant as a result of entering the competition or accepting any prize.
               </p>
             </section>
 
-            {/* 10. Data Protection & Publicity */}
+            {/* 12. Data Protection & Privacy */}
             <section id="data-protection" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
               <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
-                10. Data Protection & Publicity
+                12. Data Protection & Privacy
               </h2>
               <p>
-                10.1. Personal information provided will be processed strictly in accordance with our Privacy Policy and UK GDPR regulations.
+                12.1. Personal information provided will be processed strictly in accordance with our Privacy Policy and UK GDPR regulations.
               </p>
               <p>
-                10.2. Winners consent to the publication of their full name and town for statutory Advertising Standards Authority (ASA) compliance proof.
+                12.2. Winners consent to the publication of their full name and town for statutory Advertising Standards Authority (ASA) compliance proof.
               </p>
               <p>
-                10.3. Entrants may request removal or correction of their personal data by contacting our Data Protection team at{" "}
+                12.3. Entrants may request removal or correction of their personal data by contacting our Data Protection team at{" "}
                 <a href="mailto:info@airsoftdraws.com" className="text-[#8CB34A] underline">info@airsoftdraws.com</a>.
               </p>
             </section>
 
-            {/* 11. General Terms */}
+            {/* 13. General Terms & Governing Law */}
             <section id="general" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
               <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
-                11. General Terms & Governing Law
+                13. General Terms & Governing Law
               </h2>
               <p>
-                11.1. Competitions are governed by English Law and the exclusive jurisdiction of the courts of England & Wales.
+                13.1. Competitions are governed by English Law and the exclusive jurisdiction of the courts of England & Wales.
               </p>
               <p>
-                11.2. Competitions on Airsoft Draws are in no way sponsored, endorsed, or administered by Meta (Facebook/Instagram).
+                13.2. Competitions on Airsoft Draws are in no way sponsored, endorsed, or administered by Meta (Facebook/Instagram).
               </p>
             </section>
 
-            {/* 12. AML Policy */}
+            {/* 14. Anti-Money Laundering (AML) Policy */}
             <section id="aml-policy" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
               <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
-                12. Anti-Money Laundering (AML) Policy
+                14. Anti-Money Laundering (AML) Policy
               </h2>
               <p>
-                12.1. Airsoft Draws enforces strict anti-money laundering measures under UK regulations and the Gambling Act 2005.
+                14.1. Airsoft Draws enforces strict anti-money laundering measures under UK regulations and the Gambling Act 2005.
               </p>
               <p>
-                12.2. A designated Money Laundering Reporting Officer (MLRO) oversees platform compliance.
+                14.2. A designated Money Laundering Reporting Officer (MLRO) oversees platform compliance.
               </p>
               <p>
-                12.3. Anonymous accounts, cash payments, or registrations under 18 years of age are strictly prohibited. Refunds & prize transfers are executed back to the original funding route.
+                14.3. Anonymous accounts, cash payments, or registrations under 18 years of age are strictly prohibited. Refunds & prize transfers are executed back to the original funding route.
               </p>
             </section>
 
-            {/* 13. Fair Play */}
+            {/* 15. Fair Play & Strict One Account Policy */}
             <section id="fair-play" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
               <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
-                13. Fair Play & Strict One Account Policy
+                15. Fair Play & Strict One Account Policy
               </h2>
               <p>
-                13.1. <strong className="text-[#E8EDD4]">One Account Per Person:</strong> Each participant is strictly limited to one user account on Airsoft Draws.
+                15.1. <strong className="text-[#E8EDD4]">One Account Per Person:</strong> Each participant is strictly limited to one user account on Airsoft Draws.
               </p>
               <p>
-                13.2. Creating duplicate accounts to gain an unfair advantage in free giveaways or ticket limits is strictly forbidden.
+                15.2. Creating duplicate accounts to gain an unfair advantage in free giveaways or ticket limits is strictly forbidden.
               </p>
               <p>
-                13.3. If duplicate accounts are detected, all entries will be rendered void and forfeited without refund, and offending accounts will be permanently banned.
+                15.3. If duplicate accounts are detected, all entries will be rendered void and forfeited without refund, and offending accounts will be permanently banned.
               </p>
             </section>
 
@@ -356,3 +393,4 @@ export default function TermsContent() {
     </div>
   );
 }
+
