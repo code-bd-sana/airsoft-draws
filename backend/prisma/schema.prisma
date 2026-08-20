@@ -7,20 +7,22 @@ datasource db {
 }
 
 model User {
-  id              String   @id @default(uuid()) @db.VarChar(255)
-  email           String   @unique @db.VarChar(255)
-  passwordHash    String   @map("password_hash") @db.VarChar(255)
-  isEmailVerified Boolean  @default(false) @map("is_email_verified")
-  firstName       String?  @map("first_name") @db.VarChar(100)
-  lastName        String?  @map("last_name") @db.VarChar(100)
-  avatarUrl       String?  @map("avatar_url") @db.VarChar(255)
-  location        String?  @db.VarChar(255)
-  phone           String?  @db.VarChar(50)
-  address         String?  @db.Text
-  role            String   @default("CLIENT") @db.VarChar(50) // ADMIN, HOST, CLIENT
-  isBlocked       Boolean  @default(false) @map("is_blocked")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+  id              String    @id @default(uuid()) @db.VarChar(255)
+  email           String    @unique @db.VarChar(255)
+  passwordHash    String    @map("password_hash") @db.VarChar(255)
+  isEmailVerified Boolean   @default(false) @map("is_email_verified")
+  firstName       String?   @map("first_name") @db.VarChar(100)
+  lastName        String?   @map("last_name") @db.VarChar(100)
+  avatarUrl       String?   @map("avatar_url") @db.VarChar(255)
+  location        String?   @db.VarChar(255)
+  phone           String?   @db.VarChar(50)
+  address         String?   @db.Text
+  dateOfBirth     DateTime? @map("date_of_birth")
+  ukaraNumber     String?   @map("ukara_number") @db.VarChar(100)
+  role            String    @default("CLIENT") @db.VarChar(50) // ADMIN, HOST, CLIENT
+  isBlocked       Boolean   @default(false) @map("is_blocked")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at")
 
   hostProfile  HostProfile?
   tickets      Ticket[]
@@ -79,21 +81,22 @@ model HostSubscription {
 }
 
 model Raffle {
-  id             String   @id @default(uuid()) @db.VarChar(255)
-  hostId         String   @map("host_id") @db.VarChar(255)
-  title          String   @db.VarChar(255)
-  slug           String?  @unique @db.VarChar(255)
-  category       String?  @db.VarChar(100)
-  description    String?
-  mainImage      String?  @map("main_image") @db.VarChar(255)
-  prizeName      String?  @map("prize_name") @db.VarChar(255)
-  mainPrizeValue Decimal? @map("main_prize_value") @db.Decimal(10, 2)
-  pricePerTicket Decimal  @map("price_per_ticket") @db.Decimal(10, 2)
-  totalTickets   Int      @map("total_tickets")
-  ticketsSold    Int      @default(0) @map("tickets_sold")
-  startDate      DateTime @map("start_date")
-  endDate        DateTime @map("end_date")
-  status         String   @default("PENDING_APPROVAL") @db.VarChar(50) // DRAFT, PENDING_APPROVAL, ACTIVE, ENDED, CANCELLED
+  id                  String   @id @default(uuid()) @db.VarChar(255)
+  hostId              String   @map("host_id") @db.VarChar(255)
+  title               String   @db.VarChar(255)
+  slug                String?  @unique @db.VarChar(255)
+  category            String?  @db.VarChar(100)
+  prizeClassification String   @default("RIF") @map("prize_classification") @db.VarChar(50) // RIF, TWO_TONE_IF, ACCESSORY
+  description         String?
+  mainImage           String?  @map("main_image") @db.VarChar(255)
+  prizeName           String?  @map("prize_name") @db.VarChar(255)
+  mainPrizeValue      Decimal? @map("main_prize_value") @db.Decimal(10, 2)
+  pricePerTicket      Decimal  @map("price_per_ticket") @db.Decimal(10, 2)
+  totalTickets        Int      @map("total_tickets")
+  ticketsSold         Int      @default(0) @map("tickets_sold")
+  startDate           DateTime @map("start_date")
+  endDate             DateTime @map("end_date")
+  status              String   @default("PENDING_APPROVAL") @db.VarChar(50) // DRAFT, PENDING_APPROVAL, ACTIVE, ENDED, CANCELLED
   
   // Draw Settings
   isAutoDraw      Boolean  @default(true) @map("is_auto_draw")
@@ -132,7 +135,7 @@ model Transaction {
   type                 String   @db.VarChar(50) // TICKET_PURCHASE, SUBSCRIPTION_FEE, HOST_WITHDRAWAL
   amount               Decimal  @db.Decimal(10, 2)
   status               String   @default("COMPLETED") @db.VarChar(50) // PENDING, COMPLETED, FAILED, REFUNDED
-  paymentGateway       String?  @map("payment_gateway") @db.VarChar(50) // STRIPE, PAYPAL
+  paymentGateway       String?  @map("payment_gateway") @db.VarChar(50) // STRIPE, PAYPAL, SIMULATED, CASHFLOWS
   gatewayTransactionId String?  @map("gateway_transaction_id") @db.VarChar(255)
   relatedEntityId      String?  @map("related_entity_id") @db.VarChar(255) // Polymorphic ID
   createdAt            DateTime @default(now()) @map("created_at")
@@ -144,12 +147,14 @@ model Transaction {
 }
 
 model Ticket {
-  id            String   @id @default(uuid()) @db.VarChar(255)
-  raffleId      String   @map("raffle_id") @db.VarChar(255)
-  userId        String   @map("user_id") @db.VarChar(255)
-  transactionId String   @map("transaction_id") @db.VarChar(255)
-  ticketNumber  Int      @map("ticket_number")
-  createdAt     DateTime @default(now()) @map("created_at")
+  id                   String    @id @default(uuid()) @db.VarChar(255)
+  raffleId             String    @map("raffle_id") @db.VarChar(255)
+  userId               String    @map("user_id") @db.VarChar(255)
+  transactionId        String    @map("transaction_id") @db.VarChar(255)
+  ticketNumber         Int       @map("ticket_number")
+  acceptedTermsVersion String?   @map("accepted_terms_version") @db.VarChar(20)
+  acceptedTermsAt      DateTime? @map("accepted_terms_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
 
   raffle      Raffle      @relation(fields: [raffleId], references: [id], onDelete: Cascade)
   user        User        @relation(fields: [userId], references: [id])
@@ -160,17 +165,53 @@ model Ticket {
 }
 
 model Winner {
-  id             String   @id @default(uuid()) @db.VarChar(255)
-  userId         String   @map("user_id") @db.VarChar(255)
-  raffleId       String   @map("raffle_id") @db.VarChar(255)
-  ticketId       String   @map("ticket_id") @db.VarChar(255)
-  winType        String   @map("win_type") @db.VarChar(50) // MAIN_DRAW, INSTANT_WIN
-  prizeName      String   @map("prize_name") @db.VarChar(255)
-  deliveryStatus String   @default("PENDING") @map("delivery_status") @db.VarChar(50) // PENDING, SHIPPED, DELIVERED
-  verificationStatus String @default("PENDING") @map("verification_status") @db.VarChar(50) // PENDING, VERIFIED, REJECTED
-  trackingNumber String?  @map("tracking_number") @db.VarChar(255)
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+  id                 String   @id @default(uuid()) @db.VarChar(255)
+  userId             String   @map("user_id") @db.VarChar(255)
+  raffleId           String   @map("raffle_id") @db.VarChar(255)
+  ticketId           String   @map("ticket_id") @db.VarChar(255)
+  winType            String   @map("win_type") @db.VarChar(50) // MAIN_DRAW, INSTANT_WIN
+  prizeName          String   @map("prize_name") @db.VarChar(255)
+  
+  // Fulfillment & Verification
+  deliveryStatus     String   @default("PENDING") @map("delivery_status") @db.VarChar(50) // PENDING, SHIPPED, DELIVERED, COLLECTED
+  verificationStatus String   @default("WINNER_SELECTED") @map("verification_status") @db.VarChar(50) 
+  // WINNER_SELECTED, VERIFICATION_REQUIRED, ID_SUBMITTED, AGE_VERIFIED, IDENTITY_MATCH_CONFIRMED, UKARA_PENDING, UKARA_VERIFIED, VERIFICATION_FAILED, CASH_ALT_OFFERED, TWO_TONE_ALT_OFFERED, TRANSFER_VERIFICATION_REQUIRED, APPROVED_FOR_FULFILMENT, SHIPPED, COLLECTED, COMPLETED
+
+  ukaraStatus        String   @default("NOT_REQUIRED") @map("ukara_status") @db.VarChar(50)
+  // NOT_REQUIRED, PENDING_VERIFICATION, VALID, INVALID, EXPIRED, DETAILS_MISMATCH, ALT_DEFENCE_REVIEW
+
+  idDocumentUrl      String?  @map("id_document_url") @db.Text
+  idDocumentType     String?  @map("id_document_type") @db.VarChar(50)
+  dobMatch           Boolean? @map("dob_match")
+  nameMatch          Boolean? @map("name_match")
+  verifiedByUserId   String?  @map("verified_by_user_id") @db.VarChar(255)
+  verifiedAt         DateTime? @map("verified_at")
+
+  // Alternative Prize Process
+  alternativeType        String?  @map("alternative_type") @db.VarChar(50) // NONE, CASH, TWO_TONE_SUBSTITUTION, FORFEIT
+  alternativeAmount      Decimal? @map("alternative_amount") @db.Decimal(10, 2)
+  alternativeReason      String?  @map("alternative_reason") @db.Text
+  alternativeStatus      String?  @map("alternative_status") @db.VarChar(50) // OFFERED, ACCEPTED, REJECTED, COMPLETED
+  alternativeDecisionBy  String?  @map("alternative_decision_by") @db.VarChar(255)
+
+  // Transfer Workflow
+  transferredToUserId    String?   @map("transferred_to_user_id") @db.VarChar(255)
+  transferRecipientName  String?   @map("transfer_recipient_name") @db.VarChar(255)
+  transferRecipientDob   DateTime? @map("transfer_recipient_dob")
+  transferRecipientUkara String?   @map("transfer_recipient_ukara") @db.VarChar(100)
+  transferStatus         String?   @map("transfer_status") @db.VarChar(50) // PENDING, VERIFIED, REJECTED, COMPLETED
+  transferAdminNotes     String?   @map("transfer_admin_notes") @db.Text
+
+  // Logistics & Discreet Packaging
+  fulfillmentMethod          String?  @map("fulfillment_method") @db.VarChar(50) // SHIPPED, OFFICE_COLLECTION
+  packagingType              String?  @map("packaging_type") @db.VarChar(50) // BOX, PARCEL_BAG, BLACK_ENVELOPE, BLACK_SHRINK_WRAP
+  discreetPackagingConfirmed Boolean  @default(false) @map("discreet_packaging_confirmed")
+  courierName                String?  @map("courier_name") @db.VarChar(100) // PARCELFORCE, ROYAL_MAIL, OTHER
+  trackingNumber             String?  @map("tracking_number") @db.VarChar(255)
+  collectionStaffMember      String?  @map("collection_staff_member") @db.VarChar(255)
+
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
 
   user   User   @relation(fields: [userId], references: [id])
   raffle Raffle @relation(fields: [raffleId], references: [id], onDelete: Cascade)
@@ -198,14 +239,42 @@ model Withdrawal {
 }
 
 model Category {
-  id          String   @id @default(uuid()) @db.VarChar(255)
-  name        String   @unique @db.VarChar(100)
-  slug        String   @unique @db.VarChar(100)
-  icon        String?  @db.VarChar(50)
-  image       String?  @db.VarChar(255)
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  id        String   @id @default(uuid()) @db.VarChar(255)
+  name      String   @unique @db.VarChar(100)
+  slug      String   @unique @db.VarChar(100)
+  icon      String?  @db.VarChar(50)
+  image     String?  @db.VarChar(255)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("categories")
+}
+
+model MarketingReport {
+  id                 String   @id @default(uuid()) @db.VarChar(255)
+  raffleId           String?  @map("raffle_id") @db.VarChar(255)
+  reason             String   @db.VarChar(255)
+  description        String   @db.Text
+  reporterEmail      String?  @map("reporter_email") @db.VarChar(255)
+  status             String   @default("SUBMITTED") @db.VarChar(50) // SUBMITTED, UNDER_REVIEW, ACTION_REQUIRED, RESOLVED, DISMISSED
+  assignedReviewerId String?  @map("assigned_reviewer_id") @db.VarChar(255)
+  resolutionNotes    String?  @map("resolution_notes") @db.Text
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("marketing_reports")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.VarChar(255)
+  userId     String?  @map("user_id") @db.VarChar(255)
+  action     String   @db.VarChar(100)
+  entityType String   @map("entity_type") @db.VarChar(50)
+  entityId   String   @map("entity_id") @db.VarChar(255)
+  details    String?  @db.Text
+  ipAddress  String?  @map("ip_address") @db.VarChar(100)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
 }

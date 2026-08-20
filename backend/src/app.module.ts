@@ -15,6 +15,7 @@ import { HostsModule } from './hosts/hosts.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { AdminModule } from './admin/admin.module';
 import { CategoriesModule } from './categories/categories.module';
+import { MarketingModule } from './marketing/marketing.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CategoriesModule } from './categories/categories.module';
     AdminModule,
     ScheduleModule.forRoot(),
     CategoriesModule,
+    MarketingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

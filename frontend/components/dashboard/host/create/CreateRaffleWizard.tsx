@@ -18,7 +18,9 @@ export interface RaffleFormData {
   // Step 1
   title: string;
   category: string;
+  prizeClassification: 'RIF' | 'TWO_TONE_IF' | 'ACCESSORY';
   description: string;
+  isRif: boolean;
   // Step 2
   mainPrizeValue: string;
   totalTickets: string;
@@ -41,7 +43,9 @@ export interface RaffleFormData {
 const initialData: RaffleFormData = {
   title: "",
   category: "Airsoft Rifles",
+  prizeClassification: "RIF",
   description: "",
+  isRif: false,
   mainPrizeValue: "",
   totalTickets: "",
   ticketPrice: "",
@@ -109,6 +113,7 @@ export default function CreateRaffleWizard() {
       const created = await createRaffle.mutateAsync({
         title: formData.title,
         description: formData.description,
+        prizeClassification: formData.prizeClassification || 'RIF',
         mainPrizeValue: formData.mainPrizeValue ? Number(formData.mainPrizeValue) : undefined,
         pricePerTicket: Number(formData.ticketPrice) || 0,
         totalTickets: Number(formData.totalTickets) || 0,

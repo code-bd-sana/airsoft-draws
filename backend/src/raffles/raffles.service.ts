@@ -75,6 +75,7 @@ export class RafflesService {
         title: data.title,
         slug,
         description: data.description || '',
+        prizeClassification: data.prizeClassification || 'RIF',
         mainPrizeValue: data.mainPrizeValue
           ? Number(data.mainPrizeValue)
           : null,

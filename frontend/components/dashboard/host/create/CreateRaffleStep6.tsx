@@ -48,6 +48,10 @@ export default function CreateRaffleStep6({ formData, onPrev, onPublish, isSubmi
               <span className="font-sans font-medium text-[11px] uppercase text-[#5a752a]">Main Prize Value</span>
               <span className="font-sans font-medium text-[14px] text-[#e8edd4]">{formData.mainPrizeValue ? `£${formData.mainPrizeValue}` : "—"}</span>
             </div>
+            <div className="flex flex-col gap-[4px]">
+              <span className="font-sans font-medium text-[11px] uppercase text-[#5a752a]">RIF Declaration</span>
+              <span className="font-sans font-medium text-[14px] text-[#8cb34a]">{formData.isRif ? "Confirmed (RIF Prize)" : "Not Confirmed"}</span>
+            </div>
             <div className="flex flex-col gap-[4px] sm:col-span-2">
               <span className="font-sans font-medium text-[11px] uppercase text-[#5a752a]">Description</span>
               <p className="font-sans font-normal text-[14px] text-[#e8edd4] whitespace-pre-wrap">{formData.description || "—"}</p>

@@ -9,6 +9,15 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as crypto from 'crypto';
 import { RafflesService } from '../raffles/raffles.service';
 
+export function calculateAge(dob: Date, referenceDate: Date = new Date()): number {
+  let age = referenceDate.getFullYear() - dob.getFullYear();
+  const monthDiff = referenceDate.getMonth() - dob.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && referenceDate.getDate() < dob.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 @Injectable()
 export class TicketsService {
   constructor(
@@ -17,48 +26,100 @@ export class TicketsService {
     private readonly rafflesService: RafflesService,
   ) {}
 
-  async purchaseTickets(userId: string, raffleId: string, quantity: number) {
+  async purchaseTickets(userId: string, raffleId: string, payload: any) {
+    const quantity = typeof payload === 'number' ? payload : payload?.quantity || 1;
     if (quantity <= 0) {
       throw new BadRequestException('Quantity must be at least 1');
     }
 
     // If USE_TEST_PAYMENT is false, redirect to Cashflows Payment Gateway
     if (process.env.USE_TEST_PAYMENT === 'false') {
-      return this.createCashflowsTicketCheckout(userId, raffleId, quantity);
+      return this.createCashflowsTicketCheckout(userId, raffleId, payload);
     }
 
-    return this.allocateTicketsInDatabase(userId, raffleId, quantity);
+    return this.allocateTicketsInDatabase(userId, raffleId, payload);
   }
 
-  async allocateTicketsInDatabase(userId: string, raffleId: string, quantity: number) {
+  async allocateTicketsInDatabase(userId: string, raffleId: string, payload: any) {
+    const quantity = typeof payload === 'number' ? payload : payload?.quantity || 1;
     if (quantity <= 0) {
       throw new BadRequestException('Quantity must be at least 1');
     }
 
+    const dto = typeof payload === 'object' ? payload : { quantity };
+
+    // 1. Fetch User and Raffle
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User account not found');
+    }
+
+    const raffle = await this.prisma.raffle.findUnique({
+      where: { id: raffleId },
+      include: { instantWins: true },
+    });
+    if (!raffle) {
+      throw new NotFoundException('Competition not found');
+    }
+
+    if (raffle.status !== 'ACTIVE') {
+      throw new BadRequestException('This competition is not active');
+    }
+
+    if (raffle.ticketsSold + quantity > raffle.totalTickets) {
+      throw new BadRequestException(
+        `Only ${raffle.totalTickets - raffle.ticketsSold} tickets remaining`,
+      );
+    }
+
+    // 2. Terms Acceptance Check
+    if (dto.acceptedTerms !== undefined && !dto.acceptedTerms) {
+      throw new BadRequestException('You must accept the Terms and Conditions to complete entry.');
+    }
+
+    // 3. Date of Birth & 18+ Age Validation
+    let dobToUse = dto.dateOfBirth ? new Date(dto.dateOfBirth) : user.dateOfBirth;
+
+    if (dto.dateOfBirth && (!user.dateOfBirth || user.dateOfBirth.toISOString().slice(0,10) !== dto.dateOfBirth)) {
+      const parsedDob = new Date(dto.dateOfBirth);
+      if (!isNaN(parsedDob.getTime())) {
+        dobToUse = parsedDob;
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { dateOfBirth: parsedDob },
+        });
+      }
+    }
+
+    if (!dobToUse || isNaN(dobToUse.getTime())) {
+      throw new BadRequestException('Date of birth is required at checkout to confirm age eligibility (18+).');
+    }
+
+    const age = calculateAge(dobToUse);
+    if (age < 18) {
+      throw new BadRequestException('Eligibility is restricted to participants aged 18 years or older.');
+    }
+
+    // 4. Conditional UKARA Requirement
+    const isRifCompetition = (raffle.prizeClassification || 'RIF') === 'RIF';
+    let ukaraToUse = dto.ukaraNumber || user.ukaraNumber;
+
+    if (isRifCompetition) {
+      if (!ukaraToUse || !ukaraToUse.trim()) {
+        throw new BadRequestException('A valid UKARA registration number is required to enter a Realistic Imitation Firearm (RIF) competition.');
+      }
+      if (dto.ukaraNumber && dto.ukaraNumber.trim() !== user.ukaraNumber) {
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { ukaraNumber: dto.ukaraNumber.trim() },
+        });
+        ukaraToUse = dto.ukaraNumber.trim();
+      }
+    }
+
     const result = await this.prisma.$transaction(
       async (tx) => {
-        // 1. Fetch the active raffle and lock it for update if needed.
-        // We will use standard query here, and rely on the transaction isolation.
-        const raffle = await tx.raffle.findUnique({
-          where: { id: raffleId },
-          include: { instantWins: true },
-        });
-
-        if (!raffle) {
-          throw new NotFoundException('Competition not found');
-        }
-
-        if (raffle.status !== 'ACTIVE') {
-          throw new BadRequestException('This competition is not active');
-        }
-
-        if (raffle.ticketsSold + quantity > raffle.totalTickets) {
-          throw new BadRequestException(
-            `Only ${raffle.totalTickets - raffle.ticketsSold} tickets remaining`,
-          );
-        }
-
-        // 2. Determine available ticket numbers
+        // Determine available ticket numbers
         const existingTickets = await tx.ticket.findMany({
           where: { raffleId },
           select: { ticketNumber: true },
@@ -76,8 +137,7 @@ export class TicketsService {
           throw new BadRequestException('Not enough ticket numbers available');
         }
 
-        // 3. Shuffle and pick random numbers
-        // Fisher-Yates shuffle on the available numbers
+        // Shuffle and pick random numbers
         for (let i = availableNumbers.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [availableNumbers[i], availableNumbers[j]] = [
@@ -87,7 +147,7 @@ export class TicketsService {
         }
         const assignedNumbers = availableNumbers.slice(0, quantity);
 
-        // 4. Create Simulated Transaction
+        // Create Transaction Record
         const totalAmount = Number(raffle.pricePerTicket) * quantity;
         const gatewayTransactionId = `SIM_PAY_${crypto.randomUUID()}`;
 
@@ -96,32 +156,34 @@ export class TicketsService {
             userId,
             type: 'TICKET_PURCHASE',
             amount: totalAmount,
-            status: 'COMPLETED', // Simulating instant success
+            status: 'COMPLETED',
             paymentGateway: 'SIMULATED',
             gatewayTransactionId,
             relatedEntityId: raffle.id,
           },
         });
 
-        // 5. Create Tickets
+        // Create Tickets with Accepted Terms Metadata
+        const now = new Date();
         const ticketsData = assignedNumbers.map((num) => ({
           raffleId: raffle.id,
           userId,
           transactionId: transaction.id,
           ticketNumber: num,
+          acceptedTermsVersion: 'v1.0',
+          acceptedTermsAt: now,
         }));
 
         await tx.ticket.createMany({
           data: ticketsData,
         });
 
-        // Fetch the created tickets to return them
+        // Fetch created tickets
         const createdTickets = await tx.ticket.findMany({
           where: { transactionId: transaction.id },
         });
 
-        // 6. Check for Instant Wins
-        const instantWinsData = [];
+        // Check for Instant Wins
         const userInstantWins: any[] = [];
 
         for (const ticket of createdTickets) {
@@ -130,13 +192,11 @@ export class TicketsService {
           );
 
           if (matchedInstantWin) {
-            // Mark as claimed
             await tx.instantWin.update({
               where: { id: matchedInstantWin.id },
               data: { isClaimed: true },
             });
 
-            // Create Winner record
             const winner = await tx.winner.create({
               data: {
                 userId,
@@ -145,6 +205,8 @@ export class TicketsService {
                 winType: 'INSTANT_WIN',
                 prizeName: matchedInstantWin.prizeName,
                 deliveryStatus: 'PENDING',
+                verificationStatus: 'WINNER_SELECTED',
+                ukaraStatus: isRifCompetition ? 'PENDING_VERIFICATION' : 'NOT_REQUIRED',
               },
             });
 

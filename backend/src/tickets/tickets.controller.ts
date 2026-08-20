@@ -71,7 +71,7 @@ export class TicketsController {
       );
     }
     const userId = this.extractUserId(req);
-    return this.ticketsService.purchaseTickets(userId, raffleId, body.quantity);
+    return this.ticketsService.purchaseTickets(userId, raffleId, body);
   }
 
   @Get('my-tickets')

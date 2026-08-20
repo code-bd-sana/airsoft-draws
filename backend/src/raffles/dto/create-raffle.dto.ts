@@ -55,6 +55,15 @@ export class CreateRaffleDto {
   description?: string;
 
   @ApiPropertyOptional({
+    example: 'RIF',
+    description: 'Prize Classification: RIF (Realistic Imitation Firearm), TWO_TONE_IF (Imitation Firearm), or ACCESSORY (Optics, Apparel, Non-RIF)',
+    enum: ['RIF', 'TWO_TONE_IF', 'ACCESSORY'],
+  })
+  @IsString()
+  @IsOptional()
+  prizeClassification?: string;
+
+  @ApiPropertyOptional({
     example: 1200.0,
     description: 'Estimated retail value of the main prize',
   })

@@ -1,12 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 
+export interface PurchaseTicketPayload {
+  quantity: number;
+  dateOfBirth?: string;
+  ukaraNumber?: string;
+  acceptedTerms?: boolean;
+}
+
 export const usePurchaseTicketsMutation = (raffleId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (quantity: number) => {
-      const response = await api.post(`/tickets/purchase/${raffleId}`, { quantity });
+    mutationFn: async (payload: number | PurchaseTicketPayload) => {
+      const body = typeof payload === 'number' ? { quantity: payload } : payload;
+      const response = await api.post(`/tickets/purchase/${raffleId}`, body);
       return response.data;
     },
     onSuccess: () => {

@@ -7,6 +7,7 @@ import { useAuth } from "../../../features/auth/AuthContext";
 import { useRouter } from "next/navigation";
 import TicketPurchaseSuccessModal, { TicketPurchaseSuccessData } from "./TicketPurchaseSuccessModal";
 import FreePostalEntryButton from "../legal/FreePostalEntryButton";
+import CheckoutComplianceModal from "../checkout/CheckoutComplianceModal";
 
 interface RaffleEntryCardProps {
   raffle: RaffleDetail;
@@ -17,8 +18,10 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
   const [statusMessage, setStatusMessage] = useState<{type: 'success'|'error'|'info', text: string} | null>(null);
   const [purchaseSuccessData, setPurchaseSuccessData] = useState<TicketPurchaseSuccessData | null>(null);
   const [timeLeft, setTimeLeft] = useState("");
+  const [isComplianceModalOpen, setIsComplianceModalOpen] = useState(false);
+  const [complianceError, setComplianceError] = useState<string | null>(null);
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const router = useRouter();
   
   const purchaseMutation = usePurchaseTicketsMutation(raffle.id);
@@ -63,7 +66,7 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
   const handleDecrement = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
   const handleIncrement = () => setQuantity(prev => prev + 1);
 
-  const handlePurchase = () => {
+  const handleOpenCheckoutModal = () => {
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -73,41 +76,54 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
       setStatusMessage({ type: 'error', text: `Only ${remainingTickets} tickets left.` });
       return;
     }
-    
+
     setStatusMessage(null);
-    purchaseMutation.mutate(quantity, {
-      onSuccess: (data) => {
-        if (data?.url) {
-          window.location.href = data.url;
-          return;
-        }
+    setComplianceError(null);
+    setIsComplianceModalOpen(true);
+  };
 
-        const formattedWins = (data.instantWins || []).map((iw: any) => {
-          const tk = (data.tickets || []).find((t: any) => t.id === iw.ticketId);
-          return {
-            id: iw.id,
-            ticketId: iw.ticketId,
-            prizeName: iw.prizeName,
-            ticketNumber: tk ? tk.ticketNumber : undefined,
-          };
-        });
-
-        setPurchaseSuccessData({
-          raffleTitle: raffle.title,
-          tickets: data.tickets || [],
-          instantWins: formattedWins,
-          totalAmount: totalPrice,
-        });
-
-        setQuantity(1);
+  const handleConfirmCompliance = (complianceData: { dateOfBirth: string; ukaraNumber?: string; acceptedTerms: boolean }) => {
+    setComplianceError(null);
+    purchaseMutation.mutate(
+      {
+        quantity,
+        dateOfBirth: complianceData.dateOfBirth,
+        ukaraNumber: complianceData.ukaraNumber,
+        acceptedTerms: complianceData.acceptedTerms,
       },
-      onError: (error: any) => {
-        setStatusMessage({ 
-          type: 'error', 
-          text: error.response?.data?.message || 'Failed to purchase tickets' 
-        });
+      {
+        onSuccess: (data) => {
+          setIsComplianceModalOpen(false);
+          if (data?.url) {
+            window.location.href = data.url;
+            return;
+          }
+
+          const formattedWins = (data.instantWins || []).map((iw: any) => {
+            const tk = (data.tickets || []).find((t: any) => t.id === iw.ticketId);
+            return {
+              id: iw.id,
+              ticketId: iw.ticketId,
+              prizeName: iw.prizeName,
+              ticketNumber: tk ? tk.ticketNumber : undefined,
+            };
+          });
+
+          setPurchaseSuccessData({
+            raffleTitle: raffle.title,
+            tickets: data.tickets || [],
+            instantWins: formattedWins,
+            totalAmount: totalPrice,
+          });
+
+          setQuantity(1);
+        },
+        onError: (error: any) => {
+          const errMsg = error.response?.data?.message || 'Failed to purchase tickets';
+          setComplianceError(errMsg);
+        },
       }
-    });
+    );
   };
 
   return (
@@ -200,7 +216,7 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
         </div>
 
         <button 
-          onClick={handlePurchase}
+          onClick={handleOpenCheckoutModal}
           disabled={purchaseMutation.isPending || remainingTickets === 0}
           className={`w-full h-[48px] rounded-[8px] font-heading font-medium text-[14px] transition-colors flex items-center justify-center ${
             purchaseMutation.isPending || remainingTickets === 0
@@ -234,6 +250,21 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
         </svg>
         Share this competition
       </button>
+
+      {/* 18+ Age & UKARA Compliance Checkout Modal */}
+      <CheckoutComplianceModal
+        isOpen={isComplianceModalOpen}
+        onClose={() => setIsComplianceModalOpen(false)}
+        raffleTitle={raffle.title}
+        prizeClassification={(raffle as any).prizeClassification || "RIF"}
+        quantity={quantity}
+        ticketPrice={ticketPrice}
+        onConfirm={handleConfirmCompliance}
+        isPending={purchaseMutation.isPending}
+        errorMessage={complianceError}
+        userDob={(user as any)?.dateOfBirth || null}
+        userUkara={(user as any)?.ukaraNumber || null}
+      />
 
       {/* Instant Ticket Numbers & Instant Win Purchase Confirmation Modal */}
       <TicketPurchaseSuccessModal

@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import { Winner, winnerService } from '../../../services/winner.service';
-import VerifyWinnerModal from './VerifyWinnerModal';
+import AdminWinnerComplianceModal from './AdminWinnerComplianceModal';
 
 export default function WinnersTrackingTable() {
   const [activeFilter, setActiveFilter] = useState('All');
@@ -14,15 +14,15 @@ export default function WinnersTrackingTable() {
 
   const queryClient = useQueryClient();
 
-  const filters = ['All', 'Pending Verification', 'Verified & Published', 'Prize Delivered'];
+  const filters = ['All', 'Pending Verification', 'Approved For Fulfilment', 'Prize Delivered'];
   const winTypeFilters = ['All', 'Main Draw', 'Instant Win'];
 
   const getVerificationQuery = (filter: string) => {
     switch (filter) {
       case 'Pending Verification':
-        return 'PENDING';
-      case 'Verified & Published':
-        return 'VERIFIED';
+        return 'WINNER_SELECTED';
+      case 'Approved For Fulfilment':
+        return 'APPROVED_FOR_FULFILMENT';
       default:
         return 'All';
     }
@@ -69,21 +69,25 @@ export default function WinnersTrackingTable() {
       "Winner Name",
       "User Email",
       "Competition Won",
+      "Classification",
       "Win Type",
       "Prize Name",
       "Draw Date",
       "Verification Status",
+      "UKARA Status",
       "Delivery Status"
     ];
 
-    const rows = winners.map((winner: Winner) => {
+    const rows = winners.map((winner: any) => {
       const name = `${winner.user?.firstName || ''} ${winner.user?.lastName || ''}`.trim() || 'Unknown';
       const email = winner.user?.email || 'N/A';
       const competition = winner.raffle?.title || 'Unknown Raffle';
+      const classification = winner.raffle?.prizeClassification || 'RIF';
       const winType = winner.winType === 'INSTANT_WIN' ? 'Instant Win' : 'Main Draw';
       const prize = winner.prizeName || 'N/A';
       const drawDate = winner.createdAt ? format(new Date(winner.createdAt), 'dd MMM yyyy HH:mm') : 'N/A';
       const verificationStatus = winner.verificationStatus || 'N/A';
+      const ukaraStatus = winner.ukaraStatus || 'NOT_REQUIRED';
       const deliveryStatus = winner.deliveryStatus || 'N/A';
 
       return [
@@ -91,10 +95,12 @@ export default function WinnersTrackingTable() {
         name,
         email,
         competition,
+        classification,
         winType,
         prize,
         drawDate,
         verificationStatus,
+        ukaraStatus,
         deliveryStatus
       ];
     });
@@ -111,7 +117,7 @@ export default function WinnersTrackingTable() {
 
     const filterTag = activeFilter.toLowerCase().replace(/[^a-z0-9]/g, '_');
     const winTypeTag = winTypeFilter.toLowerCase().replace(/[^a-z0-9]/g, '_');
-    link.setAttribute("download", `winners_export_${filterTag}_${winTypeTag}_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute("download", `winners_compliance_export_${filterTag}_${winTypeTag}_${new Date().toISOString().slice(0, 10)}.csv`);
 
     link.style.visibility = "hidden";
     document.body.appendChild(link);
@@ -119,28 +125,21 @@ export default function WinnersTrackingTable() {
     document.body.removeChild(link);
   };
 
-  // Ensure this handles the verification correctly locally if we are mocking the modal API call inside it,
-  // or we can refresh the table on modal close
   const handleModalClose = () => {
     setIsModalOpen(false);
     queryClient.invalidateQueries({ queryKey: ['adminWinners'] });
   };
 
-  const getStatusStyle = (winner: Winner) => {
-    if (winner.deliveryStatus === 'DELIVERED')
+  const getStatusStyle = (winner: any) => {
+    if (winner.deliveryStatus === 'DELIVERED' || winner.verificationStatus === 'COMPLETED')
       return 'border-[#4ADE80]/30 bg-[#083b18] text-[#4ADE80]';
-    if (winner.verificationStatus === 'VERIFIED')
-      return 'border-[#4ADE80]/30 bg-[#083b18] text-[#4ADE80]';
-    if (winner.verificationStatus === 'PENDING')
-      return 'border-[#D97706]/30 bg-[#78350F] text-[#F59E0B]';
-    return 'border-[#2D3C13] bg-[#111210] text-[#72943A]';
-  };
-
-  const getDisplayStatus = (winner: Winner) => {
-    if (winner.deliveryStatus === 'DELIVERED') return 'Prize Delivered';
-    if (winner.verificationStatus === 'VERIFIED') return 'Verified';
-    if (winner.verificationStatus === 'PENDING') return 'Pending Verification';
-    return 'Unknown';
+    if (winner.verificationStatus === 'APPROVED_FOR_FULFILMENT')
+      return 'border-[#8CB34A]/30 bg-[#1A230A] text-[#8CB34A]';
+    if (winner.verificationStatus === 'VERIFICATION_FAILED')
+      return 'border-red-800 bg-red-950 text-red-400';
+    if (winner.verificationStatus === 'CASH_ALT_OFFERED' || winner.verificationStatus === 'TWO_TONE_ALT_OFFERED')
+      return 'border-amber-800 bg-amber-950 text-amber-400';
+    return 'border-[#D97706]/30 bg-[#78350F] text-[#F59E0B]';
   };
 
   return (
@@ -191,7 +190,7 @@ export default function WinnersTrackingTable() {
             <svg className="w-4 h-4 text-[#8CB34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
-            <span className="font-sans font-medium text-[12px] text-[#E8EDD4]">Export CSV</span>
+            <span className="font-sans font-medium text-[12px] text-[#E8EDD4]">Export Compliance CSV</span>
           </button>
         </div>
       </div>
@@ -202,10 +201,10 @@ export default function WinnersTrackingTable() {
           <thead>
             <tr className='border-b border-[#2D3C13] bg-[#111210]'>
               <th className='py-4 px-6 font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px] w-[18%]'>
-                WINNER
+                WINNER & ID
               </th>
               <th className='py-4 px-6 font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px] w-[18%]'>
-                COMPETITION WON
+                COMPETITION & CLASS
               </th>
               <th className='py-4 px-6 font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px] w-[12%] text-center'>
                 WIN TYPE
@@ -213,13 +212,13 @@ export default function WinnersTrackingTable() {
               <th className='py-4 px-6 font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px] w-[12%] text-center'>
                 DRAW DATE
               </th>
-              <th className='py-4 px-6 font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px] w-[12%] text-center'>
-                PRIZE VALUE
+              <th className='py-4 px-6 font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px] w-[14%] text-center'>
+                UKARA / DEFENCE
               </th>
               <th className='py-4 px-6 font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px] w-[15%] text-center'>
-                STATUS
+                COMPLIANCE STATUS
               </th>
-              <th className='py-4 px-6 font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px] w-[13%] text-right'>
+              <th className='py-4 px-6 font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px] w-[11%] text-right'>
                 ACTIONS
               </th>
             </tr>
@@ -228,7 +227,7 @@ export default function WinnersTrackingTable() {
             {isLoading ? (
               <tr>
                 <td colSpan={7} className='py-8 text-center text-[#72943A] font-sans text-sm'>
-                  Loading winners...
+                  Loading winners compliance list...
                 </td>
               </tr>
             ) : winners.length === 0 ? (
@@ -238,11 +237,12 @@ export default function WinnersTrackingTable() {
                 </td>
               </tr>
             ) : (
-              winners.map((winner, i) => {
+              winners.map((winner: any, i: number) => {
                 const name =
                   `${winner.user?.firstName || ''} ${winner.user?.lastName || ''}`.trim() ||
                   'Unknown';
                 const initials = name.substring(0, 2).toUpperCase();
+                const classification = winner.raffle?.prizeClassification || 'RIF';
 
                 return (
                   <tr
@@ -264,15 +264,29 @@ export default function WinnersTrackingTable() {
                             </span>
                           )}
                         </div>
-                        <span className='font-sans font-medium text-[13px] text-[#E8EDD4]'>
-                          {name}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className='font-sans font-medium text-[13px] text-[#E8EDD4]'>
+                            {name}
+                          </span>
+                          <span className="font-sans text-[10px] text-[#5A752A]">
+                            {winner.user?.email}
+                          </span>
+                        </div>
                       </div>
                     </td>
                     <td className='py-4 px-6'>
-                      <span className='font-sans text-[13px] text-[#72943A]'>
-                        {winner.raffle?.title || 'Unknown Raffle'}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className='font-sans text-[13px] text-[#E8EDD4] font-medium'>
+                          {winner.raffle?.title || 'Unknown Raffle'}
+                        </span>
+                        <span className={`text-[10px] font-semibold w-fit px-2 py-0.5 rounded border ${
+                          classification === 'RIF' 
+                            ? 'bg-amber-950/40 border-amber-800 text-amber-400' 
+                            : 'bg-blue-950/40 border-blue-800 text-blue-400'
+                        }`}>
+                          {classification}
+                        </span>
+                      </div>
                     </td>
                     <td className='py-4 px-6 text-center'>
                       {winner.winType === 'INSTANT_WIN' ? (
@@ -291,34 +305,30 @@ export default function WinnersTrackingTable() {
                       </span>
                     </td>
                     <td className='py-4 px-6 text-center'>
-                      <span className='font-sans font-medium text-[13px] text-[#E8EDD4]'>
-                        {winner.prizeName}
+                      <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-semibold ${
+                        winner.ukaraStatus === 'VALID' 
+                          ? 'bg-[#1A230A] border-[#8CB34A] text-[#8CB34A]'
+                          : winner.ukaraStatus === 'NOT_REQUIRED'
+                          ? 'bg-gray-900 border-gray-700 text-gray-400'
+                          : 'bg-amber-950 border-amber-800 text-amber-400'
+                      }`}>
+                        {winner.ukaraStatus || 'NOT_REQUIRED'}
                       </span>
                     </td>
                     <td className='py-4 px-6 text-center'>
                       <span
                         className={`px-3 py-1 rounded-full border font-sans font-medium text-[10px] whitespace-nowrap ${getStatusStyle(winner)}`}
                       >
-                        {getDisplayStatus(winner)}
+                        {winner.verificationStatus || 'WINNER_SELECTED'}
                       </span>
                     </td>
-                    <td className='py-4 px-6'>
-                      <div className='flex items-center justify-end gap-3'>
-                        {winner.verificationStatus === 'PENDING' && (
-                          <button
-                            onClick={() => handleVerify(winner)}
-                            className='h-[32px] px-5 rounded-[8px] bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] font-heading font-medium text-[12px] transition-colors'
-                          >
-                            Verify
-                          </button>
-                        )}
-                        {winner.verificationStatus === 'VERIFIED' &&
-                          winner.deliveryStatus === 'PENDING' && (
-                            <button className='h-[32px] px-5 rounded-[8px] bg-transparent border border-[#2D3C13] text-[#72943A] font-heading font-medium text-[12px] cursor-not-allowed opacity-50'>
-                              Awaiting Delivery
-                            </button>
-                          )}
-                      </div>
+                    <td className='py-4 px-6 text-right'>
+                      <button
+                        onClick={() => handleVerify(winner)}
+                        className='h-[32px] px-4 rounded-[8px] bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] font-heading font-medium text-[12px] transition-colors shadow-[0_0_10px_rgba(140,179,74,0.15)]'
+                      >
+                        Audit Compliance
+                      </button>
                     </td>
                   </tr>
                 );
@@ -328,7 +338,12 @@ export default function WinnersTrackingTable() {
         </table>
       </div>
 
-      <VerifyWinnerModal isOpen={isModalOpen} onClose={handleModalClose} winner={selectedWinner} />
+      <AdminWinnerComplianceModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        winner={selectedWinner}
+        onRefresh={() => queryClient.invalidateQueries({ queryKey: ['adminWinners'] })}
+      />
     </div>
   );
 }

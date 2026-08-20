@@ -56,7 +56,7 @@ export default function TermsContent() {
 
   return (
     <div className="w-full bg-[#0D0D0B] text-[#E8EDD4] pt-24 pb-20">
-      
+
       {/* Top Banner */}
       <div className="border-b border-[#2D3C13] bg-[#111210]/60 backdrop-blur-md py-12 mb-12">
         <div className="container-custom max-w-6xl mx-auto px-4">
@@ -82,7 +82,7 @@ export default function TermsContent() {
       {/* Main Grid: Sticky Toc + Content */}
       <div className="container-custom max-w-6xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          
+
           {/* Left Table of Contents */}
           <aside className="lg:col-span-4 hidden lg:block">
             <div className="sticky top-28 bg-[#161810] border border-[#2D3C13] rounded-2xl p-5 space-y-2">
@@ -105,7 +105,7 @@ export default function TermsContent() {
                   </button>
                 ))}
               </nav>
-              
+
               <div className="pt-4 border-t border-[#2D3C13] mt-4">
                 <Link
                   href="/contact"
@@ -119,7 +119,7 @@ export default function TermsContent() {
 
           {/* Right Main Text Content */}
           <main className="lg:col-span-8 space-y-12 text-sm leading-relaxed text-[#B3B8AA]">
-            
+
             {/* 1. The Promoter */}
             <section id="promoter" className="bg-[#161810] border border-[#2D3C13] rounded-2xl p-6 sm:p-8 space-y-4">
               <h2 className="font-heading font-bold text-xl text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
@@ -393,4 +393,3 @@ export default function TermsContent() {
     </div>
   );
 }
-
