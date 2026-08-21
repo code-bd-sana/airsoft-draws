@@ -6,7 +6,7 @@ import PrimaryButton from "../shared/PrimaryButton";
 import SecondaryButton from "../shared/SecondaryButton";
 import { cn } from "../../../lib/utils";
 import { useAuthUser } from "../../../hooks/useAuthHooks";
-import { useCreateCheckoutSessionMutation } from "../../../hooks/useSubscriptionHooks";
+import { useCreateCheckoutSessionMutation, useCreateSubscriptionRequestMutation } from "../../../hooks/useSubscriptionHooks";
 import { SubscriptionPlan } from "../../../services/subscription.service";
 import { toast } from "sonner";
 
@@ -29,6 +29,11 @@ export default function PricingPlanCard({ plan, billingCycle, dbPlan }: PricingP
   const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [requestedDays, setRequestedDays] = useState<number>(30);
+  const [requestNote, setRequestNote] = useState<string>('');
+  const createRequestMutation = useCreateSubscriptionRequestMutation();
+
   const handleSubscribe = () => {
     if (!user) {
       router.push('/login');
@@ -46,23 +51,44 @@ export default function PricingPlanCard({ plan, billingCycle, dbPlan }: PricingP
     setLoading(true);
     createCheckout.mutate(dbPlan.id, {
       onSuccess: (data) => {
-        if (data.isFree || data.isTest) {
-          setTimeout(() => {
-            setLoading(false);
-            setShowSuccessModal(true);
-          }, 800); // Quick smooth feedback
+        setLoading(false);
+        if (data.isManualMode) {
+          // Open manual request modal
+          setShowRequestModal(true);
+        } else if (data.isFree || data.isTest) {
+          setShowSuccessModal(true);
         } else if (data.url) {
           window.location.href = data.url;
         } else {
-          setLoading(false);
           toast.error('No checkout URL returned.');
         }
       },
       onError: () => {
         setLoading(false);
-        toast.error('Failed to initiate checkout.');
+        // Fallback to manual request modal
+        setShowRequestModal(true);
       }
     });
+  };
+
+  const handleRequestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dbPlan) return;
+    setLoading(true);
+    try {
+      await createRequestMutation.mutateAsync({
+        planId: dbPlan.id,
+        requestedDays,
+        note: requestNote,
+      });
+      toast.success('Subscription request submitted successfully! Pending admin approval.');
+      setShowRequestModal(false);
+      router.push('/dashboard/host/billing');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to submit subscription request.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -193,6 +219,86 @@ export default function PricingPlanCard({ plan, billingCycle, dbPlan }: PricingP
             >
               Continue to Dashboard
             </PrimaryButton>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Subscription Request Modal */}
+      {showRequestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-[#161810] border border-[#2D3C13] p-6 md:p-8 rounded-[24px] shadow-2xl w-full max-w-lg flex flex-col gap-6 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-[#2D3C13] pb-4">
+              <div>
+                <h3 className="font-heading font-bold text-xl text-[#E8EDD4]">Request Subscription</h3>
+                <p className="font-sans text-xs text-[#8CB34A] mt-1">Plan: <strong>{plan.name}</strong></p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowRequestModal(false)}
+                className="text-[#E8EDD4]/60 hover:text-white text-xl font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleRequestSubmit} className="flex flex-col gap-5">
+              {/* User Auto Details */}
+              <div className="bg-[#1A230A] border border-[#43581E] p-4 rounded-xl flex flex-col gap-1 text-xs text-[#E8EDD4]">
+                <p><strong>Host Name:</strong> {user?.firstName || ''} {user?.lastName || ''} ({user?.email})</p>
+                <p><strong>Selected Plan:</strong> {plan.name} (£{price}/mo)</p>
+              </div>
+
+              {/* Duration Select */}
+              <div className="flex flex-col gap-2">
+                <label className="font-sans text-xs font-semibold text-[#E8EDD4]">
+                  Requested Duration <span className="text-red-400">*</span>
+                </label>
+                <select
+                  value={requestedDays}
+                  onChange={(e) => setRequestedDays(Number(e.target.value))}
+                  className="w-full bg-[#111210] border border-[#2D3C13] rounded-lg px-4 py-2.5 text-sm text-[#E8EDD4] focus:outline-none focus:border-[#8CB34A]"
+                >
+                  <option value={30}>1 Month (30 Days)</option>
+                  <option value={60}>2 Months (60 Days)</option>
+                  <option value={90}>3 Months (90 Days)</option>
+                  <option value={180}>6 Months (180 Days)</option>
+                  <option value={365}>1 Year (365 Days)</option>
+                  <option value={36500}>Lifetime Access</option>
+                </select>
+              </div>
+
+              {/* Optional Note */}
+              <div className="flex flex-col gap-2">
+                <label className="font-sans text-xs font-semibold text-[#E8EDD4]">
+                  Note / Request Details (Optional)
+                </label>
+                <textarea
+                  value={requestNote}
+                  onChange={(e) => setRequestNote(e.target.value)}
+                  placeholder="e.g. Requesting plan upgrade for winter campaign, paid offline ref #1234"
+                  rows={3}
+                  className="w-full bg-[#111210] border border-[#2D3C13] rounded-lg p-3 text-sm text-[#E8EDD4] placeholder:text-[#5A752A] focus:outline-none focus:border-[#8CB34A] resize-none"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowRequestModal(false)}
+                  className="flex-1 py-2.5 rounded-lg border border-[#2D3C13] text-xs font-semibold text-[#E8EDD4] hover:bg-[#1A230A] transition-colors"
+                >
+                  Cancel
+                </button>
+                <PrimaryButton
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 py-2.5 text-xs font-semibold justify-center"
+                >
+                  {loading ? 'Submitting...' : 'Submit Request to Admin'}
+                </PrimaryButton>
+              </div>
+            </form>
           </div>
         </div>
       )}

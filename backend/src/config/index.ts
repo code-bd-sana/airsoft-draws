@@ -21,6 +21,7 @@ export interface AppConfig {
   mail: {
     host: string;
     port: number;
+    secure: boolean;
     user: string;
     pass: string;
     from: string;
@@ -54,11 +55,12 @@ export const config: AppConfig = {
     environment: process.env.NODE_ENV || 'development',
   },
   mail: {
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    host: process.env.SMTP_HOST || 'smtp.office365.com',
     port: Number(process.env.SMTP_PORT) || 587,
-    user: process.env.SMTP_USER || '',
-    pass: process.env.SMTP_PASSWORD || '',
-    from: process.env.FROM_EMAIL || 'Airsoft Draws <noreply@airsoftdraws.com>',
+    secure: process.env.SMTP_SECURE === 'true',
+    user: process.env.SMTP_USER || 'info@airsoftdraws.com',
+    pass: process.env.SMTP_PASSWORD || 'Milobrodiejessie',
+    from: process.env.EMAIL_FROM || process.env.FROM_EMAIL || 'info@airsoftdraws.com',
   },
   frontend: {
     url: process.env.FRONTEND_URL || 'http://localhost:3000',

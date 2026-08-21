@@ -94,6 +94,14 @@ export class PaymentService {
       };
     }
 
+    // Manual Request Mode Check
+    if (process.env.ENABLE_AUTOMATIC_PAYMENT === 'false') {
+      return {
+        isManualMode: true,
+        message: 'Automated payment is currently disabled. Manual subscription request workflow active.',
+      };
+    }
+
     // Test Payment Flow (Enabled if USE_TEST_PAYMENT=true in .env)
     if (process.env.USE_TEST_PAYMENT === 'true') {
       const startDate = new Date();

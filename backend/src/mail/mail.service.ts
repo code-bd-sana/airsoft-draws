@@ -12,10 +12,15 @@ export class MailService {
     this.transporter = nodemailer.createTransport({
       host: config.mail.host,
       port: config.mail.port,
-      secure: config.mail.port === 465, // true for 465, false for other ports
+      secure: config.mail.secure || config.mail.port === 465,
       auth: {
         user: config.mail.user,
         pass: config.mail.pass,
+      },
+      requireTLS: config.mail.port === 587,
+      tls: {
+        ciphers: 'SSLv3',
+        rejectUnauthorized: false,
       },
     });
   }

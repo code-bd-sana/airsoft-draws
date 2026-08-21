@@ -44,10 +44,11 @@ model HostProfile {
   isVerified    Boolean  @default(false) @map("is_verified")
   createdAt     DateTime @default(now()) @map("created_at")
 
-  user          User               @relation(fields: [userId], references: [id])
-  subscriptions HostSubscription[]
-  raffles       Raffle[]
-  withdrawals   Withdrawal[]
+  user                 User                  @relation(fields: [userId], references: [id])
+  subscriptions        HostSubscription[]
+  subscriptionRequests SubscriptionRequest[]
+  raffles              Raffle[]
+  withdrawals          Withdrawal[]
 
   @@map("host_profiles")
 }
@@ -60,7 +61,8 @@ model SubscriptionPlan {
   maxActiveRaffles Int?     @map("max_active_raffles")
   createdAt        DateTime @default(now()) @map("created_at")
 
-  subscriptions HostSubscription[]
+  subscriptions        HostSubscription[]
+  subscriptionRequests SubscriptionRequest[]
 
   @@map("subscription_plans")
 }
@@ -78,6 +80,24 @@ model HostSubscription {
   plan SubscriptionPlan @relation(fields: [planId], references: [id])
 
   @@map("host_subscriptions")
+}
+
+model SubscriptionRequest {
+  id            String   @id @default(uuid()) @db.VarChar(255)
+  hostId        String   @map("host_id") @db.VarChar(255)
+  planId        String   @map("plan_id") @db.VarChar(255)
+  status        String   @default("PENDING") @db.VarChar(50) // PENDING, APPROVED, REJECTED
+  requestedDays Int?     @map("requested_days")
+  note          String?  @db.Text
+  adminNotes    String?  @map("admin_notes") @db.Text
+  approvedDays  Int?     @map("approved_days")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+
+  host HostProfile      @relation(fields: [hostId], references: [id])
+  plan SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@map("subscription_requests")
 }
 
 model Raffle {

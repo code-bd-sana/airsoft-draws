@@ -2,10 +2,11 @@
 
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { useMySubscription, useCancelSubscriptionMutation } from "../../../../hooks/useSubscriptionHooks";
+import { useMySubscription, useCancelSubscriptionMutation, useMySubscriptionRequest } from "../../../../hooks/useSubscriptionHooks";
 
 export default function CurrentPlanCard() {
   const { data: subscription, isLoading, refetch } = useMySubscription();
+  const { data: pendingReq } = useMySubscriptionRequest();
   const cancelMutation = useCancelSubscriptionMutation();
   const [isCancelling, setIsCancelling] = useState(false);
 
@@ -24,25 +25,49 @@ export default function CurrentPlanCard() {
     }
   };
 
+  const isPending = pendingReq && pendingReq.status === 'PENDING';
+
   if (isLoading) {
     return <div className="p-[24px] text-white">Loading subscription...</div>;
   }
 
   if (!subscription || subscription.status !== 'ACTIVE') {
     return (
-      <div className="w-full bg-[#1a230a] border border-[#2d3c13] rounded-[16px] p-[24px] lg:p-[32px] flex flex-col sm:flex-row sm:items-center justify-between gap-[24px]">
-        <div className="flex flex-col gap-[8px]">
-          <h2 className="font-heading font-medium text-[20px] text-[#e8edd4]">
-            No Active Subscription
-          </h2>
-          <p className="font-sans font-medium text-[14px] text-[#ff4d4f]">
-            {subscription?.status === 'CANCELLED' ? 'Your subscription was cancelled.' : 'You do not have an active plan.'}
-          </p>
-        </div>
-        <div className="flex items-center gap-[24px]">
-          <a href="/pricing" className="h-[40px] flex items-center justify-center px-[24px] bg-[#8cb34a] hover:bg-[#72943A] rounded-[8px] font-sans font-semibold text-[13px] text-[#1a230a] transition-colors">
-            Subscribe Now
-          </a>
+      <div className="flex flex-col gap-4 w-full">
+        {isPending && (
+          <div className="w-full bg-[#241a08] border border-[#f59e0b]/40 rounded-[16px] p-[20px] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-[#f59e0b] text-2xl">⏳</span>
+              <div>
+                <h4 className="font-heading font-semibold text-sm text-[#fef3c7]">
+                  Subscription Request Pending Approval
+                </h4>
+                <p className="font-sans text-xs text-[#fde68a] mt-0.5">
+                  Requested Plan: <strong>{pendingReq.plan.name}</strong> ({pendingReq.requestedDays || 30} Days duration).
+                  {pendingReq.note && <span> Note: "{pendingReq.note}"</span>}
+                </p>
+              </div>
+            </div>
+            <span className="px-3 py-1 bg-[#f59e0b]/20 border border-[#f59e0b]/50 text-[#f59e0b] text-xs font-semibold rounded-full self-start sm:self-center">
+              PENDING ADMIN APPROVAL
+            </span>
+          </div>
+        )}
+
+        <div className="w-full bg-[#1a230a] border border-[#2d3c13] rounded-[16px] p-[24px] lg:p-[32px] flex flex-col sm:flex-row sm:items-center justify-between gap-[24px]">
+          <div className="flex flex-col gap-[8px]">
+            <h2 className="font-heading font-medium text-[20px] text-[#e8edd4]">
+              No Active Subscription
+            </h2>
+            <p className="font-sans font-medium text-[14px] text-[#ff4d4f]">
+              {subscription?.status === 'CANCELLED' ? 'Your subscription was cancelled.' : 'You do not have an active plan.'}
+            </p>
+          </div>
+          <div className="flex items-center gap-[24px]">
+            <a href="/pricing" className="h-[40px] flex items-center justify-center px-[24px] bg-[#8cb34a] hover:bg-[#72943A] rounded-[8px] font-sans font-semibold text-[13px] text-[#1a230a] transition-colors">
+              {isPending ? 'Change Requested Plan' : 'Subscribe Now'}
+            </a>
+          </div>
         </div>
       </div>
     );
