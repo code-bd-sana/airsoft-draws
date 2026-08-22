@@ -73,9 +73,11 @@ async function main() {
 
   // 3. Seed Admin Account
   console.log('Seeding Admin Account...');
-  const adminPassword = await bcrypt.hash('admin@gmail.com', salt);
+  const adminEmail = process.env.ADMIN_EMAIL || 'info@airsoftdraws.com';
+  const adminPasswordPlain = process.env.ADMIN_PASSWORD || 'Milobrodiejessie';
+  const adminPassword = await bcrypt.hash(adminPasswordPlain, salt);
   await prisma.user.upsert({
-    where: { email: 'admin@gmail.com' },
+    where: { email: adminEmail },
     update: {
       passwordHash: adminPassword,
       role: 'ADMIN',
@@ -84,7 +86,7 @@ async function main() {
       lastName: 'Admin',
     },
     create: {
-      email: 'admin@gmail.com',
+      email: adminEmail,
       passwordHash: adminPassword,
       role: 'ADMIN',
       isEmailVerified: true,
@@ -92,7 +94,7 @@ async function main() {
       lastName: 'Admin',
     },
   });
-  console.log('✅ Admin Account ready (Email: admin@gmail.com | Pass: admin@gmail.com)');
+  console.log(`✅ Admin Account ready (Email: ${adminEmail} | Pass: ${adminPasswordPlain})`);
 
   // 4. Seed Host Account
   console.log('Seeding Host Account...');

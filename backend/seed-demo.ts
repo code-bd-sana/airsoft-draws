@@ -13,9 +13,11 @@ async function main() {
   const salt = await bcrypt.genSalt(10);
 
   // 1. Admin
-  const adminPassword = await bcrypt.hash('admin@gmail.com', salt);
+  const adminEmail = process.env.ADMIN_EMAIL || 'info@airsoftdraws.com';
+  const adminPasswordPlain = process.env.ADMIN_PASSWORD || 'Milobrodiejessie';
+  const adminPassword = await bcrypt.hash(adminPasswordPlain, salt);
   await prisma.user.upsert({
-    where: { email: 'admin@gmail.com' },
+    where: { email: adminEmail },
     update: {
       passwordHash: adminPassword,
       role: 'ADMIN',
@@ -24,7 +26,7 @@ async function main() {
       lastName: 'Admin',
     },
     create: {
-      email: 'admin@gmail.com',
+      email: adminEmail,
       passwordHash: adminPassword,
       role: 'ADMIN',
       isEmailVerified: true,
