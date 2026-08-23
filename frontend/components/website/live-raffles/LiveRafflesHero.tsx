@@ -1,5 +1,8 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
+import { useLiveHeroStats } from "../../../hooks/useRaffleHooks";
 
 interface LiveRafflesHeroProps {
   liveCount?: number;
@@ -9,13 +12,19 @@ interface LiveRafflesHeroProps {
 
 /**
  * Hero/Header section of the Live Raffles page.
- * Displays breadcrumbs, main title, description, and key statistics pills.
+ * Displays breadcrumbs, main title, description, and real-time statistics pills fetched from backend.
  */
 export default function LiveRafflesHero({
-  liveCount = 24,
-  closingTodayCount = 6,
-  totalPrizesValue = "£1,200+",
+  liveCount: propLiveCount,
+  closingTodayCount: propClosingTodayCount,
+  totalPrizesValue: propTotalPrizesValue,
 }: LiveRafflesHeroProps) {
+  const { data: heroStats, isLoading } = useLiveHeroStats();
+
+  const liveCount = propLiveCount ?? (heroStats ? heroStats.liveCount : null);
+  const closingTodayCount = propClosingTodayCount ?? (heroStats ? heroStats.closingTodayCount : null);
+  const totalPrizesValue = propTotalPrizesValue ?? (heroStats ? heroStats.totalPrizesValue : null);
+
   return (
     <section className="bg-surface border-b border-divider pt-28 pb-12">
       <div className="container-custom">
@@ -49,17 +58,17 @@ export default function LiveRafflesHero({
           <div className="flex flex-wrap gap-2.5">
             <div className="flex items-center gap-1.5 bg-accent-bg border border-border px-4 py-2 rounded-badge text-xs font-semibold text-text-brand shadow-sm select-none">
               <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-              <span>{liveCount} Live Draws</span>
+              <span>{isLoading && liveCount === null ? "..." : `${liveCount ?? 0} Live Draws`}</span>
             </div>
             
             <div className="flex items-center gap-1.5 bg-accent-bg border border-border px-4 py-2 rounded-badge text-xs font-semibold text-text-brand shadow-sm select-none">
               <span>⏱</span>
-              <span>{closingTodayCount} Closing Today</span>
+              <span>{isLoading && closingTodayCount === null ? "..." : `${closingTodayCount ?? 0} Closing Today`}</span>
             </div>
 
             <div className="flex items-center gap-1.5 bg-accent-bg border border-border px-4 py-2 rounded-badge text-xs font-semibold text-text-brand shadow-sm select-none">
               <span>🎯</span>
-              <span>{totalPrizesValue} in Prizes</span>
+              <span>{isLoading && totalPrizesValue === null ? "..." : `${totalPrizesValue ?? "£0"} in Prizes`}</span>
             </div>
           </div>
         </div>

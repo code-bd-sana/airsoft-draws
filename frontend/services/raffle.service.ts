@@ -81,6 +81,11 @@ export interface UpdateRaffleData extends Partial<CreateRaffleData> {
 }
 
 export const raffleService = {
+  async getLiveHeroStats(): Promise<{ liveCount: number; closingTodayCount: number; totalPrizesValue: string }> {
+    const response = await api.get('/raffles/public/live-hero-stats');
+    return response.data;
+  },
+
   async getPublicStats(): Promise<{ id: number; value: string; label: string }[]> {
     const response = await api.get('/raffles/public/stats');
     return response.data;

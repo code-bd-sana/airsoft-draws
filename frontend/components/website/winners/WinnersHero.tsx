@@ -38,7 +38,7 @@ export default function WinnersHero() {
 
         {/* Transparency Stat Rows */}
         <div className="mt-12 w-full max-w-4xl bg-bg/50 border border-border rounded-card p-6 md:p-8 flex flex-col md:flex-row justify-around items-center gap-8 md:gap-4">
-          
+
           {/* Stat 1: Prizes Awarded */}
           <div className="flex flex-col items-center text-center flex-1">
             <span className="font-heading font-bold text-3xl md:text-4xl text-text-brand">
@@ -55,7 +55,7 @@ export default function WinnersHero() {
           {/* Stat 2: Total Winners */}
           <div className="flex flex-col items-center text-center flex-1">
             <span className="font-heading font-bold text-3xl md:text-4xl text-text-brand">
-              {stats.totalWinners.toLocaleString()}+
+              {stats.totalWinners.toLocaleString()}
             </span>
             <span className="font-sans text-xs text-text-muted mt-2 font-medium">
               Total Winners

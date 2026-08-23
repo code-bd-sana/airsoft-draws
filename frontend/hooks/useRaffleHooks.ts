@@ -1,6 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { raffleService } from '../services/raffle.service';
 
+export const useLiveHeroStats = () => {
+  return useQuery({
+    queryKey: ['liveHeroStats'],
+    queryFn: () => raffleService.getLiveHeroStats(),
+  });
+};
+
 export const usePublicRaffles = (params: { search?: string; page?: number; limit?: number; category?: string; statusFilter?: string; sort?: string }) => {
   return useQuery({
     queryKey: ['publicRaffles', params],

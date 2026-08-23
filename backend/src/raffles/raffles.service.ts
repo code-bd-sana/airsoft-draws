@@ -886,6 +886,56 @@ export class RafflesService {
     });
   }
 
+  async getLiveHeroStats() {
+    const now = new Date();
+    const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+    // 1. Total Active Live Draws
+    const liveCount = await this.prisma.raffle.count({
+      where: { status: 'ACTIVE' },
+    });
+
+    // 2. Draws Closing Today (status: ACTIVE and endDate is between now and next 24 hours)
+    const closingTodayCount = await this.prisma.raffle.count({
+      where: {
+        status: 'ACTIVE',
+        endDate: {
+          gte: now,
+          lte: next24h,
+        },
+      },
+    });
+
+    // 3. Total Prizes Value of active live draws
+    const activeRaffles = await this.prisma.raffle.findMany({
+      where: { status: 'ACTIVE' },
+      select: {
+        mainPrizeValue: true,
+        pricePerTicket: true,
+        totalTickets: true,
+      },
+    });
+
+    let activePrizesTotal = 0;
+    activeRaffles.forEach((r) => {
+      if (r.mainPrizeValue) {
+        activePrizesTotal += Number(r.mainPrizeValue);
+      } else {
+        activePrizesTotal += Number(r.pricePerTicket) * r.totalTickets;
+      }
+    });
+
+    const formattedPrizesValue = activePrizesTotal > 0
+      ? `£${activePrizesTotal.toLocaleString('en-GB')}`
+      : '£0';
+
+    return {
+      liveCount,
+      closingTodayCount,
+      totalPrizesValue: formattedPrizesValue,
+    };
+  }
+
   async getPublicStats() {
     // 1. Draws Completed (Count of ENDED raffles)
     const drawsCompleted = await this.prisma.raffle.count({
