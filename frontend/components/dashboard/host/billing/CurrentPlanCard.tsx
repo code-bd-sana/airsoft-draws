@@ -94,7 +94,7 @@ export default function CurrentPlanCard() {
           {isFreePlan ? "£0/forever" : `£${subscription.plan.price}/month`} · Renews {formattedEndDate} ({remainingDays} days left)
         </p>
         <div className="font-sans text-[12px] text-text-muted mt-2 space-y-1">
-          <p><strong>Competition Limit:</strong> {subscription.plan.maxActiveRaffles ? `${subscription.plan.maxActiveRaffles} active competitions max` : 'Unlimited active competitions'}</p>
+          <p><strong>Competition Limit:</strong> {subscription.plan.maxActiveRaffles ? (subscription.plan.maxActiveRaffles === 1 ? '1 live competition' : `Up to ${subscription.plan.maxActiveRaffles} live competitions`) : 'Unlimited live competitions'}</p>
           <p><strong>Start Date:</strong> {formattedStartDate}</p>
           <p><strong>Payment Status:</strong> {tx?.status || 'COMPLETED'}</p>
           {tx?.gatewayTransactionId && <p><strong>Transaction ID:</strong> {tx.gatewayTransactionId}</p>}

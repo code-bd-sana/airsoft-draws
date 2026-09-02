@@ -19,17 +19,17 @@ async function main() {
       name: 'Free',
       price: 0,
       durationDays: 30,
-      maxActiveRaffles: 2,
+      maxActiveRaffles: 1,
     },
     {
       name: 'Premium',
-      price: 29.99,
+      price: 29,
       durationDays: 30,
-      maxActiveRaffles: 5,
+      maxActiveRaffles: 3,
     },
     {
       name: 'Pro',
-      price: 79.99,
+      price: 79,
       durationDays: 30,
       maxActiveRaffles: null,
     },
@@ -45,7 +45,11 @@ async function main() {
       existingPlan = await prisma.subscriptionPlan.create({ data: plan });
       console.log(`✅ Created plan: ${plan.name}`);
     } else {
-      console.log(`ℹ️ Plan already exists: ${plan.name}`);
+      existingPlan = await prisma.subscriptionPlan.update({
+        where: { id: existingPlan.id },
+        data: plan,
+      });
+      console.log(`✅ Updated plan: ${plan.name}`);
     }
     createdPlans.push(existingPlan);
   }

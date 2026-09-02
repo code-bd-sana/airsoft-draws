@@ -10,7 +10,7 @@ export const PRICING_PLANS: PricingPlan[] = [
     commissionLabel: "15% commission",
     ctaLabel: "Get Started Free",
     features: [
-      { id: "active-draws", label: "2 active draws max", included: true },
+      { id: "active-draws", label: "1 live competition", included: true },
       { id: "host-dashboard", label: "Host dashboard access", included: true },
       { id: "support", label: "Standard email support", included: true },
       { id: "featured-slots", label: "Featured listing slots", included: false },
@@ -32,7 +32,7 @@ export const PRICING_PLANS: PricingPlan[] = [
     isFeatured: true,
     badgeLabel: "MOST POPULAR",
     features: [
-      { id: "active-draws", label: "5 active draws", included: true },
+      { id: "active-draws", label: "Up to 3 live competitions", included: true },
       { id: "host-dashboard", label: "Host dashboard access", included: true },
       { id: "support", label: "Priority email support", included: true },
       { id: "featured-slots", label: "Featured listing slots (3/mo)", included: true },
@@ -52,7 +52,7 @@ export const PRICING_PLANS: PricingPlan[] = [
     commissionLabel: "10% commission",
     ctaLabel: "Get Started — Pro",
     features: [
-      { id: "active-draws", label: "Unlimited active draws", included: true },
+      { id: "active-draws", label: "Unlimited live competitions", included: true },
       { id: "host-dashboard", label: "Host dashboard access", included: true },
       { id: "support", label: "24/7 priority support", included: true },
       { id: "featured-slots", label: "Unlimited featured slots", included: true },

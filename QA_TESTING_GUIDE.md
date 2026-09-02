@@ -78,7 +78,7 @@ npm run prisma:seed # Runs seeds for active categories, plans, and demo accounts
 | **HOST-02** | Pending Host Login Lockout | 1. Immediately attempt to log in with `newhost@gmail.com`. | System blocks login with `401 Unauthorized`: *"Your host account is pending admin approval."* | Critical |
 | **HOST-03** | Admin Host Approval | 1. Log in as Admin (`admin@gmail.com`).<br>2. Go to `/dashboard/admin/hosts`.<br>3. Filter by "Pending" and click **Approve Host**. | Host `isVerified` set to `true` (`PATCH /api/v1/admin/hosts/:id/approve`). | Critical |
 | **HOST-04** | Approved Host Login | 1. Log in with `newhost@gmail.com`. | Login succeeds, JWT token issued, host redirected to Host Dashboard. | Critical |
-| **HOST-05** | Subscription Checkout Trigger | 1. Log in as Host.<br>2. Go to `/pricing`.<br>3. Click "Subscribe" on Pro Plan (£99.99/mo). | Backend calls Cashflows Gateway API (`/api/gateway/payment-jobs`). Redirects to Cashflows checkout page. | Critical |
+| **HOST-05** | Subscription Checkout Trigger | 1. Log in as Host.<br>2. Go to `/pricing`.<br>3. Click "Subscribe" on Pro Plan (£79/mo). | Backend calls Cashflows Gateway API (`/api/gateway/payment-jobs`). Redirects to Cashflows checkout page. | Critical |
 | **HOST-06** | Cashflows Subscription Confirmation | 1. Complete payment on Cashflows.<br>2. Redirect back to `/dashboard/host/billing?status=success`. | `PaymentReturnListener` calls `/payment/confirm`. `HostSubscription` status updated to `ACTIVE`. | Critical |
 | **HOST-07** | Expired Subscription Lockout | 1. Attempt to create raffle with `EXPIRED` subscription. | System blocks raffle creation and prompts subscription purchase. | High |
 

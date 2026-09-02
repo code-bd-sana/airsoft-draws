@@ -1,16 +1,22 @@
-Here is a summary of the recent changes made to the How It Works and Pricing data:
+Here is a summary of the standardized pricing and competition limits:
 
-1. How It Works (Host Steps)
-   - Step 6 ("Manage Tickets & Payout"): Updated text to "Monitor sales from your host dashboard. When the draw closes, Airsoft Draws will conduct the draw live and provide you with the winners details and receive your payout the next working day."
-
-2. Pricing Plans (Pricing Cards)
+1. Pricing Plans (Pricing Cards & Database)
    - Free Plan (£0): 
-     - Reduced active draws from "Up to 3" to "1 active draw".
-     - Added a feature line item: "Access to Instant Wins" (set to excluded/false).
+     - 1 live competition (`maxActiveRaffles: 1`).
+     - Access to Instant Wins excluded.
    - Premium Plan (£29/month):
-     - Reduced active draws from "Unlimited" to "5 active draws".
-     - Added a feature line item: "Access to Instant Wins" (set to included/true).
+     - Up to 3 live competitions (`maxActiveRaffles: 3`).
+     - Access to Instant Wins included.
+     - 3 monthly featured listing slots.
+   - Pro Plan (£79/month):
+     - Unlimited live competitions (`maxActiveRaffles: null`).
+     - Access to Instant Wins included.
+     - Unlimited featured listing slots, custom branding, and advanced analytics.
 
-3. Pricing Comparison (Matrix Table)
-   - Updated the "Active draws" row values to reflect the new plan limits (Free: 1, Premium: 5).
-   - Added a brand new row for "Access to Instant Wins" to visually indicate that it is only available to Premium and Pro hosts.
+2. Pricing Comparison (Matrix Table)
+   - Updated "Live competitions" row values to reflect standardized plan limits (Free: 1, Premium: Up to 3, Pro: Unlimited).
+   - Instant Wins availability clearly mapped to Premium and Pro tiers.
+
+3. Backend & Database Enforcement
+   - Live competition limits enforced in `RafflesService.create()` against active/pending competitions.
+   - Database plans updated in PostgreSQL via Prisma seeding.

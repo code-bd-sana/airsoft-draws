@@ -9,7 +9,7 @@ export const PRICING_FAQ: FaqItem[] = [
   {
     id: "plan-features",
     question: "What features are included in Premium and Pro plans?",
-    answer: "Premium (£29/mo) provides 5 active competition slots, 3 featured listings per month, 10% host commission, priority payouts, and Instant Wins access. Pro (£79/mo) unlocks unlimited active draws, unlimited featured slots, custom branding, advanced analytics, and a dedicated account manager.",
+    answer: "Premium (£29/mo) provides up to 3 live competitions, 3 featured listings per month, 10% host commission, priority payouts, and Instant Wins access. Pro (£79/mo) unlocks unlimited live competitions, unlimited featured slots, custom branding, advanced analytics, and a dedicated account manager.",
   },
   {
     id: "commission-fee",
