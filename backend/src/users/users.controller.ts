@@ -17,6 +17,7 @@ import {
   ApiResponse,
   ApiConsumes,
   ApiBearerAuth,
+  ApiCookieAuth,
   ApiBody,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -32,6 +33,7 @@ import { FileUploadDto } from '../common/dto/file-upload.dto';
 
 @ApiTags('Users')
 @ApiBearerAuth()
+@ApiCookieAuth('accessToken')
 @UseGuards(JwtAuthGuard)
 @Controller('api/v1/users')
 export class UsersController {

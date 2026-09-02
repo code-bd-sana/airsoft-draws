@@ -54,17 +54,21 @@ async function bootstrap() {
   );
 
   // Configure Swagger API Documentation
+  const serverUrl =
+    process.env.APP_URL || `http://localhost:${process.env.PORT ?? 5000}`;
+
   const config = new DocumentBuilder()
     .setTitle('🎯 Airsoft Draws API Reference')
     .setDescription(
       'Welcome to the Airsoft Draws Platform API Documentation.\n\n' +
         'Here you can find all the public, client, host, and admin endpoints for managing ' +
         'raffles, purchasing tickets, processing payments, tracking winners, and managing subscriptions.\n\n' +
-        '### Authorization\n' +
-        'For protected endpoints, please use the bearer token authentication or ensure you have ' +
-        'the authorization cookies set correctly.',
+        '### 🔐 Authorization Modes\n' +
+        '- **Bearer JWT**: Use the **Authorize** button with `Bearer <JWT_TOKEN>` for protected header authorization.\n' +
+        '- **Cookie Auth**: The platform also supports the `accessToken` HTTP cookie for browser sessions.',
     )
     .setVersion('1.0')
+    .addServer(serverUrl, 'Current API Server')
     .addBearerAuth({
       type: 'http',
       scheme: 'bearer',
@@ -73,7 +77,29 @@ async function bootstrap() {
       description: 'Enter your JWT token to authorize protected API endpoints',
       in: 'header',
     })
-    .addSecurityRequirements('bearer')
+    .addCookieAuth('accessToken', {
+      type: 'apiKey',
+      in: 'cookie',
+      name: 'accessToken',
+      description: 'HTTP-only JWT access token cookie',
+    })
+    .addTag('General', 'Platform health check and root endpoints')
+    .addTag('Authentication', 'User authentication, registration, password recovery & email verification')
+    .addTag('Users', 'User account profile, settings, avatar management & prize history')
+    .addTag('Hosts', 'Host public profiles, host dashboard metrics, wallet balances & withdrawal requests')
+    .addTag('Raffles', 'Competition creation, editing, hero metrics, live filters & winner draws')
+    .addTag('Tickets', 'Ticket purchases, allocation algorithms, UKARA eligibility & user tickets')
+    .addTag('Subscriptions', 'Host subscription tiers, quotas, manual requests & admin approvals')
+    .addTag('Payment', 'Gateway checkout sessions (Cashflows/Stripe) & webhook event handlers')
+    .addTag('Categories', 'Competition categories, slug resolution & category media')
+    .addTag('Contact', 'Public contact inquiry form & administrative SMTP notifications')
+    .addTag('Marketing Compliance', 'Advertising compliance reports & moderation review workflow')
+    .addTag('Admin - Dashboard', 'System overview statistics, live platform activity & system logs')
+    .addTag('Admin - Hosts', 'Host management, approval/rejection moderation & host metrics')
+    .addTag('Admin - Orders', 'Ticket transaction records, financial statistics & refund operations')
+    .addTag('Admin - Users', 'User directory, role management, and suspension toggles')
+    .addTag('Admin - Winners', 'Winner KYC verification, ID document inspection & prize fulfillment')
+    .addTag('Admin - Withdrawals', 'Host payout request review, approval, rejection & fee auditing')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

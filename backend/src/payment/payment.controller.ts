@@ -12,6 +12,7 @@ import {
   ApiTags,
   ApiOperation,
   ApiBearerAuth,
+  ApiCookieAuth,
   ApiHeader,
   ApiResponse,
 } from '@nestjs/swagger';
@@ -43,9 +44,11 @@ export class PaymentController {
 
   @Post('checkout/subscription')
   @ApiBearerAuth()
+  @ApiCookieAuth('accessToken')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
-    summary: 'Create Stripe checkout session for a subscription plan',
+    summary: 'Create payment checkout session for a subscription plan',
+    description: 'Initiates a payment gateway checkout session (e.g. Cashflows / Stripe) and returns the redirect URL.',
   })
   @ApiResponse({
     status: 200,
@@ -63,10 +66,28 @@ export class PaymentController {
   }
 
   @Post('webhook')
-  @ApiOperation({ summary: 'Cashflows Webhook Endpoint' })
+  @ApiOperation({
+    summary: 'Payment Gateway Webhook Endpoint',
+    description: 'Processes asynchronous payment notifications and signature verification from Cashflows or Stripe.',
+  })
+  @ApiHeader({
+    name: 'hash',
+    description: 'Webhook verification HMAC hash from payment gateway',
+    required: false,
+  })
+  @ApiHeader({
+    name: 'signature',
+    description: 'Webhook signature header',
+    required: false,
+  })
+  @ApiHeader({
+    name: 'cashflow-signature',
+    description: 'Cashflows specific verification header',
+    required: false,
+  })
   @ApiResponse({
     status: 200,
-    description: 'Webhook events processed successfully',
+    description: 'Webhook event processed successfully',
   })
   async handleWebhook(
     @Req() req: any,
@@ -80,3 +101,4 @@ export class PaymentController {
     return this.paymentService.handleWebhook(signature, req.body);
   }
 }
+

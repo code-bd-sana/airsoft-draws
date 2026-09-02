@@ -11,6 +11,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiCookieAuth,
   ApiParam,
 } from '@nestjs/swagger';
 import { AdminUsersService } from './admin-users.service';
@@ -21,6 +22,7 @@ import { AdminUsersQueryDto } from './dto/admin-users-query.dto';
 
 @ApiTags('Admin - Users')
 @ApiBearerAuth()
+@ApiCookieAuth('accessToken')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('ADMIN')
 @Controller('api/v1/admin/users')

@@ -17,6 +17,7 @@ import {
   ApiTags,
   ApiOperation,
   ApiBearerAuth,
+  ApiCookieAuth,
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
@@ -46,20 +47,24 @@ export class TicketsController {
 
   @Post('purchase/:raffleId')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('CLIENT', 'USER', 'HOST', 'ADMIN') // Allow any logged-in user to buy
+  @Roles('CLIENT', 'USER', 'HOST', 'ADMIN')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Purchase tickets for a competition' })
+  @ApiCookieAuth('accessToken')
+  @ApiOperation({
+    summary: 'Purchase tickets for a competition',
+    description: 'Purchases and randomly allocates ticket numbers, verifies 18+ age and UKARA eligibility, and checks instant wins.',
+  })
   @ApiParam({
     name: 'raffleId',
     description: 'The unique ID of the raffle/competition',
   })
-  @ApiResponse({ status: 201, description: 'Tickets successfully purchased' })
+  @ApiResponse({ status: 201, description: 'Tickets successfully purchased and allocated' })
   @ApiResponse({
     status: 400,
-    description: 'Insufficient tickets or invalid quantity',
+    description: 'Insufficient tickets, user under 18, missing UKARA, or terms not accepted',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'Raffle not found' })
+  @ApiResponse({ status: 404, description: 'Raffle or user account not found' })
   async purchaseTickets(
     @Req() req: Request,
     @Param('raffleId') raffleId: string,
@@ -77,7 +82,11 @@ export class TicketsController {
   @Get('my-tickets')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all tickets purchased by the current user' })
+  @ApiCookieAuth('accessToken')
+  @ApiOperation({
+    summary: 'Get all tickets purchased by the current user',
+    description: 'Retrieves all historical and active competition tickets held by the authenticated user.',
+  })
   @ApiResponse({ status: 200, description: 'List of purchased tickets' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getMyTickets(@Req() req: Request) {
@@ -85,3 +94,4 @@ export class TicketsController {
     return this.ticketsService.getUserTickets(userId);
   }
 }
+

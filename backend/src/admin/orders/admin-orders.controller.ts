@@ -15,6 +15,7 @@ import {
   ApiTags,
   ApiOperation,
   ApiBearerAuth,
+  ApiCookieAuth,
   ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
@@ -23,6 +24,7 @@ import { RefundOrderDto } from './dto/refund-order.dto';
 
 @ApiTags('Admin - Orders')
 @ApiBearerAuth()
+@ApiCookieAuth('accessToken')
 @Controller('api/v1/admin/orders')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('ADMIN')

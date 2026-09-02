@@ -20,6 +20,7 @@ import {
   ApiTags,
   ApiOperation,
   ApiBearerAuth,
+  ApiCookieAuth,
   ApiConsumes,
   ApiBody,
   ApiParam,
@@ -39,7 +40,10 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Get('public')
-  @ApiOperation({ summary: 'Get all active categories for the frontend' })
+  @ApiOperation({
+    summary: 'Get all active categories (public)',
+    description: 'Returns all active competition categories for frontend navigation and filters.',
+  })
   @ApiResponse({ status: 200, description: 'List of active categories' })
   findAllPublic() {
     return this.categoriesService.findAllActive();
@@ -49,8 +53,13 @@ export class CategoriesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create a new category (Admin)' })
-  @ApiResponse({ status: 201, description: 'Category created' })
+  @ApiCookieAuth('accessToken')
+  @ApiOperation({
+    summary: 'Create a new category (Admin only)',
+    description: 'Creates a new competition category with automatic slug generation if omitted.',
+  })
+  @ApiResponse({ status: 201, description: 'Category created successfully' })
+  @ApiResponse({ status: 400, description: 'Validation error' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   create(@Body() createCategoryDto: CreateCategoryDto) {
@@ -61,7 +70,11 @@ export class CategoriesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all categories (Admin)' })
+  @ApiCookieAuth('accessToken')
+  @ApiOperation({
+    summary: 'Get all categories including inactive (Admin only)',
+    description: 'Lists all categories in the system with their active/inactive status.',
+  })
   @ApiResponse({ status: 200, description: 'List of all categories' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
@@ -73,7 +86,8 @@ export class CategoriesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get a single category (Admin)' })
+  @ApiCookieAuth('accessToken')
+  @ApiOperation({ summary: 'Get a single category by ID (Admin only)' })
   @ApiParam({ name: 'id', description: 'The unique ID of the category' })
   @ApiResponse({ status: 200, description: 'Category details' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -87,12 +101,14 @@ export class CategoriesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update a category (Admin)' })
+  @ApiCookieAuth('accessToken')
+  @ApiOperation({ summary: 'Update a category (Admin only)' })
   @ApiParam({
     name: 'id',
     description: 'The unique ID of the category to update',
   })
   @ApiResponse({ status: 200, description: 'Category updated successfully' })
+  @ApiResponse({ status: 400, description: 'Validation error' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Category not found' })
@@ -107,7 +123,8 @@ export class CategoriesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Delete a category' })
+  @ApiCookieAuth('accessToken')
+  @ApiOperation({ summary: 'Delete a category (Admin only)' })
   @ApiParam({
     name: 'id',
     description: 'The unique ID of the category to delete',
@@ -124,7 +141,8 @@ export class CategoriesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Upload an image for a category' })
+  @ApiCookieAuth('accessToken')
+  @ApiOperation({ summary: 'Upload an image for a category (Admin only)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: FileUploadDto })
   @ApiResponse({ status: 201, description: 'Image uploaded successfully' })

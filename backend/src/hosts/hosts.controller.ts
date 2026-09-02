@@ -14,6 +14,7 @@ import {
   ApiParam,
   ApiResponse,
   ApiBearerAuth,
+  ApiCookieAuth,
 } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
@@ -24,6 +25,8 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { RequestWithdrawalDto } from './dto/request-withdrawal.dto';
 
 @ApiTags('Hosts')
+@ApiBearerAuth()
+@ApiCookieAuth('accessToken')
 @Controller('api/v1/hosts')
 export class HostsController {
   constructor(

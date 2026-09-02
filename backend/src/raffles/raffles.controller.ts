@@ -21,6 +21,7 @@ import {
   ApiOperation,
   ApiTags,
   ApiBearerAuth,
+  ApiCookieAuth,
   ApiBody,
   ApiParam,
   ApiResponse,
@@ -35,6 +36,7 @@ import { RafflesService } from './raffles.service';
 import { CreateRaffleDto } from './dto/create-raffle.dto';
 import { UpdateRaffleDto } from './dto/update-raffle.dto';
 import { DrawWinnerDto } from './dto/draw-winner.dto';
+import { UpdateWinnerDeliveryStatusDto } from './dto/update-winner-delivery-status.dto';
 import {
   FindAllPublicRafflesQueryDto,
   FindHostRafflesQueryDto,
@@ -243,10 +245,19 @@ export class RafflesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST', 'ADMIN')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update delivery status of a competition winner' })
+  @ApiCookieAuth('accessToken')
+  @ApiOperation({
+    summary: 'Update delivery status of a competition winner',
+    description: 'Allows hosts and admins to update fulfilment shipping status and tracking details.',
+  })
+  @ApiParam({ name: 'winnerId', description: 'The unique ID of the winning ticket record' })
+  @ApiResponse({ status: 200, description: 'Delivery status updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid delivery status value' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Winner record not found' })
   updateDeliveryStatus(
     @Param('winnerId') winnerId: string,
-    @Body() body: { deliveryStatus: string; trackingNumber?: string },
+    @Body() body: UpdateWinnerDeliveryStatusDto,
   ) {
     return this.rafflesService.updateWinnerDeliveryStatus(
       winnerId,
