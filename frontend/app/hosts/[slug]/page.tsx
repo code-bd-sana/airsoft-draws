@@ -82,7 +82,7 @@ export default async function HostProfilePage({ params }: PageProps) {
                 memberSince={host.memberSince}
               />
               
-              <HostProfileTabs raffles={host.raffles} />
+              <HostProfileTabs host={host} raffles={host.raffles} />
             </div>
 
           </div>

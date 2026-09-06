@@ -20,6 +20,7 @@ export class HostsService {
             firstName: true,
             lastName: true,
             avatarUrl: true,
+            location: true,
           },
         },
         _count: {
@@ -38,8 +39,9 @@ export class HostsService {
       id: host.id,
       slug: host.slug || host.id,
       name: host.businessName,
-      logo: host.user.avatarUrl,
-      description: null, // Host description can be added later
+      logo: host.user?.avatarUrl || null,
+      description: host.bio || null,
+      location: host.user?.location || host.address || null,
       category: null,
       competitionCount: host._count.raffles,
       averageRating: 5.0, // Mocked for now
@@ -59,6 +61,7 @@ export class HostsService {
             firstName: true,
             lastName: true,
             avatarUrl: true,
+            location: true,
           },
         },
         raffles: {
@@ -94,8 +97,11 @@ export class HostsService {
       id: host.id,
       slug: host.slug || host.id,
       name: host.businessName,
-      logo: host.user.avatarUrl,
-      bio: null,
+      logo: host.user?.avatarUrl || null,
+      bio: host.bio || null,
+      location: host.user?.location || host.address || null,
+      phone: host.phone || null,
+      address: host.address || null,
       isVerified: host.isVerified,
       drawsHosted: host._count.raffles,
       rating: 5.0, // Mocked
