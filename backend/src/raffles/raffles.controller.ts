@@ -223,6 +223,26 @@ export class RafflesController {
     return this.rafflesService.remove(id, hostId);
   }
 
+  @Get('admin/danger/stats')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get total counts of competitions, tickets, instant wins, and winners for admin danger zone' })
+  @ApiResponse({ status: 200, description: 'Danger stats retrieved successfully' })
+  getDangerStats() {
+    return this.rafflesService.getDangerStats();
+  }
+
+  @Delete('admin/danger/delete-all')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Danger: Delete all competitions and all associated tickets, instant wins, and winners' })
+  @ApiResponse({ status: 200, description: 'All competitions and tickets deleted successfully' })
+  deleteAllCompetitions() {
+    return this.rafflesService.deleteAllCompetitions();
+  }
+
   @Post('admin/:id/draw')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')

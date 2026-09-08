@@ -38,6 +38,10 @@ export class AdminHostsService {
             select: {
               email: true,
               isBlocked: true,
+              avatarUrl: true,
+              firstName: true,
+              lastName: true,
+              location: true,
             },
           },
           subscriptions: {
@@ -68,6 +72,10 @@ export class AdminHostsService {
         userId: host.userId,
         businessName: host.businessName,
         email: host.user.email,
+        avatarUrl: host.user.avatarUrl || null,
+        bio: host.bio || null,
+        phone: host.phone || null,
+        address: host.address || host.user.location || null,
         isBlocked: host.user.isBlocked,
         isVerified: host.isVerified,
         plan: !host.isVerified ? 'Pending Approval' : activePlan,

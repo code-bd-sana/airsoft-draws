@@ -937,20 +937,21 @@ export class RafflesService {
   }
 
   async getPublicStats() {
-    // 1. Draws Completed (Count of ENDED raffles)
+    // 1. Draws Completed (Count of ENDED / COMPLETED raffles)
     const drawsCompleted = await this.prisma.raffle.count({
-      where: { status: 'ENDED' },
+      where: {
+        status: { in: ['ENDED', 'COMPLETED'] },
+      },
     });
 
     // 2. Happy Winners (Count of winners)
     const totalWinners = await this.prisma.winner.count();
-    const displayWinners = totalWinners > 0 ? `${totalWinners}` : '68';
 
     // 3. Running total of prizes won (main draw values + claimed instant wins)
     const endedRaffles = await this.prisma.raffle.findMany({
       where: {
         OR: [
-          { status: 'ENDED' },
+          { status: { in: ['ENDED', 'COMPLETED'] } },
           { winners: { some: {} } },
         ],
       },
@@ -983,19 +984,17 @@ export class RafflesService {
     });
 
     const totalWonInPrizes = mainDrawsWonTotal + instantWinsWonTotal;
-    const formattedWonPrizes = totalWonInPrizes > 0
-      ? `£${totalWonInPrizes.toLocaleString('en-GB')}`
-      : '£1,000';
+    const formattedWonPrizes = `£${totalWonInPrizes.toLocaleString('en-GB')}`;
 
     return [
       {
         id: 1,
-        value: `${drawsCompleted > 0 ? drawsCompleted : '22'}`,
+        value: `${drawsCompleted}`,
         label: 'Draws Completed',
       },
       {
         id: 2,
-        value: displayWinners,
+        value: `${totalWinners}`,
         label: 'Winning Operators',
       },
       {
@@ -1040,5 +1039,50 @@ export class RafflesService {
       totalWinners,
       verifiedDraws: verifiedDraws > 0 ? `${verifiedDraws}+` : '0',
     };
+  }
+
+  async getDangerStats() {
+    const [rafflesCount, ticketsCount, instantWinsCount, winnersCount] =
+      await Promise.all([
+        this.prisma.raffle.count(),
+        this.prisma.ticket.count(),
+        this.prisma.instantWin.count(),
+        this.prisma.winner.count(),
+      ]);
+
+    return {
+      rafflesCount,
+      ticketsCount,
+      instantWinsCount,
+      winnersCount,
+    };
+  }
+
+  async deleteAllCompetitions() {
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Delete all winners
+      const deletedWinners = await tx.winner.deleteMany({});
+      // 2. Delete all instant wins
+      const deletedInstantWins = await tx.instantWin.deleteMany({});
+      // 3. Delete all tickets
+      const deletedTickets = await tx.ticket.deleteMany({});
+      // 4. Delete marketing reports linked to raffles
+      await tx.marketingReport.deleteMany({
+        where: { raffleId: { not: null } },
+      });
+      // 5. Delete all raffles
+      const deletedRaffles = await tx.raffle.deleteMany({});
+
+      return {
+        message:
+          'All competitions, tickets, instant wins, and winners deleted successfully.',
+        deletedCounts: {
+          raffles: deletedRaffles.count,
+          tickets: deletedTickets.count,
+          instantWins: deletedInstantWins.count,
+          winners: deletedWinners.count,
+        },
+      };
+    });
   }
 }

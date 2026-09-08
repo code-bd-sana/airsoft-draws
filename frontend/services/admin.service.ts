@@ -39,6 +39,10 @@ export interface HostData {
   userId: string;
   businessName: string;
   email: string;
+  avatarUrl?: string | null;
+  bio?: string | null;
+  phone?: string | null;
+  address?: string | null;
   isBlocked: boolean;
   isVerified: boolean;
   plan: string;
@@ -207,6 +211,29 @@ export const adminService = {
 
   async updateWithdrawalStatus(id: string, status: 'APPROVED' | 'COMPLETED' | 'REJECTED', adminNotes?: string): Promise<any> {
     const { data } = await api.patch(`/admin/withdrawals/${id}/status`, { status, adminNotes });
+    return data;
+  },
+
+  async getDangerStats(): Promise<{
+    rafflesCount: number;
+    ticketsCount: number;
+    instantWinsCount: number;
+    winnersCount: number;
+  }> {
+    const { data } = await api.get('/raffles/admin/danger/stats');
+    return data;
+  },
+
+  async deleteAllCompetitions(): Promise<{
+    message: string;
+    deletedCounts: {
+      raffles: number;
+      tickets: number;
+      instantWins: number;
+      winners: number;
+    };
+  }> {
+    const { data } = await api.delete('/raffles/admin/danger/delete-all');
     return data;
   },
 };

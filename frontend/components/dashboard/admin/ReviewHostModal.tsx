@@ -6,6 +6,7 @@ export interface HostApplicationData {
   id: string;
   brandName: string;
   email: string;
+  avatarUrl?: string | null;
   bio: string;
   contact: string;
   payoutMethod: string;
@@ -43,14 +44,28 @@ export default function ReviewHostModal({
       
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[560px] bg-[#161810] border border-[#2D3C13] rounded-[16px] shadow-2xl z-50 animate-fadeIn flex flex-col p-8">
         
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="font-heading font-medium text-[20px] text-[#E8EDD4]">
-            Host Details
-          </h2>
+        {/* Header with Avatar */}
+        <div className="flex items-center justify-between mb-6 pb-6 border-b border-[#2D3C13]">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-[#1A230A] border border-[#43581E] flex items-center justify-center shrink-0 overflow-hidden">
+              {data.avatarUrl && (data.avatarUrl.startsWith('http') || data.avatarUrl.startsWith('/')) ? (
+                <img src={data.avatarUrl} alt={data.brandName} className="w-full h-full object-cover" />
+              ) : (
+                <span className="font-heading font-bold text-[#8CB34A] text-[20px]">
+                  {data.brandName?.substring(0, 2).toUpperCase() || "NA"}
+                </span>
+              )}
+            </div>
+            <div className="flex flex-col">
+              <h2 className="font-heading font-bold text-[20px] text-[#E8EDD4]">
+                {data.brandName}
+              </h2>
+              <span className="font-sans text-[12px] text-[#72943A]">{data.email}</span>
+            </div>
+          </div>
           <button 
             onClick={onClose}
-            className="text-[#72943A] hover:text-[#E8EDD4] transition-colors"
+            className="text-[#72943A] hover:text-[#E8EDD4] transition-colors p-1"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
