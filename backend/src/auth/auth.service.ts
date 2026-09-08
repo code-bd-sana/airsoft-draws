@@ -8,6 +8,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as crypto from 'crypto';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
@@ -43,6 +46,31 @@ export class AuthService {
       );
     }
 
+    let finalAvatarUrl = registerDto.avatarUrl;
+    if (finalAvatarUrl && finalAvatarUrl.startsWith('data:image/')) {
+      try {
+        const matches = finalAvatarUrl.match(
+          /^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/,
+        );
+        if (matches && matches.length === 3) {
+          const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+          const buffer = Buffer.from(matches[2], 'base64');
+          const randomName = crypto.randomBytes(16).toString('hex');
+          const fileName = `${randomName}.${ext}`;
+          const uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
+          if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+          }
+          fs.writeFileSync(path.join(uploadDir, fileName), buffer);
+          const baseUrl = process.env.APP_URL || 'http://127.0.0.1:5000';
+          finalAvatarUrl = `${baseUrl}/uploads/avatars/${fileName}`;
+        }
+      } catch (err) {
+        console.error('Failed to save base64 avatar image:', err);
+        finalAvatarUrl = undefined;
+      }
+    }
+
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(registerDto.password, salt);
 
@@ -53,6 +81,7 @@ export class AuthService {
           passwordHash,
           firstName: registerDto.firstName,
           lastName: registerDto.lastName,
+          avatarUrl: finalAvatarUrl,
           location: registerDto.location,
           phone: registerDto.phone,
           address: registerDto.address,
@@ -61,10 +90,23 @@ export class AuthService {
       });
 
       if (role === 'HOST') {
+        const baseSlug = registerDto.businessName!
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+
+        let slug = baseSlug || `host-${Date.now().toString(36)}`;
+        let count = 1;
+        while (await prisma.hostProfile.findUnique({ where: { slug } })) {
+          slug = `${baseSlug}-${count++}`;
+        }
+
         const hostProfile = await prisma.hostProfile.create({
           data: {
             userId: newUser.id,
             businessName: registerDto.businessName!,
+            slug,
             bio: registerDto.bio,
             phone: registerDto.phone,
             address: registerDto.address,

@@ -16,6 +16,7 @@ import AuthSuccessState from "./AuthSuccessState";
 import { cn } from "../../lib/utils";
 import { useRegisterMutation } from "../../hooks/useAuthHooks";
 import { extractApiError } from "../../lib/utils";
+import { authService } from "../../services/auth.service";
 
 interface HostRegistrationFormProps {
   step: HostRegistrationStep;
@@ -98,10 +99,14 @@ export default function HostRegistrationForm({
     }
   };
 
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState<string | null>(null);
+
   // Profile photo file selection with local uploader data URL preview
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, field: "profilePhoto" | "businessLogo") => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: "profilePhoto" | "businessLogo") => {
     const file = e.target.files?.[0];
     if (file) {
+      setLogoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData((prev) => ({
@@ -110,6 +115,16 @@ export default function HostRegistrationForm({
         }));
       };
       reader.readAsDataURL(file);
+
+      try {
+        const uploadRes: any = await authService.uploadLogo(file);
+        const url = uploadRes?.avatarUrl || uploadRes?.data?.avatarUrl;
+        if (url) {
+          setUploadedAvatarUrl(url);
+        }
+      } catch (err) {
+        console.warn("Pre-uploading logo notice:", err);
+      }
     }
   };
 
@@ -168,6 +183,21 @@ export default function HostRegistrationForm({
       }));
 
       try {
+        let avatarUrl = uploadedAvatarUrl;
+        if (!avatarUrl && logoFile) {
+          try {
+            const uploadRes: any = await authService.uploadLogo(logoFile);
+            avatarUrl = uploadRes?.avatarUrl || uploadRes?.data?.avatarUrl;
+            if (avatarUrl) {
+              setUploadedAvatarUrl(avatarUrl);
+            }
+          } catch (uploadErr) {
+            console.error("Failed to upload logo during registration submit:", uploadErr);
+          }
+        }
+
+        const finalAvatar = avatarUrl || formData.businessLogo || formData.profilePhoto || undefined;
+
         await registerMutation.mutateAsync({
           email: formData.email,
           password: formData.password,
@@ -178,6 +208,7 @@ export default function HostRegistrationForm({
           businessName: formData.businessName || `${formData.firstName} ${formData.lastName}`,
           bio: formData.businessBio || formData.bio,
           phone: formData.phone || formData.businessPhone,
+          avatarUrl: finalAvatar,
         });
         
         showToast("Host registration successful! Check your email to verify.");

@@ -8,6 +8,9 @@ import {
   Res,
   Req,
   UnauthorizedException,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,7 +18,12 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiCookieAuth,
+  ApiConsumes,
+  ApiBody,
 } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -24,11 +32,62 @@ import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ResendVerificationDto } from './dto/resend-verification.dto';
+import { FileUploadDto } from '../common/dto/file-upload.dto';
 
 @ApiTags('Authentication')
 @Controller('api/v1/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post('upload-logo')
+  @ApiOperation({
+    summary: 'Upload host logo or avatar during onboarding',
+    description: 'Uploads an image file to ./uploads/avatars and returns its public URL.',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: FileUploadDto })
+  @ApiResponse({ status: 201, description: 'Image uploaded successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid file or file missing' })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/avatars',
+        filename: (req, file, cb) => {
+          const randomName = Array(32)
+            .fill(null)
+            .map(() => Math.round(Math.random() * 16).toString(16))
+            .join('');
+          cb(null, `${randomName}${extname(file.originalname)}`);
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        if (!file.originalname.match(/\.(jpg|jpeg|png|webp)$/)) {
+          return cb(
+            new BadRequestException('Only image files are allowed!'),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5 MB
+      },
+    }),
+  )
+  async uploadLogo(
+    @Req() req: Request,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host =
+      req.headers['x-forwarded-host'] || req.headers.host || '127.0.0.1:5000';
+    const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
+    const avatarUrl = `${baseUrl}/uploads/avatars/${file.filename}`;
+    return { avatarUrl, message: 'Logo uploaded successfully' };
+  }
 
   @Post('register')
   @ApiOperation({
