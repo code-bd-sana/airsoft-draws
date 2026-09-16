@@ -67,7 +67,11 @@ export default function HostDashboardOverview() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-[20px] w-full items-stretch">
         {/* Earnings Chart */}
         <div className="xl:col-span-7 2xl:col-span-8 flex flex-col w-full min-w-0">
-          <HostRevenueChart totalRevenue={dashboardData?.kpiStats?.totalNetRevenue} />
+          <HostRevenueChart 
+            totalRevenue={dashboardData?.kpiStats?.totalNetRevenue}
+            earningsChart={dashboardData?.earningsChart}
+            isLoading={isLoading}
+          />
         </div>
 
         {/* Upcoming Draws */}

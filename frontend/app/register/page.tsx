@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Metadata } from "next";
 import UserAuthLayout from "../../components/user-auth/UserAuthLayout";
 import UserRegistrationForm from "../../components/user-auth/UserRegistrationForm";
@@ -11,7 +11,9 @@ export const metadata: Metadata = {
 export default function UserRegisterPage() {
   return (
     <UserAuthLayout mode="register">
-      <UserRegistrationForm />
+      <Suspense fallback={<div className="p-8 text-center text-[#72943A]">Loading registration...</div>}>
+        <UserRegistrationForm />
+      </Suspense>
     </UserAuthLayout>
   );
 }

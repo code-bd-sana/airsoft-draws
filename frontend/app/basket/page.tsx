@@ -6,8 +6,10 @@ import Link from "next/link";
 import WebsiteNavbar from "../../components/website/layout/WebsiteNavbar";
 import WebsiteFooter from "../../components/website/layout/WebsiteFooter";
 import { useBasket } from "../../features/basket/BasketContext";
+import { useAuthUser } from "../../hooks/useAuthHooks";
 
 export default function BasketPage() {
+  const { data: user } = useAuthUser();
   const {
     items,
     itemCount,
@@ -282,10 +284,10 @@ export default function BasketPage() {
                 )}
 
                 <Link
-                  href="/checkout"
+                  href={user ? "/checkout" : "/login?redirect=/checkout"}
                   className="w-full h-12 bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] font-heading font-semibold text-sm rounded-lg transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(140,179,74,0.2)]"
                 >
-                  Proceed to Checkout →
+                  {user ? "Proceed to Checkout →" : "Log In to Checkout →"}
                 </Link>
 
                 {/* Trust Badges */}

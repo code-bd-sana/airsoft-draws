@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { UserRegistrationFormValues, UserAuthFormState } from '../../types/user-auth.types';
 import {
   validateRegisterForm,
@@ -15,15 +15,17 @@ import { extractApiError } from '../../lib/utils';
 
 export default function UserRegistrationForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get('redirect');
   const { data: user } = useAuthUser();
   const [isMounted, setIsMounted] = useState(false);
 
   React.useEffect(() => {
     setIsMounted(true);
     if (user) {
-      router.push('/dashboard');
+      router.push(redirectParam || '/dashboard');
     }
-  }, [user, router]);
+  }, [user, router, redirectParam]);
 
   // Controlled form values state
   const [formData, setFormData] = useState<UserRegistrationFormValues>({
@@ -162,7 +164,7 @@ export default function UserRegistrationForm() {
           <div className='flex flex-wrap items-center gap-1.5 text-xs md:text-sm'>
             <span className='text-text-secondary/70'>Already have an account?</span>
             <Link
-              href='/login'
+              href={redirectParam ? `/login?redirect=${encodeURIComponent(redirectParam)}` : '/login'}
               className='font-medium text-primary hover:text-primary-hover transition-colors duration-200'
             >
               Log in →

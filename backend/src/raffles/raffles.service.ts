@@ -88,6 +88,7 @@ export class RafflesService {
         hostId: hostProfile.id,
         title: data.title,
         slug,
+        category: data.category || null,
         description: data.description || '',
         prizeClassification: data.prizeClassification || 'RIF',
         mainPrizeValue: data.mainPrizeValue
@@ -182,49 +183,69 @@ export class RafflesService {
 
     const now = new Date();
 
-    // Base where clause
-    const whereClause: any = {
-      status: 'ACTIVE',
-    };
+    // Conditions array for Prisma whereClause
+    const conditions: any[] = [{ status: 'ACTIVE' }];
 
-    // Category filter
+    // Category filter (flexible case-insensitive and partial match)
     if (category && category !== 'All' && category !== 'all') {
-      whereClause.category = category;
+      const cleanCat = category.replace(/-/g, ' ').trim();
+      const tokens = cleanCat.split(/\s+/).filter((t: string) => t.length > 2);
+      conditions.push({
+        OR: [
+          { category: { equals: category, mode: 'insensitive' } },
+          { category: { contains: cleanCat, mode: 'insensitive' } },
+          ...tokens.map((token: string) => ({
+            category: { contains: token, mode: 'insensitive' },
+          })),
+        ],
+      });
     }
 
     // Instant Win filter
     if (hasInstantWins === 'true') {
-      whereClause.instantWins = {
-        some: {}, // At least one instant win attached
-      };
+      conditions.push({
+        instantWins: {
+          some: {}, // At least one instant win attached
+        },
+      });
     }
 
     // Status filter
     if (statusFilter === 'Live') {
-      whereClause.startDate = { lte: now };
-      whereClause.endDate = { gte: now };
+      conditions.push({
+        startDate: { lte: now },
+        endDate: { gte: now },
+      });
     } else if (statusFilter === 'Upcoming') {
-      whereClause.startDate = { gt: now };
+      conditions.push({
+        startDate: { gt: now },
+      });
     } else if (statusFilter === 'Past') {
-      whereClause.endDate = { lt: now };
+      conditions.push({
+        endDate: { lt: now },
+      });
     }
 
     if (search) {
-      whereClause.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { host: { businessName: { contains: search, mode: 'insensitive' } } },
-        {
-          host: {
-            user: { firstName: { contains: search, mode: 'insensitive' } },
+      conditions.push({
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { host: { businessName: { contains: search, mode: 'insensitive' } } },
+          {
+            host: {
+              user: { firstName: { contains: search, mode: 'insensitive' } },
+            },
           },
-        },
-        {
-          host: {
-            user: { lastName: { contains: search, mode: 'insensitive' } },
+          {
+            host: {
+              user: { lastName: { contains: search, mode: 'insensitive' } },
+            },
           },
-        },
-      ];
+        ],
+      });
     }
+
+    const whereClause: any = { AND: conditions };
 
     // Sort logic
     let orderBy: any = { createdAt: 'desc' }; // default Latest

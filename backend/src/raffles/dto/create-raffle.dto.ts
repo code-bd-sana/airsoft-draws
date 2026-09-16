@@ -47,6 +47,14 @@ export class CreateRaffleDto {
   title: string;
 
   @ApiPropertyOptional({
+    example: 'Airsoft Rifles',
+    description: 'Category name of the raffle',
+  })
+  @IsString()
+  @IsOptional()
+  category?: string;
+
+  @ApiPropertyOptional({
     example: 'Win a brand new custom tactical airsoft rifle!',
     description: 'Raffle description',
   })

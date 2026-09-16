@@ -48,6 +48,7 @@ export interface HostDashboardOverviewData {
     totalTicketsSold: number;
     totalWinnersCount: number;
   };
+  earningsChart?: Record<string, { revenue: number; data: Array<{ label: string; revenue: number }> }>;
   activeRaffles: Array<{
     id: string;
     slug: string;

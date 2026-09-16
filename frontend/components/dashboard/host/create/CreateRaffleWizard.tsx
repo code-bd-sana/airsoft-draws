@@ -114,6 +114,7 @@ export default function CreateRaffleWizard() {
       // 2. Create Raffle
       const created = await createRaffle.mutateAsync({
         title: formData.title,
+        category: formData.category,
         description: formData.description,
         prizeClassification: formData.prizeClassification || 'RIF',
         mainPrizeValue: formData.mainPrizeValue ? Number(formData.mainPrizeValue) : undefined,

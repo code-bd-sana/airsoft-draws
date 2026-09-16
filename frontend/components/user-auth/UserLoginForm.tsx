@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { UserLoginFormValues, UserAuthFormState } from "../../types/user-auth.types";
 import { validateLoginForm } from "../../lib/validations/user-auth.validation";
 import PrimaryButton from "../website/shared/PrimaryButton";
@@ -12,15 +12,17 @@ import { useLoginMutation, useAuthUser } from "../../hooks/useAuthHooks";
 
 export default function UserLoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
   const { data: user, isLoading: isUserLoading } = useAuthUser();
   const [isMounted, setIsMounted] = useState(false);
 
   React.useEffect(() => {
     setIsMounted(true);
     if (user) {
-      router.push('/dashboard');
+      router.push(redirectParam || '/dashboard');
     }
-  }, [user, router]);
+  }, [user, router, redirectParam]);
 
   // Controlled form values state
   const [formData, setFormData] = useState<UserLoginFormValues>({
@@ -122,7 +124,7 @@ export default function UserLoginForm() {
           <div className="flex flex-wrap items-center gap-1.5 text-xs md:text-sm">
             <span className="text-text-secondary/70">New user?</span>
             <Link
-              href="/register"
+              href={redirectParam ? `/register?redirect=${encodeURIComponent(redirectParam)}` : "/register"}
               className="font-medium text-primary hover:text-primary-hover transition-colors duration-200"
             >
               Register now →

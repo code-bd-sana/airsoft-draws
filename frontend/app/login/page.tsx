@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Metadata } from "next";
 import UserAuthLayout from "../../components/user-auth/UserAuthLayout";
 import UserLoginForm from "../../components/user-auth/UserLoginForm";
@@ -14,7 +14,9 @@ export const metadata: Metadata = {
 export default function UserLoginPage() {
   return (
     <UserAuthLayout mode="login">
-      <UserLoginForm />
+      <Suspense fallback={<div className="p-8 text-center text-[#72943A]">Loading login...</div>}>
+        <UserLoginForm />
+      </Suspense>
     </UserAuthLayout>
   );
 }

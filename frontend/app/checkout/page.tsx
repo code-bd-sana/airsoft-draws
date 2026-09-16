@@ -12,16 +12,115 @@ import { api } from "../../services/api";
 
 export function calculateAgeFromDob(dobStr: string): number | null {
   if (!dobStr) return null;
-  const dob = new Date(dobStr);
-  if (isNaN(dob.getTime())) return null;
+  const match = dobStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) {
+    const d = new Date(dobStr);
+    if (isNaN(d.getTime())) return null;
+    const today = new Date();
+    let age = today.getFullYear() - d.getFullYear();
+    const m = today.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < d.getDate())) {
+      age--;
+    }
+    return age;
+  }
+
+  const birthYear = parseInt(match[1], 10);
+  const birthMonth = parseInt(match[2], 10);
+  const birthDay = parseInt(match[3], 10);
 
   const today = new Date();
-  let age = today.getFullYear() - dob.getFullYear();
-  const m = today.getMonth() - dob.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth() + 1;
+  const currentDay = today.getDate();
+
+  let age = currentYear - birthYear;
+  if (currentMonth < birthMonth || (currentMonth === birthMonth && currentDay < birthDay)) {
     age--;
   }
   return age;
+}
+
+export function formatDateForInput(dateVal: any): string {
+  if (!dateVal) return "";
+  if (typeof dateVal === "string") {
+    const match = dateVal.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      return `${match[1]}-${match[2]}-${match[3]}`;
+    }
+  }
+  try {
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return "";
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  } catch {
+    return "";
+  }
+}
+
+export function parseSavedAddress(rawAddress?: string | null, rawLocation?: string | null) {
+  const addr = (rawAddress || "").trim();
+  const loc = (rawLocation || "").trim();
+
+  let addressLine1 = "";
+  let addressLine2 = "";
+  let city = "";
+  let postalCode = "";
+  let country = "United Kingdom";
+
+  const ukPostcodeRegex = /([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\s?[0-9][A-Za-z]{2})/i;
+
+  if (addr) {
+    const pcMatch = addr.match(ukPostcodeRegex);
+    if (pcMatch) {
+      postalCode = pcMatch[0].toUpperCase();
+    }
+
+    const parts = addr.split(",").map((s) => s.trim()).filter(Boolean);
+
+    if (parts.length >= 5) {
+      addressLine1 = parts[0];
+      addressLine2 = parts[1];
+      city = parts[2];
+      if (!postalCode) postalCode = parts[3];
+      country = parts[4];
+    } else if (parts.length === 4) {
+      addressLine1 = parts[0];
+      city = parts[1];
+      if (!postalCode) postalCode = parts[2];
+      country = parts[3];
+    } else if (parts.length === 3) {
+      addressLine1 = parts[0];
+      city = parts[1];
+      if (!postalCode) {
+        postalCode = parts[2];
+      } else {
+        country = parts[2];
+      }
+    } else if (parts.length === 2) {
+      addressLine1 = parts[0];
+      city = parts[1];
+    } else if (parts.length === 1) {
+      addressLine1 = parts[0];
+    }
+  }
+
+  if (!city && loc) {
+    const locParts = loc.split(",").map((p) => p.trim()).filter(Boolean);
+    if (locParts.length > 0) city = locParts[0];
+    if (locParts.length > 1 && (!country || country === "United Kingdom")) country = locParts[1];
+  }
+
+  return {
+    addressLine1,
+    addressLine2,
+    city,
+    postalCode,
+    country: country || "United Kingdom",
+  };
 }
 
 interface PurchaseResult {
@@ -60,6 +159,56 @@ export default function CheckoutPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [dob, setDob] = useState("");
+  const [dobDay, setDobDay] = useState("");
+  const [dobMonth, setDobMonth] = useState("");
+  const [dobYear, setDobYear] = useState("");
+  const calendarInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Synchronize separate day, month, year dropdowns whenever dob is set
+  useEffect(() => {
+    if (dob) {
+      const match = dob.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) {
+        setDobYear(match[1]);
+        setDobMonth(match[2]);
+        setDobDay(match[3]);
+      }
+    }
+  }, [dob]);
+
+  const handleDatePartChange = (part: "day" | "month" | "year", val: string) => {
+    const nextDay = part === "day" ? val : dobDay;
+    const nextMonth = part === "month" ? val : dobMonth;
+    const nextYear = part === "year" ? val : dobYear;
+
+    if (part === "day") setDobDay(val);
+    if (part === "month") setDobMonth(val);
+    if (part === "year") setDobYear(val);
+
+    if (nextDay && nextMonth && nextYear) {
+      setDob(`${nextYear}-${nextMonth.padStart(2, "0")}-${nextDay.padStart(2, "0")}`);
+    } else {
+      setDob("");
+    }
+  };
+
+  const daysList = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0"));
+  const monthsList = [
+    { value: "01", label: "01 - Jan" },
+    { value: "02", label: "02 - Feb" },
+    { value: "03", label: "03 - Mar" },
+    { value: "04", label: "04 - Apr" },
+    { value: "05", label: "05 - May" },
+    { value: "06", label: "06 - Jun" },
+    { value: "07", label: "07 - Jul" },
+    { value: "08", label: "08 - Aug" },
+    { value: "09", label: "09 - Sep" },
+    { value: "10", label: "10 - Oct" },
+    { value: "11", label: "11 - Nov" },
+    { value: "12", label: "12 - Dec" },
+  ];
+  const currentYearVal = new Date().getFullYear();
+  const yearsList = Array.from({ length: 101 }, (_, i) => String(currentYearVal - i));
 
   // Shipping Address Form State
   const [addressLine1, setAddressLine1] = useState("");
@@ -78,32 +227,53 @@ export default function CheckoutPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [purchaseResult, setPurchaseResult] = useState<PurchaseResult | null>(null);
 
-  // Pre-fill fields from authenticated user
+  // Immediate redirect for unauthenticated visitors
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.replace("/login?redirect=/checkout");
+    }
+  }, [isUserLoading, user, router]);
+
+  // Comprehensive pre-fill from authenticated user profile
   useEffect(() => {
     if (user) {
-      if (!firstName && user.firstName) setFirstName(user.firstName);
-      if (!lastName && user.lastName) setLastName(user.lastName);
-      if (!email && user.email) setEmail(user.email);
-      if (!phone && (user.phone || (user as any).hostProfile?.phone)) {
-        setPhone(user.phone || (user as any).hostProfile?.phone || "");
+      if (user.email) {
+        setEmail(user.email);
       }
-      if (!dob && (user as any).dateOfBirth) {
-        setDob(String((user as any).dateOfBirth).slice(0, 10));
+      if (user.firstName) {
+        setFirstName(user.firstName);
       }
-      if (!ukara && (user as any).ukaraNumber) {
+      if (user.lastName) {
+        setLastName(user.lastName);
+      }
+      // If firstName / lastName aren't set separately, extract from composite name or fullName
+      if (!user.firstName) {
+        const compositeName = (user as any).name || (user as any).fullName;
+        if (compositeName) {
+          const parts = String(compositeName).trim().split(/\s+/);
+          if (parts.length > 0) setFirstName(parts[0]);
+          if (parts.length > 1) setLastName(parts.slice(1).join(" "));
+        }
+      }
+      const userPhone = user.phone || (user as any).hostProfile?.phone;
+      if (userPhone) {
+        setPhone(userPhone);
+      }
+      if ((user as any).dateOfBirth) {
+        const formattedDob = formatDateForInput((user as any).dateOfBirth);
+        if (formattedDob) setDob(formattedDob);
+      }
+      if ((user as any).ukaraNumber) {
         setUkara((user as any).ukaraNumber);
       }
-      if (!addressLine1 && user.address) {
-        const parts = user.address.split(",").map((s: string) => s.trim());
-        if (parts.length > 0) setAddressLine1(parts[0]);
-        if (parts.length > 2) setCity(parts[parts.length - 2]);
-      }
-      if (!city && user.location) {
-        const locParts = user.location.split(",").map((s: string) => s.trim());
-        if (locParts.length > 0) setCity(locParts[0]);
-      }
+      const parsedAddr = parseSavedAddress(user.address, user.location);
+      if (parsedAddr.addressLine1) setAddressLine1(parsedAddr.addressLine1);
+      if (parsedAddr.addressLine2) setAddressLine2(parsedAddr.addressLine2);
+      if (parsedAddr.city) setCity(parsedAddr.city);
+      if (parsedAddr.postalCode) setPostalCode(parsedAddr.postalCode);
+      if (parsedAddr.country) setCountry(parsedAddr.country);
     }
-  }, [user, firstName, lastName, email, phone, dob, ukara, addressLine1, city]);
+  }, [user]);
 
   const calculatedAge = calculateAgeFromDob(dob);
   const isUnder18 = calculatedAge !== null && calculatedAge < 18;
@@ -197,6 +367,69 @@ export default function CheckoutPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (isUserLoading) {
+    return (
+      <>
+        <WebsiteNavbar />
+        <main className="min-h-screen bg-[#0D0D0B] text-[#E8EDD4] pt-32 pb-24 px-4 flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center gap-4 bg-[#111210] border border-[#2D3C13] rounded-2xl p-8 max-w-sm w-full text-center shadow-xl">
+            <div className="w-10 h-10 border-3 border-[#8CB34A] border-t-transparent rounded-full animate-spin" />
+            <div className="flex flex-col gap-1">
+              <h3 className="font-heading font-semibold text-sm text-[#E8EDD4]">
+                Verifying Session...
+              </h3>
+              <p className="font-sans text-xs text-[#72943A]">
+                Checking authentication before loading checkout
+              </p>
+            </div>
+          </div>
+        </main>
+        <WebsiteFooter />
+      </>
+    );
+  }
+
+  if (!user) {
+    return (
+      <>
+        <WebsiteNavbar />
+        <main className="min-h-screen bg-[#0D0D0B] text-[#E8EDD4] pt-32 pb-24 px-4 flex flex-col items-center justify-center">
+          <div className="bg-[#111210] border border-[#2D3C13] rounded-2xl p-8 sm:p-10 max-w-md w-full text-center flex flex-col items-center gap-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 rounded-full bg-[#1A230A] border border-[#8CB34A] flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(140,179,74,0.3)]">
+              🔒
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="text-[11px] font-semibold tracking-wider uppercase text-[#8CB34A] bg-[#1A230A] px-3 py-0.5 rounded-full border border-[#2D3C13] self-center">
+                Authentication Required
+              </span>
+              <h1 className="font-heading font-bold text-2xl text-[#E8EDD4]">
+                Please Log In to Continue
+              </h1>
+              <p className="font-sans text-xs sm:text-sm text-[#72943A] leading-relaxed">
+                You must have an active account to checkout competition tickets, verify age eligibility (18+), and link allocations.
+              </p>
+            </div>
+            <div className="w-full flex flex-col gap-3">
+              <Link
+                href="/login?redirect=/checkout"
+                className="w-full h-12 bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] font-heading font-semibold text-sm rounded-lg transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(140,179,74,0.2)]"
+              >
+                Log In to Checkout →
+              </Link>
+              <Link
+                href="/register?redirect=/checkout"
+                className="w-full h-11 bg-transparent hover:bg-[#1A230A] border border-[#2D3C13] text-[#E8EDD4] font-sans font-medium text-xs rounded-lg transition-colors flex items-center justify-center"
+              >
+                Create New Account
+              </Link>
+            </div>
+          </div>
+        </main>
+        <WebsiteFooter />
+      </>
+    );
+  }
 
   return (
     <>
@@ -335,26 +568,27 @@ export default function CheckoutPage() {
                 </p>
               </div>
 
-              {/* Unauthenticated User Banner */}
-              {!user && !isUserLoading && (
-                <div className="bg-[#161810] border border-[#8CB34A]/50 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">🔑</span>
-                    <div>
-                      <h4 className="font-heading font-bold text-sm text-[#E8EDD4]">
-                        Already have an Airsoft Draws account?
-                      </h4>
+              {/* Authenticated User Status Banner */}
+              {user && (
+                <div className="bg-[#161810] border border-[#2D3C13] rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-[#1A230A] border border-[#8CB34A]/60 flex items-center justify-center text-[#8CB34A] font-bold text-sm shrink-0">
+                      ✓
+                    </div>
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-heading font-bold text-sm text-[#E8EDD4] truncate">
+                          Logged in as {user.email}
+                        </span>
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#1A230A] text-[#8CB34A] border border-[#8CB34A]/40 shrink-0">
+                          Profile Synced
+                        </span>
+                      </div>
                       <p className="font-sans text-xs text-[#72943A]">
-                        Log in to automatically load your saved delivery details and streamline checkout.
+                        Your account email and profile delivery information have been automatically loaded below.
                       </p>
                     </div>
                   </div>
-                  <Link
-                    href="/login?redirect=/checkout"
-                    className="h-9 px-4 bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] font-heading font-semibold text-xs rounded-lg transition-colors flex items-center justify-center shrink-0"
-                  >
-                    Log In →
-                  </Link>
                 </div>
               )}
 
@@ -406,9 +640,14 @@ export default function CheckoutPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="flex flex-col gap-1.5">
-                        <label className="font-sans font-medium text-xs text-[#E8EDD4]">
-                          Email Address (Ticket Confirmation) <span className="text-[#F76B6B]">*</span>
-                        </label>
+                        <div className="flex items-center justify-between">
+                          <label className="font-sans font-medium text-xs text-[#E8EDD4]">
+                            Email Address (Ticket Confirmation) <span className="text-[#F76B6B]">*</span>
+                          </label>
+                          <span className="text-[10px] text-[#8CB34A] font-semibold bg-[#1A230A] border border-[#2D3C13] px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <span>✓</span> Auto-filled from login
+                          </span>
+                        </div>
                         <input
                           type="email"
                           required
@@ -435,7 +674,7 @@ export default function CheckoutPage() {
                     </div>
 
                     {/* Date of Birth 18+ check */}
-                    <div className="flex flex-col gap-2 pt-2 border-t border-[#2D3C13]/50">
+                    <div className="flex flex-col gap-2.5 pt-2 border-t border-[#2D3C13]/50">
                       <div className="flex items-center justify-between">
                         <label className="font-sans font-medium text-xs text-[#E8EDD4]">
                           Date of Birth (18+ Only) <span className="text-[#F76B6B]">*</span>
@@ -444,24 +683,100 @@ export default function CheckoutPage() {
                           <span
                             className={
                               isValidAge
-                                ? "text-[#8CB34A] text-xs font-semibold"
-                                : "text-[#F76B6B] text-xs font-semibold"
+                                ? "text-[#8CB34A] text-xs font-semibold bg-[#1A230A] border border-[#2D3C13] px-2.5 py-0.5 rounded-full"
+                                : "text-[#F76B6B] text-xs font-semibold bg-red-950/50 border border-red-900 px-2.5 py-0.5 rounded-full"
                             }
                           >
                             Age: {calculatedAge} {isValidAge ? "(Verified 18+)" : "(Under 18 Blocked)"}
                           </span>
                         )}
                       </div>
-                      <input
-                        type="date"
-                        required
-                        value={dob}
-                        onChange={(e) => setDob(e.target.value)}
-                        className="h-11 px-3.5 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg font-sans text-sm text-[#E8EDD4] focus:border-[#8CB34A] outline-none transition-colors"
-                      />
-                      <p className="font-sans text-[11px] text-[#72943A]">
-                        You must be 18 years or older to participate. Automatically saved to your profile.
-                      </p>
+
+                      {/* 3 Dropdowns: Day, Month, Year */}
+                      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                        {/* Day Selector */}
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[11px] font-sans text-[#72943A]">Day (DD)</span>
+                          <select
+                            value={dobDay}
+                            onChange={(e) => handleDatePartChange("day", e.target.value)}
+                            className="h-11 px-2.5 sm:px-3 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg font-sans text-xs sm:text-sm text-[#E8EDD4] focus:border-[#8CB34A] outline-none transition-colors cursor-pointer"
+                          >
+                            <option value="">Select Day</option>
+                            {daysList.map((d) => (
+                              <option key={d} value={d} className="bg-[#161810] text-[#E8EDD4]">
+                                {d}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Month Selector */}
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[11px] font-sans text-[#72943A]">Month (MM)</span>
+                          <select
+                            value={dobMonth}
+                            onChange={(e) => handleDatePartChange("month", e.target.value)}
+                            className="h-11 px-2.5 sm:px-3 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg font-sans text-xs sm:text-sm text-[#E8EDD4] focus:border-[#8CB34A] outline-none transition-colors cursor-pointer"
+                          >
+                            <option value="">Select Month</option>
+                            {monthsList.map((m) => (
+                              <option key={m.value} value={m.value} className="bg-[#161810] text-[#E8EDD4]">
+                                {m.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Year Selector */}
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[11px] font-sans text-[#72943A]">Year (YYYY)</span>
+                          <select
+                            value={dobYear}
+                            onChange={(e) => handleDatePartChange("year", e.target.value)}
+                            className="h-11 px-2.5 sm:px-3 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg font-sans text-xs sm:text-sm text-[#E8EDD4] focus:border-[#8CB34A] outline-none transition-colors cursor-pointer"
+                          >
+                            <option value="">Select Year</option>
+                            {yearsList.map((y) => (
+                              <option key={y} value={y} className="bg-[#161810] text-[#E8EDD4]">
+                                {y}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Helper and optional calendar trigger */}
+                      <div className="flex items-center justify-between text-[11px] text-[#72943A] pt-0.5">
+                        <span>Format: DD/MM/YYYY • Must be 18+ to participate.</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            try {
+                              calendarInputRef.current?.showPicker?.();
+                            } catch {
+                              calendarInputRef.current?.focus();
+                            }
+                          }}
+                          className="text-[#8CB34A] hover:text-[#A0D056] font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          <span>📅</span>
+                          <span>Calendar Picker</span>
+                        </button>
+                        <input
+                          ref={calendarInputRef}
+                          type="date"
+                          tabIndex={-1}
+                          value={dob}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              setDob(e.target.value);
+                            }
+                          }}
+                          className="sr-only"
+                        />
+                      </div>
+
                       {isUnder18 && (
                         <p className="font-sans text-xs text-[#F76B6B] bg-red-950/40 border border-red-900/80 p-2.5 rounded-lg">
                           ⚠️ Under UK law (VCRA 2006), participants must be 18 years or older. You cannot proceed with checkout.

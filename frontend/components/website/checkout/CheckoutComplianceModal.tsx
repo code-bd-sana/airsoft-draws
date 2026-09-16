@@ -18,13 +18,30 @@ interface CheckoutComplianceModalProps {
 
 export function calculateAgeFromDobString(dobStr: string): number | null {
   if (!dobStr) return null;
-  const dob = new Date(dobStr);
-  if (isNaN(dob.getTime())) return null;
-  
+  const match = dobStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) {
+    const dob = new Date(dobStr);
+    if (isNaN(dob.getTime())) return null;
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    return age;
+  }
+
+  const birthYear = parseInt(match[1], 10);
+  const birthMonth = parseInt(match[2], 10);
+  const birthDay = parseInt(match[3], 10);
+
   const today = new Date();
-  let age = today.getFullYear() - dob.getFullYear();
-  const m = today.getMonth() - dob.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth() + 1;
+  const currentDay = today.getDate();
+
+  let age = currentYear - birthYear;
+  if (currentMonth < birthMonth || (currentMonth === birthMonth && currentDay < birthDay)) {
     age--;
   }
   return age;
@@ -125,7 +142,8 @@ export default function CheckoutComplianceModal({
               value={dob}
               onChange={(e) => setDob(e.target.value)}
               required
-              className="h-12 px-4 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg font-sans text-sm text-[#E8EDD4] focus:border-[#8CB34A] outline-none transition-colors"
+              style={{ colorScheme: "dark" }}
+              className="h-12 px-4 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg font-sans text-sm text-[#E8EDD4] focus:border-[#8CB34A] outline-none transition-colors [color-scheme:dark] cursor-pointer"
             />
             {isUnder18 && (
               <p className="font-sans text-xs text-[#F76B6B] bg-red-950/50 border border-red-900 p-2.5 rounded-lg">

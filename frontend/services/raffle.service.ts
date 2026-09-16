@@ -64,6 +64,7 @@ export interface PaginatedResponse<T> {
 
 export interface CreateRaffleData {
   title: string;
+  category?: string;
   description: string;
   prizeName?: string;
   pricePerTicket: number | string;

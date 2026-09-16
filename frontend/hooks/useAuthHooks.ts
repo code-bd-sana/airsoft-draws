@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { authService, AuthResponse } from '../services/auth.service';
 import { useRouter } from 'next/navigation';
 
-export const useLoginMutation = () => {
+export const useLoginMutation = (customRedirect?: string) => {
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -12,8 +12,14 @@ export const useLoginMutation = () => {
       if (data?.user) {
         queryClient.setQueryData(['user'], data.user);
         
-        // Redirect to dashboard (dispatcher at /dashboard handles role-based routing)
-        router.push('/dashboard');
+        let destination = customRedirect;
+        if (!destination && typeof window !== 'undefined') {
+          const params = new URLSearchParams(window.location.search);
+          destination = params.get('redirect') || undefined;
+        }
+
+        // Redirect to specified destination (e.g. /checkout) or dashboard
+        router.push(destination || '/dashboard');
       }
     },
   });
