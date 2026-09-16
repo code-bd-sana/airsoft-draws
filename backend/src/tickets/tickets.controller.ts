@@ -24,6 +24,7 @@ import {
 import type { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { PurchaseTicketsDto } from './dto/purchase-tickets.dto';
+import { BasketCheckoutDto } from './dto/checkout.dto';
 
 @ApiTags('Tickets')
 @Controller('api/v1/tickets')
@@ -77,6 +78,35 @@ export class TicketsController {
     }
     const userId = this.extractUserId(req);
     return this.ticketsService.purchaseTickets(userId, raffleId, body);
+  }
+
+  @Post('checkout')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('CLIENT', 'USER', 'HOST', 'ADMIN')
+  @ApiBearerAuth()
+  @ApiCookieAuth('accessToken')
+  @ApiOperation({
+    summary: 'Multi-raffle basket checkout',
+    description:
+      'Purchases and allocates tickets across multiple competitions, auto-saves delivery details to profile, and evaluates instant wins.',
+  })
+  @ApiResponse({
+    status: 201,
+    description:
+      'Tickets successfully purchased and allocated across basket items',
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Validation failure, insufficient tickets, underage user, or missing UKARA',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async checkout(
+    @Req() req: Request,
+    @Body() body: BasketCheckoutDto,
+  ) {
+    const userId = this.extractUserId(req);
+    return this.ticketsService.checkout(userId, body);
   }
 
   @Get('my-tickets')

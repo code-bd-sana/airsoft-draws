@@ -10,6 +10,7 @@ describe('TicketsController', () => {
   let mockTicketsService: {
     purchaseTickets: jest.Mock;
     getUserTickets: jest.Mock;
+    checkout: jest.Mock;
   };
   let mockJwtService: { verify: jest.Mock };
 
@@ -17,6 +18,7 @@ describe('TicketsController', () => {
     mockTicketsService = {
       purchaseTickets: jest.fn(),
       getUserTickets: jest.fn(),
+      checkout: jest.fn(),
     };
     mockJwtService = { verify: jest.fn() };
 
@@ -81,6 +83,48 @@ describe('TicketsController', () => {
       const result = await controller.getMyTickets(req);
       expect(mockTicketsService.getUserTickets).toHaveBeenCalledWith('u-1');
       expect(result).toEqual([{ id: 't-1' }]);
+    });
+  });
+
+  describe('checkout', () => {
+    it('should throw UnauthorizedException if cookie missing', async () => {
+      const req = createMockRequest();
+      await expect(
+        controller.checkout(req, { items: [] } as any),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should delegate basket checkout to ticketsService', async () => {
+      const req = createMockRequest('valid-token');
+      mockJwtService.verify.mockReturnValue({ sub: 'u-1' });
+      mockTicketsService.checkout.mockResolvedValue({
+        message: 'Basket checkout completed successfully',
+        totalAmount: 25,
+      });
+
+      const dto = {
+        items: [{ raffleId: 'r-1', quantity: 2 }],
+        firstName: 'Jade',
+        lastName: 'Weeks',
+        email: 'user@example.com',
+        phone: '+44 7700 900077',
+        dateOfBirth: '1995-05-15',
+        shippingAddress: {
+          addressLine1: '573 South Oak Lane',
+          city: 'London',
+          postalCode: 'SW1A 1AA',
+          country: 'United Kingdom',
+        },
+        acceptedTerms: true,
+      } as any;
+
+      const result = await controller.checkout(req, dto);
+
+      expect(mockTicketsService.checkout).toHaveBeenCalledWith('u-1', dto);
+      expect(result).toEqual({
+        message: 'Basket checkout completed successfully',
+        totalAmount: 25,
+      });
     });
   });
 });

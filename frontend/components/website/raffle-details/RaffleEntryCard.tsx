@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { RaffleDetail } from "../../../types/raffle-details.types";
 import { usePurchaseTicketsMutation } from "../../../hooks/useTicketHooks";
 import { useAuth } from "../../../features/auth/AuthContext";
+import { useBasket } from "../../../features/basket/BasketContext";
 import { useRouter } from "next/navigation";
 import TicketPurchaseSuccessModal, { TicketPurchaseSuccessData } from "./TicketPurchaseSuccessModal";
 import FreePostalEntryButton from "../legal/FreePostalEntryButton";
@@ -22,6 +24,8 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
   const [complianceError, setComplianceError] = useState<string | null>(null);
 
   const { isAuthenticated, user } = useAuth();
+  const { addToBasket } = useBasket();
+  const [basketFeedback, setBasketFeedback] = useState<string | null>(null);
   const router = useRouter();
   
   const purchaseMutation = usePurchaseTicketsMutation(raffle.id);
@@ -65,6 +69,34 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
   const handleQuickPick = (val: number) => setQuantity(val);
   const handleDecrement = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
   const handleIncrement = () => setQuantity(prev => prev + 1);
+
+  const handleAddToBasket = () => {
+    if (quantity > remainingTickets) {
+      setStatusMessage({ type: 'error', text: `Only ${remainingTickets} tickets left.` });
+      return;
+    }
+
+    const success = addToBasket({
+      raffleId: raffle.id,
+      title: raffle.title,
+      slug: raffle.slug,
+      mainImage: raffle.images?.[0] || '',
+      ticketPrice: raffle.ticketPrice,
+      quantity,
+      totalTickets: raffle.totalTickets,
+      soldTickets: raffle.soldTickets,
+      remainingTickets,
+      prizeClassification: (raffle as any).prizeClassification || 'RIF',
+      endDate: raffle.endDate,
+      hostName: raffle.hostName,
+    });
+
+    if (success) {
+      setStatusMessage(null);
+      setBasketFeedback(`Added ${quantity} ticket${quantity > 1 ? 's' : ''} to basket!`);
+      setTimeout(() => setBasketFeedback(null), 4000);
+    }
+  };
 
   const handleOpenCheckoutModal = () => {
     if (!isAuthenticated) {
@@ -215,17 +247,51 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
           <span className="font-heading font-semibold text-[16px] text-[#8CB34A]">£{totalPrice.toFixed(2)}</span>
         </div>
 
-        <button 
-          onClick={handleOpenCheckoutModal}
-          disabled={purchaseMutation.isPending || remainingTickets === 0}
-          className={`w-full h-[48px] rounded-[8px] font-heading font-medium text-[14px] transition-colors flex items-center justify-center ${
-            purchaseMutation.isPending || remainingTickets === 0
-              ? 'bg-[#2D3C13] text-[#72943A] cursor-not-allowed'
-              : 'bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] shadow-[0_0_15px_rgba(140,179,74,0.15)]'
-          }`}
-        >
-          {purchaseMutation.isPending ? 'Processing...' : `Enter Draw — £${totalPrice.toFixed(2)}`}
-        </button>
+        {/* Basket Notification Toast */}
+        {basketFeedback && (
+          <div className="p-3 bg-[#1A230A] border border-[#8CB34A] rounded-lg text-xs font-sans text-[#A0D056] flex items-center justify-between animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex items-center gap-2">
+              <span className="text-base font-bold">✓</span>
+              <span>{basketFeedback}</span>
+            </div>
+            <Link
+              href="/basket"
+              className="underline font-semibold hover:text-[#E8EDD4] ml-2 text-xs whitespace-nowrap"
+            >
+              View Basket →
+            </Link>
+          </div>
+        )}
+
+        {/* Action Buttons: Add to Basket + Instant Direct Entry */}
+        <div className="flex flex-col gap-2.5">
+          <button 
+            onClick={handleAddToBasket}
+            disabled={remainingTickets === 0}
+            className={`w-full h-[48px] rounded-[8px] font-heading font-semibold text-[14px] transition-all flex items-center justify-center gap-2 ${
+              remainingTickets === 0
+                ? 'bg-[#2D3C13] text-[#72943A] cursor-not-allowed'
+                : 'bg-[#1A230A] border border-[#8CB34A] text-[#8CB34A] hover:bg-[#8CB34A] hover:text-[#0D0D0B] shadow-[0_0_15px_rgba(140,179,74,0.15)] cursor-pointer'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+            </svg>
+            Add to Basket — £{totalPrice.toFixed(2)}
+          </button>
+
+          <button 
+            onClick={handleOpenCheckoutModal}
+            disabled={purchaseMutation.isPending || remainingTickets === 0}
+            className={`w-full h-[42px] rounded-[8px] font-heading font-medium text-[13px] transition-colors flex items-center justify-center cursor-pointer ${
+              purchaseMutation.isPending || remainingTickets === 0
+                ? 'bg-[#2D3C13] text-[#72943A] cursor-not-allowed'
+                : 'bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B]'
+            }`}
+          >
+            {purchaseMutation.isPending ? 'Processing...' : 'Instant Entry (Direct Pay)'}
+          </button>
+        </div>
 
         {/* UK-Compliant Free Postal Entry Route Button */}
         <FreePostalEntryButton raffleTitle={raffle.title} variant="button" />

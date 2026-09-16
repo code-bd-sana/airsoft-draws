@@ -196,4 +196,130 @@ describe('TicketsService', () => {
       expect(tickets[0].raffle.title).toBe('M4 Raffle');
     });
   });
+
+  describe('checkout (multi-raffle)', () => {
+    it('should throw BadRequestException if items array is empty', async () => {
+      await expect(
+        service.checkout('u-1', { items: [] } as any),
+      ).rejects.toThrow('Basket must contain at least one item');
+    });
+
+    it('should throw BadRequestException if user is under 18', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'u-1',
+        isBlocked: false,
+      });
+
+      const today = new Date();
+      const under18Dob = new Date(today.getFullYear() - 16, today.getMonth(), today.getDate())
+        .toISOString()
+        .slice(0, 10);
+
+      await expect(
+        service.checkout('u-1', {
+          items: [{ raffleId: 'r-1', quantity: 1 }],
+          dateOfBirth: under18Dob,
+          acceptedTerms: true,
+        } as any),
+      ).rejects.toThrow('Eligibility is restricted to participants aged 18 years or older');
+    });
+
+    it('should throw BadRequestException if UKARA missing for RIF raffle', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'u-1',
+        isBlocked: false,
+        ukaraNumber: null,
+      });
+      mockPrisma.raffle.findMany.mockResolvedValue([
+        {
+          id: 'r-1',
+          title: 'RIF Sniper',
+          status: 'ACTIVE',
+          prizeClassification: 'RIF',
+          ticketsSold: 0,
+          totalTickets: 100,
+          pricePerTicket: '10.00',
+        },
+      ]);
+
+      await expect(
+        service.checkout('u-1', {
+          items: [{ raffleId: 'r-1', quantity: 1 }],
+          dateOfBirth: '1990-01-01',
+          acceptedTerms: true,
+          shippingAddress: {
+            addressLine1: 'Street 1',
+            city: 'London',
+            postalCode: 'SW1',
+            country: 'United Kingdom',
+          },
+        } as any),
+      ).rejects.toThrow('A valid UKARA registration number is required');
+    });
+
+    it('should successfully allocate tickets across multiple competitions and update profile', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'u-1',
+        isBlocked: false,
+        ukaraNumber: 'UKARA999',
+      });
+      mockPrisma.raffle.findMany.mockResolvedValue([
+        {
+          id: 'r-1',
+          title: 'RIF M4',
+          status: 'ACTIVE',
+          prizeClassification: 'RIF',
+          ticketsSold: 0,
+          totalTickets: 50,
+          pricePerTicket: '5.00',
+          instantWins: [],
+        },
+        {
+          id: 'r-2',
+          title: 'Tactical Vest',
+          status: 'ACTIVE',
+          prizeClassification: 'ACCESSORY',
+          ticketsSold: 0,
+          totalTickets: 50,
+          pricePerTicket: '2.50',
+          instantWins: [],
+        },
+      ]);
+      mockPrisma.user.update.mockResolvedValue({ id: 'u-1' });
+      mockPrisma.transaction.create.mockResolvedValue({ id: 'tx-basket-1' });
+      mockPrisma.ticket.findMany.mockResolvedValue([]);
+      mockPrisma.ticket.createMany.mockResolvedValue({ count: 3 });
+      mockPrisma.raffle.update.mockResolvedValue({
+        id: 'r-1',
+        ticketsSold: 2,
+        isAutoDraw: false,
+        totalTickets: 50,
+      });
+
+      const result = await service.checkout('u-1', {
+        items: [
+          { raffleId: 'r-1', quantity: 2 },
+          { raffleId: 'r-2', quantity: 1 },
+        ],
+        firstName: 'Jade',
+        lastName: 'Weeks',
+        email: 'jade@example.com',
+        phone: '+44 7700 900000',
+        dateOfBirth: '1995-05-15',
+        shippingAddress: {
+          addressLine1: '573 South Oak Lane',
+          city: 'London',
+          postalCode: 'SW1A 1AA',
+          country: 'United Kingdom',
+        },
+        ukaraNumber: 'UKARA999',
+        acceptedTerms: true,
+      });
+
+      expect(result.message).toBe('Basket checkout completed successfully');
+      expect(result.totalAmount).toBe(12.5); // (5 * 2) + (2.5 * 1) = 12.5
+      expect(mockPrisma.user.update).toHaveBeenCalled();
+      expect(mockPrisma.transaction.create).toHaveBeenCalled();
+    });
+  });
 });
