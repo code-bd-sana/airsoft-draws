@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useHostRaffles, useDeleteRaffle, useDrawWinner } from "../../../hooks/useRaffleHooks";
+import { useMySubscription } from "../../../hooks/useSubscriptionHooks";
 import { cn } from "../../../lib/utils";
 import { Pagination } from "../../ui/Pagination";
 import { toast } from "sonner";
@@ -15,12 +16,47 @@ export default function HostRafflesTable() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [drawingId, setDrawingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const tableRef = React.useRef<HTMLDivElement>(null);
   const [selectedCompForDelete, setSelectedCompForDelete] = useState<RaffleDeleteTarget | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const { data: response, isLoading } = useHostRaffles({ page, limit: 10, status: activeFilter });
+  const { data: mySub } = useMySubscription();
+  const isPaidPlan = Boolean(
+    mySub?.status === "ACTIVE" &&
+    (mySub?.plan?.name?.toUpperCase().includes("PREMIUM") ||
+     mySub?.plan?.name?.toUpperCase().includes("PRO") ||
+     Number(mySub?.plan?.price || 0) > 0)
+  );
+  const feeRate = isPaidPlan ? 0.10 : 0.15;
+  const feePercent = isPaidPlan ? 10 : 15;
+  const earningsRate = isPaidPlan ? 0.90 : 0.85;
+  const earningsPercent = isPaidPlan ? 90 : 85;
+
+  const { data: response, isLoading } = useHostRaffles({ page, limit, status: activeFilter });
   const raffles = response?.data || [];
   const meta = response?.meta;
+
+  const totalItems = meta?.total ?? (raffles?.length || 0);
+  const totalPages = Math.max(
+    1,
+    meta?.totalPages || (meta as any)?.lastPage || Math.ceil(totalItems / limit)
+  );
+  const currentPage = meta?.page ?? page;
+  const startItem = totalItems === 0 ? 0 : (currentPage - 1) * limit + 1;
+  const endItem = Math.min(currentPage * limit, totalItems);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  React.useEffect(() => {
+    if (totalPages > 0 && page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [totalPages, page]);
+
   const deleteMutation = useDeleteRaffle();
   const drawWinnerMutation = useDrawWinner();
 
@@ -76,7 +112,7 @@ export default function HostRafflesTable() {
       </div>
 
       {/* Table Container */}
-      <div className="w-full bg-[#161810] border border-[#2d3c13] rounded-[16px] overflow-hidden flex flex-col">
+      <div ref={tableRef} className="w-full bg-[#161810] border border-[#2d3c13] rounded-[16px] overflow-hidden flex flex-col">
         {/* Table Header */}
         <div className="grid grid-cols-5 items-center px-[24px] h-[48px] border-b border-[#2d3c13] bg-[#161810]">
           <div className="col-span-2 sm:col-span-1">
@@ -228,11 +264,11 @@ export default function HostRafflesTable() {
                       </span>
                       <div className="flex items-center gap-[12px]">
                         <span className="font-heading font-bold text-[24px] text-[#f76b6b]">
-                          - £{((Number(raffle.pricePerTicket) * raffle.ticketsSold) * 0.05).toFixed(2)}
+                          - £{((Number(raffle.pricePerTicket) * raffle.ticketsSold) * feeRate).toFixed(2)}
                         </span>
                         <div className="h-[22px] px-[8px] bg-[#1a230a] border border-[#2d3c13] rounded-full flex items-center justify-center">
                           <span className="font-sans font-medium text-[10px] text-[#a0d056]">
-                            5% (Standard)
+                            {feePercent}% Platform Fee
                           </span>
                         </div>
                       </div>
@@ -247,10 +283,10 @@ export default function HostRafflesTable() {
                       </span>
                       <div className="flex flex-col relative w-full">
                         <span className="font-heading font-bold text-[24px] text-[#8cb34a]">
-                          £{((Number(raffle.pricePerTicket) * raffle.ticketsSold) * 0.95).toFixed(2)}
+                          £{((Number(raffle.pricePerTicket) * raffle.ticketsSold) * earningsRate).toFixed(2)}
                         </span>
                         <span className="font-sans font-normal text-[11px] text-[#5a752a]">
-                          Paid out on completion
+                          {earningsPercent}% Net Earnings (Paid out on completion)
                         </span>
                         
                         {/* Action buttons */}
@@ -319,14 +355,45 @@ export default function HostRafflesTable() {
         </div>
       </div>
 
-      {/* Pagination component */}
-      {/* Pagination component */}
-      {!isLoading && meta && meta.total > 0 && (
-        <Pagination 
-          currentPage={meta.page}
-          totalPages={meta.totalPages}
-          onPageChange={setPage}
-        />
+      {/* Pagination & Summary Controls */}
+      {!isLoading && totalItems > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-[#161810] border border-[#2d3c13] rounded-[16px]">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-sans text-[13px] text-[#72943a]">
+              Showing <strong className="text-[#e8edd4] font-medium">{startItem}–{endItem}</strong> of{" "}
+              <strong className="text-[#e8edd4] font-medium">{totalItems}</strong> competitions
+              {totalPages > 1 && (
+                <span className="text-[#5a752a]"> (Page <strong className="text-[#8cb34a] font-medium">{currentPage}</strong> of {totalPages})</span>
+              )}
+            </span>
+
+            {/* Rows per page selector */}
+            <div className="flex items-center gap-1.5 ml-0 sm:ml-2 pl-0 sm:pl-3 sm:border-l sm:border-[#2d3c13]">
+              <span className="font-sans text-[11px] uppercase tracking-wider text-[#5a752a]">Per page:</span>
+              <select
+                value={limit}
+                onChange={(e) => {
+                  setLimit(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="bg-[#0d0d0b] border border-[#2d3c13] rounded-lg px-2.5 py-1 text-xs text-[#e8edd4] font-sans focus:outline-none focus:border-[#8cb34a] transition-colors cursor-pointer"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+          </div>
+
+          {totalPages > 1 && (
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
+        </div>
       )}
 
       {selectedCompForDelete && (

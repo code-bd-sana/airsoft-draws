@@ -1,4 +1,4 @@
-import { IsNumber, IsString, IsObject, Min, IsNotEmpty } from 'class-validator';
+import { IsNumber, IsString, IsObject, Min, IsNotEmpty, IsIn } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RequestWithdrawalDto {
@@ -8,11 +8,15 @@ export class RequestWithdrawalDto {
   amount: number;
 
   @ApiProperty({
-    description: 'Payout method (BANK_TRANSFER, PAYPAL, etc.)',
+    description: 'Payout method (BANK_TRANSFER only)',
     example: 'BANK_TRANSFER',
+    enum: ['BANK_TRANSFER'],
   })
   @IsString()
   @IsNotEmpty()
+  @IsIn(['BANK_TRANSFER'], {
+    message: 'Withdrawals are Bank Transfer only. PayPal is not supported.',
+  })
   payoutMethod: string;
 
   @ApiProperty({

@@ -40,6 +40,8 @@ export interface HostDashboardOverviewData {
   kpiStats: {
     totalNetRevenue: number;
     totalGrossRevenue: number;
+    platformFeeRate?: number;
+    netEarningsRate?: number;
     availableBalance: number;
     activeCompetitionsCount: number;
     totalCompetitionsCount: number;

@@ -40,8 +40,16 @@ export class AdminWithdrawalsService {
         hostUserEmail: w.host.user.email,
         hostUserName: `${w.host.user.firstName || ''} ${w.host.user.lastName || ''}`.trim(),
         amount: Number(w.amount),
-        feeAmount: Number(wObj.feeAmount || Number(w.amount) * 0.10),
-        netAmount: Number(wObj.netAmount || Number(w.amount) * 0.90),
+        feeAmount: Number(
+          wObj.feeAmount !== null && wObj.feeAmount !== undefined
+            ? wObj.feeAmount
+            : Number(w.amount) * 0.15,
+        ),
+        netAmount: Number(
+          wObj.netAmount !== null && wObj.netAmount !== undefined
+            ? wObj.netAmount
+            : Number(w.amount) * 0.85,
+        ),
         status: w.status,
         payoutMethod: w.payoutMethod || 'BANK_TRANSFER',
         payoutDetails: parsedDetails,

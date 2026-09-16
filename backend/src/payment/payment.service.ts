@@ -408,13 +408,25 @@ export class PaymentService {
               data: { status: 'EXPIRED' },
             });
 
-            await this.prisma.hostSubscription.create({
+            const newSub = await this.prisma.hostSubscription.create({
               data: {
                 hostId: host.id,
                 planId: plan.id,
                 status: 'ACTIVE',
                 startDate,
                 endDate,
+              },
+            });
+
+            await this.prisma.transaction.create({
+              data: {
+                userId: host.userId,
+                type: 'SUBSCRIPTION_FEE',
+                amount: plan.price,
+                status: 'COMPLETED',
+                paymentGateway: 'CASHFLOWS',
+                gatewayTransactionId: data?.reference || `CASHFLOWS_${newSub.id.slice(0, 8)}`,
+                relatedEntityId: newSub.id,
               },
             });
 
@@ -539,6 +551,23 @@ export class PaymentService {
               endDate,
             },
           });
+
+          const existingTx = await this.prisma.transaction.findFirst({
+            where: { relatedEntityId: sub.id, type: 'SUBSCRIPTION_FEE' },
+          });
+          if (!existingTx) {
+            await this.prisma.transaction.create({
+              data: {
+                userId: host.userId,
+                type: 'SUBSCRIPTION_FEE',
+                amount: plan.price,
+                status: 'COMPLETED',
+                paymentGateway: 'CASHFLOWS',
+                gatewayTransactionId: paymentJobRef || orderNumber || `SUB_${sub.id.slice(0, 8)}`,
+                relatedEntityId: sub.id,
+              },
+            });
+          }
 
           this.logger.log(`Confirmed subscription for host ${host.id} with plan ${plan.name}`);
           return {

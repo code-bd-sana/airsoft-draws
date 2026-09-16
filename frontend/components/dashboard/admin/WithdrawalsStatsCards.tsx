@@ -14,13 +14,16 @@ export default function WithdrawalsStatsCards({ withdrawals = [], isLoading }: W
   const totalPendingAmount = pendingRequests.reduce((acc, w) => acc + (w.amount || 0), 0);
   
   const totalCommissionEarned = withdrawals.reduce((acc, w) => {
-    const fee = w.feeAmount !== undefined ? w.feeAmount : (w.amount || 0) * 0.10;
+    const fee = w.feeAmount !== undefined ? w.feeAmount : (w.amount || 0) * 0.15;
     return acc + fee;
   }, 0);
 
   const totalProcessedNet = withdrawals
     .filter(w => w.status === 'COMPLETED' || w.status === 'APPROVED' || w.status === 'Paid')
-    .reduce((acc, w) => acc + (w.netAmount !== undefined ? w.netAmount : (w.amount || 0) * 0.90), 0);
+    .reduce((acc, w) => {
+      const fee = w.feeAmount !== undefined ? w.feeAmount : (w.amount || 0) * 0.15;
+      return acc + (w.netAmount !== undefined ? w.netAmount : (w.amount || 0) - fee);
+    }, 0);
 
   if (isLoading) {
     return (
@@ -68,7 +71,7 @@ export default function WithdrawalsStatsCards({ withdrawals = [], isLoading }: W
       {/* Platform Commission Earned (10%) */}
       <div className="bg-[#161810] border border-[#2D3C13] rounded-[16px] p-6 flex flex-col justify-between">
         <span className="font-sans text-[11px] font-medium text-[#5A752A] uppercase tracking-[1px]">
-          Platform Commission (10%)
+          Platform Commission Earned
         </span>
         <div className="flex flex-col gap-1 mt-2">
           <span className="font-heading font-bold text-[32px] text-[#8CB34A] leading-none">

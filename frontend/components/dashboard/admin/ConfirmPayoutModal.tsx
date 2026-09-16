@@ -44,8 +44,9 @@ export default function ConfirmPayoutModal({
   if (!isOpen || !payout || !mounted) return null;
 
   const grossAmount = payout.amount || 0;
-  const feeAmount = payout.feeAmount !== undefined ? payout.feeAmount : grossAmount * 0.10;
-  const netAmount = payout.netAmount !== undefined ? payout.netAmount : grossAmount * 0.90;
+  const feeAmount = payout.feeAmount !== undefined ? payout.feeAmount : grossAmount * 0.15;
+  const netAmount = payout.netAmount !== undefined ? payout.netAmount : grossAmount - feeAmount;
+  const feePercent = grossAmount > 0 ? Math.round((feeAmount / grossAmount) * 100) : 15;
 
   const handleConfirm = (newStatus: "APPROVED" | "COMPLETED" | "REJECTED") => {
     updateStatusMutation.mutate(
@@ -140,7 +141,7 @@ export default function ConfirmPayoutModal({
           </div>
 
           <div className="flex justify-between text-xs font-sans text-[#F76B6B]">
-            <span>Platform Commission (10%):</span>
+            <span>Platform Commission ({feePercent}%):</span>
             <span className="font-semibold">-£{feeAmount.toFixed(2)}</span>
           </div>
 

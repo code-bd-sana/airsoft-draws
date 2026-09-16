@@ -378,8 +378,9 @@ describe('TicketsService', () => {
         acceptedTerms: true,
       });
 
-      expect(result.message).toBe('Basket checkout completed successfully');
-      expect(result.totalAmount).toBe(12.5); // (5 * 2) + (2.5 * 1) = 12.5
+      const resObj = result as any;
+      expect(resObj.message).toBe('Basket checkout completed successfully');
+      expect(resObj.totalAmount).toBe(12.5); // (5 * 2) + (2.5 * 1) = 12.5
       expect(mockPrisma.user.update).toHaveBeenCalled();
       expect(mockPrisma.transaction.create).toHaveBeenCalled();
     });

@@ -411,7 +411,16 @@ export class RafflesService {
       where: { userId: hostId },
     });
     if (!hostProfile)
-      return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
+      return {
+        data: [],
+        meta: {
+          total: 0,
+          page: 1,
+          limit: Number(query.limit) || 10,
+          lastPage: 1,
+          totalPages: 1,
+        },
+      };
 
     const { page = 1, limit = 10, status } = query;
     const skip = (Number(page) - 1) * Number(limit);
@@ -436,12 +445,16 @@ export class RafflesService {
       this.prisma.raffle.count({ where: whereClause }),
     ]);
 
+    const totalPages = Math.ceil(total / Number(limit)) || 1;
+
     return {
       data: raffles,
       meta: {
         total,
         page: Number(page),
-        lastPage: Math.ceil(total / Number(limit)) || 1,
+        limit: Number(limit),
+        lastPage: totalPages,
+        totalPages,
       },
     };
   }

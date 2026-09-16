@@ -1,13 +1,30 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useMySubscription } from "../../../hooks/useSubscriptionHooks";
 import { cn } from "../../../lib/utils";
 
 export default function RaffleProfitCalculator() {
+  const { data: mySub } = useMySubscription();
+  const isPaidPlan = Boolean(
+    mySub?.status === "ACTIVE" &&
+    (mySub?.plan?.name?.toUpperCase().includes("PREMIUM") ||
+     mySub?.plan?.name?.toUpperCase().includes("PRO") ||
+     Number(mySub?.plan?.price || 0) > 0)
+  );
+
   const [ticketPrice, setTicketPrice] = useState("5");
   const [totalTickets, setTotalTickets] = useState("500");
   const [costOfPrize, setCostOfPrize] = useState("350");
-  const [commissionRate, setCommissionRate] = useState("10");
+  const [commissionRate, setCommissionRate] = useState("15");
+
+  useEffect(() => {
+    if (isPaidPlan) {
+      setCommissionRate("10");
+    } else {
+      setCommissionRate("15");
+    }
+  }, [isPaidPlan]);
 
   const [grossRevenue, setGrossRevenue] = useState<number | null>(null);
   const [netProfit, setNetProfit] = useState<number | null>(null);

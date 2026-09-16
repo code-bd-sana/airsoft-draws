@@ -1,5 +1,6 @@
 import React from "react";
 import { RaffleFormData } from "./CreateRaffleWizard";
+import { useMySubscription } from "../../../../hooks/useSubscriptionHooks";
 import { cn } from "../../../../lib/utils";
 
 interface Props {
@@ -10,11 +11,22 @@ interface Props {
 }
 
 export default function CreateRaffleStep6({ formData, onPrev, onPublish, isSubmitting = false }: Props) {
+  const { data: mySub } = useMySubscription();
+  const isPaidPlan = Boolean(
+    mySub?.status === "ACTIVE" &&
+    (mySub?.plan?.name?.toUpperCase().includes("PREMIUM") ||
+     mySub?.plan?.name?.toUpperCase().includes("PRO") ||
+     Number(mySub?.plan?.price || 0) > 0)
+  );
+  const feeRate = isPaidPlan ? 0.10 : 0.15;
+  const feePercent = isPaidPlan ? 10 : 15;
+  const earningsPercent = isPaidPlan ? 90 : 85;
+
   // Calculate potential earnings
   const tickets = parseInt(formData.totalTickets) || 0;
   const price = parseFloat(formData.ticketPrice) || 0;
   const gross = tickets * price;
-  const platformFee = gross * 0.1; // 10% demo
+  const platformFee = gross * feeRate;
   const net = gross - platformFee;
 
   return (
@@ -74,11 +86,11 @@ export default function CreateRaffleStep6({ formData, onPrev, onPublish, isSubmi
               <span className="font-sans font-medium text-[16px] text-[#e8edd4]">£{price.toFixed(2)}</span>
             </div>
             <div className="flex flex-col gap-[4px]">
-              <span className="font-sans font-medium text-[11px] uppercase text-[#5a752a]">Platform Fee</span>
+              <span className="font-sans font-medium text-[11px] uppercase text-[#5a752a]">Platform Fee ({feePercent}%)</span>
               <span className="font-sans font-medium text-[16px] text-[#f76b6b]">-£{platformFee.toFixed(2)}</span>
             </div>
             <div className="flex flex-col gap-[4px]">
-              <span className="font-sans font-medium text-[11px] uppercase text-[#5a752a]">Est. Earnings</span>
+              <span className="font-sans font-medium text-[11px] uppercase text-[#5a752a]">Est. Earnings ({earningsPercent}%)</span>
               <span className="font-heading font-bold text-[18px] text-[#8cb34a]">£{net.toFixed(2)}</span>
             </div>
           </div>

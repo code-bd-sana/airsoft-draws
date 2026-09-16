@@ -40,7 +40,7 @@ export default function PayoutsAndEarningsPage() {
             </span>
           </div>
           <p className="font-sans text-[12px] text-[#8cb34a] pl-[26px]">
-            Every withdrawal deducts a standard <strong>10% platform fee</strong>. Net payouts are sent directly to your bank account or PayPal.
+            Platform fee is 15% for Free accounts and only 10% for Premium/Pro accounts. Your current rate is <strong>{walletStats?.commissionRate ?? 15}% platform fee</strong>. Net payouts are sent directly to your UK bank account.
           </p>
         </div>
 

@@ -157,9 +157,9 @@ describe('RafflesController', () => {
       mockRafflesService.drawWinner.mockResolvedValue({ winner: 'w-1' });
 
       const result = await controller.adminDrawWinner(req, 'r-1', {
-        winningTicketNumber: '001',
+        winningTicketNumber: 1,
       });
-      expect(mockRafflesService.drawWinner).toHaveBeenCalledWith('r-1', '001');
+      expect(mockRafflesService.drawWinner).toHaveBeenCalledWith('r-1', 1);
       expect(result).toEqual({ winner: 'w-1' });
     });
 

@@ -56,9 +56,45 @@ export class SubscriptionsService {
     });
   }
 
-  async getMyBillingHistory(hostId: string) {
+  async getMyBillingHistory(userIdOrHostId: string) {
+    const host = await this.prisma.hostProfile.findFirst({
+      where: { OR: [{ userId: userIdOrHostId }, { id: userIdOrHostId }] },
+      include: {
+        subscriptions: {
+          include: { plan: true },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    const targetUserId = host?.userId || userIdOrHostId;
+
+    if (host && host.subscriptions) {
+      for (const sub of host.subscriptions) {
+        if (Number(sub.plan.price) > 0) {
+          const existingTx = await this.prisma.transaction.findFirst({
+            where: { relatedEntityId: sub.id, type: 'SUBSCRIPTION_FEE' },
+          });
+          if (!existingTx) {
+            await this.prisma.transaction.create({
+              data: {
+                userId: targetUserId,
+                type: 'SUBSCRIPTION_FEE',
+                amount: sub.plan.price,
+                status: 'COMPLETED',
+                paymentGateway: 'CASHFLOWS',
+                gatewayTransactionId: `INV-${sub.id.slice(0, 8).toUpperCase()}`,
+                relatedEntityId: sub.id,
+                createdAt: sub.createdAt,
+              },
+            });
+          }
+        }
+      }
+    }
+
     return this.prisma.transaction.findMany({
-      where: { userId: hostId, type: 'SUBSCRIPTION_FEE' },
+      where: { userId: targetUserId, type: 'SUBSCRIPTION_FEE' },
       orderBy: { createdAt: 'desc' },
     });
   }

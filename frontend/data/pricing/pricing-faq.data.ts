@@ -13,8 +13,8 @@ export const PRICING_FAQ: FaqItem[] = [
   },
   {
     id: "commission-fee",
-    question: "How is the 10% host commission handled?",
-    answer: "Hosts receive 90% net payout on all completed competition ticket sales. The 10% platform commission is automatically calculated and deducted when requesting a withdrawal, covering escrow security, payment gateways, and draw auditing.",
+    question: "How is the host platform fee and commission handled?",
+    answer: "Free plan hosts pay a 15% platform fee (85% net payout on ticket sales). Upgrading to Premium or Pro lowers your platform fee to just 10% (90% net payout). The fee is automatically calculated and deducted when requesting a bank withdrawal, covering escrow security, payment gateways, and draw auditing.",
   },
   {
     id: "payout-process",

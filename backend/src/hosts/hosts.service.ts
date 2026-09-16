@@ -140,8 +140,32 @@ export class HostsService {
     return host;
   }
 
+  private async getHostActiveSubscription(hostId: string) {
+    return this.prisma.hostSubscription.findFirst({
+      where: {
+        hostId,
+        status: 'ACTIVE',
+      },
+      include: {
+        plan: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  private isProOrPremium(sub: any): boolean {
+    if (!sub || !sub.plan) return false;
+    const name = (sub.plan.name || '').toUpperCase();
+    const price = Number(sub.plan.price || 0);
+    return name.includes('PREMIUM') || name.includes('PRO') || price > 0;
+  }
+
   async getWalletStats(userId: string) {
     const host = await this.getHostProfileByUserId(userId);
+    const activeSub = await this.getHostActiveSubscription(host.id);
+    const isPaidPlan = this.isProOrPremium(activeSub);
+    const feeRate = isPaidPlan ? 0.10 : 0.15;
+    const commissionRate = isPaidPlan ? 10.0 : 15.0;
 
     // Sum pending withdrawals
     const pendingWithdrawals = await this.prisma.withdrawal.aggregate({
@@ -154,7 +178,7 @@ export class HostsService {
       },
     });
 
-    // Sum completed withdrawals for fees paid (using amount to support all Prisma Client versions)
+    // Sum completed withdrawals for fees paid (using amount/feeAmount)
     const completedWithdrawals = await this.prisma.withdrawal.aggregate({
       where: {
         hostId: host.id,
@@ -162,6 +186,7 @@ export class HostsService {
       },
       _sum: {
         amount: true,
+        feeAmount: true,
       },
     });
 
@@ -180,14 +205,16 @@ export class HostsService {
 
     const availableBalance = Number(host.walletBalance);
     const pendingClearance = Number(pendingWithdrawals._sum?.amount || 0);
-    const totalFeesPaid = Number(completedWithdrawals._sum?.amount || 0) * 0.10;
+    const totalFeesPaid = completedWithdrawals._sum?.feeAmount
+      ? Number(completedWithdrawals._sum.feeAmount)
+      : Number(completedWithdrawals._sum?.amount || 0) * feeRate;
 
     return {
       availableBalance,
       pendingClearance,
       totalLifetimeEarnings,
       totalFeesPaid,
-      commissionRate: 10.0, // 10% Platform fee
+      commissionRate,
     };
   }
 
@@ -202,6 +229,12 @@ export class HostsService {
     const host = await this.getHostProfileByUserId(userId);
     const currentBalance = Number(host.walletBalance);
 
+    if (dto.payoutMethod !== 'BANK_TRANSFER') {
+      throw new BadRequestException(
+        'Withdrawals are Bank Transfer only. PayPal is not supported.',
+      );
+    }
+
     if (dto.amount <= 0) {
       throw new BadRequestException('Withdrawal amount must be greater than 0');
     }
@@ -212,9 +245,14 @@ export class HostsService {
       );
     }
 
-    // 10% platform fee calculation
-    const feeAmount = dto.amount * 0.1;
-    const netAmount = dto.amount * 0.9;
+    const activeSub = await this.getHostActiveSubscription(host.id);
+    const isPaidPlan = this.isProOrPremium(activeSub);
+    const feeRate = isPaidPlan ? 0.10 : 0.15;
+    const feePercent = isPaidPlan ? 10 : 15;
+
+    // Platform fee calculation: 10% for Premium/Pro, 15% for Free
+    const feeAmount = Number((dto.amount * feeRate).toFixed(2));
+    const netAmount = Number((dto.amount - feeAmount).toFixed(2));
 
     const result = await this.prisma.$transaction(async (tx) => {
       // Deduct requested amount from host's wallet balance
@@ -233,7 +271,7 @@ export class HostsService {
         amount: dto.amount,
         feeAmount: feeAmount,
         netAmount: netAmount,
-        payoutMethod: dto.payoutMethod,
+        payoutMethod: 'BANK_TRANSFER',
         payoutDetails: JSON.stringify(dto.payoutDetails),
         status: 'PENDING',
       };
@@ -262,9 +300,9 @@ export class HostsService {
       withdrawal: {
         id: result.id,
         grossAmount: Number(result.amount),
-        feeAmount: Number(resObj.feeAmount || Number(result.amount) * 0.10),
-        feePercent: 10,
-        netAmount: Number(resObj.netAmount || Number(result.amount) * 0.90),
+        feeAmount: Number(resObj.feeAmount || feeAmount),
+        feePercent,
+        netAmount: Number(resObj.netAmount || netAmount),
         payoutMethod: result.payoutMethod,
         status: result.status,
         createdAt: result.createdAt,
@@ -274,6 +312,8 @@ export class HostsService {
 
   async getWithdrawalsHistory(userId: string) {
     const host = await this.getHostProfileByUserId(userId);
+    const activeSub = await this.getHostActiveSubscription(host.id);
+    const isPaidPlan = this.isProOrPremium(activeSub);
 
     const withdrawals = await this.prisma.withdrawal.findMany({
       where: { hostId: host.id },
@@ -283,8 +323,22 @@ export class HostsService {
     return withdrawals.map((w) => {
       const wObj = w as any;
       const grossAmount = Number(w.amount);
-      const feeDeducted = Number(wObj.feeAmount || grossAmount * 0.1);
-      const netAmount = Number(wObj.netAmount || grossAmount * 0.9);
+      const feeDeducted = Number(
+        wObj.feeAmount !== null && wObj.feeAmount !== undefined
+          ? wObj.feeAmount
+          : grossAmount * (isPaidPlan ? 0.10 : 0.15),
+      );
+      const netAmount = Number(
+        wObj.netAmount !== null && wObj.netAmount !== undefined
+          ? wObj.netAmount
+          : grossAmount - feeDeducted,
+      );
+      const feePercent =
+        grossAmount > 0
+          ? Math.round((feeDeducted / grossAmount) * 100)
+          : isPaidPlan
+            ? 10
+            : 15;
 
       let parsedDetails = {};
       try {
@@ -302,7 +356,7 @@ export class HostsService {
         }),
         grossAmount,
         feeDeducted,
-        feePercent: 10,
+        feePercent,
         netAmount,
         method: w.payoutMethod || 'Bank Transfer',
         status:
@@ -320,6 +374,11 @@ export class HostsService {
 
   async getHostDashboardOverview(userId: string) {
     const host = await this.getHostProfileByUserId(userId);
+    const activeSub = await this.getHostActiveSubscription(host.id);
+    const isPaidPlan = this.isProOrPremium(activeSub);
+    const feeRate = isPaidPlan ? 0.10 : 0.15;
+    const platformFeeRate = isPaidPlan ? 10 : 15;
+    const netEarningsRate = isPaidPlan ? 90 : 85;
 
     // Fetch all host raffles
     const hostRaffles = await this.prisma.raffle.findMany({
@@ -340,7 +399,8 @@ export class HostsService {
       (sum, r) => sum + Number(r.pricePerTicket) * r.ticketsSold,
       0,
     );
-    const totalNetRevenue = totalGrossRevenue * 0.9; // 10% platform fee deducted
+    // Platform fee calculation: 10% for Premium/Pro (90% net), 15% for Free (85% net)
+    const totalNetRevenue = Number((totalGrossRevenue * (1 - feeRate)).toFixed(2));
 
     const totalWinnersCount = await this.prisma.winner.count({
       where: { raffle: { hostId: host.id } },
@@ -404,6 +464,8 @@ export class HostsService {
       kpiStats: {
         totalNetRevenue,
         totalGrossRevenue,
+        platformFeeRate,
+        netEarningsRate,
         availableBalance: Number(host.walletBalance),
         activeCompetitionsCount: activeRaffles.length,
         totalCompetitionsCount: hostRaffles.length,
