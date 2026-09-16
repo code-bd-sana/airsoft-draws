@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import InputField from "../shared/InputField";
 import TextareaField from "../shared/TextareaField";
 import PrimaryButton from "../shared/PrimaryButton";
 import { ContactFormValues } from "../../../types/contact.types";
 import { cn } from "../../../lib/utils";
 import { contactService } from "../../../services/contact.service";
+import { useAuth } from "../../../features/auth/AuthContext";
 
 const SUBJECT_OPTIONS = [
   { value: "", label: "Select a topic..." },
@@ -22,6 +23,8 @@ const SUBJECT_OPTIONS = [
  * validation feedback, and accessible success/error alerts.
  */
 export default function ContactForm() {
+  const { user } = useAuth();
+
   const [formValues, setFormValues] = useState<ContactFormValues>({
     fullName: "",
     email: "",
@@ -29,6 +32,17 @@ export default function ContactForm() {
     message: "",
     agreeToPolicy: false,
   });
+
+  useEffect(() => {
+    if (user) {
+      const name = `${user.firstName || ""} ${user.lastName || ""}`.trim();
+      setFormValues((prev) => ({
+        ...prev,
+        fullName: prev.fullName || name || "",
+        email: prev.email || user.email || "",
+      }));
+    }
+  }, [user]);
 
   const [errors, setErrors] = useState<Partial<Record<keyof ContactFormValues, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);

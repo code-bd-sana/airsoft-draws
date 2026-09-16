@@ -39,7 +39,7 @@ export default function Home() {
 
         <FinalCtaSection />
 
-        <TestimonialsSection />
+        {/* <TestimonialsSection /> */}
 
         <FaqSection />
 

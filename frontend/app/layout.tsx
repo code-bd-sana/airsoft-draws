@@ -17,7 +17,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Airsoft Draws | Premium Airsoft Gear Competitions',
   description:
-    'Win premium airsoft gear for less. Enter draws from just £1 per ticket. Transparent, fair, and secure prize draws.',
+    'Win premium airsoft gear for less. Enter transparent prize competitions for top-tier replicas, tactical gear, and cash prizes. Fair, verified, and secure.',
 };
 
 export default function RootLayout({
