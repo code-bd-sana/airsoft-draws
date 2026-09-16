@@ -36,6 +36,7 @@ export interface HostRegistrationFormValues {
 
   // Step 4: Logo & Branding
   businessLogo: string | null; // Data URL or filename placeholder
+  businessBanner?: string | null; // Data URL or filename placeholder
   businessBio: string;
 
   // Step 5: Payout Details

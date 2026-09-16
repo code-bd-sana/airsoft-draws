@@ -39,12 +39,28 @@ export interface HostData {
   userId: string;
   businessName: string;
   email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  avatarUrl?: string | null;
+  logoUrl?: string | null;
+  bannerUrl?: string | null;
+  bio?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  slug?: string | null;
+  vatNumber?: string | null;
+  bankAccountName?: string | null;
+  sortCode?: string | null;
+  accountNumber?: string | null;
+  walletBalance?: number;
   isBlocked: boolean;
   isVerified: boolean;
+  isEmailVerified?: boolean;
   plan: string;
   raffles: number;
   revenue: number;
   createdAt: string;
+  userCreatedAt?: string;
 }
 
 export interface GetHostsResponse {
@@ -162,6 +178,11 @@ export const adminService = {
 
   async getHostStats(): Promise<HostStats> {
     const { data } = await api.get('/admin/hosts/stats');
+    return data;
+  },
+
+  async getHostById(hostId: string): Promise<any> {
+    const { data } = await api.get(`/admin/hosts/${hostId}`);
     return data;
   },
 

@@ -13,7 +13,7 @@ model User {
   isEmailVerified Boolean   @default(false) @map("is_email_verified")
   firstName       String?   @map("first_name") @db.VarChar(100)
   lastName        String?   @map("last_name") @db.VarChar(100)
-  avatarUrl       String?   @map("avatar_url") @db.VarChar(255)
+  avatarUrl       String?   @map("avatar_url") @db.Text
   location        String?   @db.VarChar(255)
   phone           String?   @db.VarChar(50)
   address         String?   @db.Text
@@ -40,9 +40,15 @@ model HostProfile {
   bio           String?  @db.Text
   phone         String?  @db.VarChar(50)
   address       String?  @db.Text
-  walletBalance Decimal  @default(0.00) @map("wallet_balance") @db.Decimal(10, 2)
-  isVerified    Boolean  @default(false) @map("is_verified")
-  createdAt     DateTime @default(now()) @map("created_at")
+  walletBalance   Decimal  @default(0.00) @map("wallet_balance") @db.Decimal(10, 2)
+  isVerified      Boolean  @default(false) @map("is_verified")
+  logoUrl         String?  @map("logo_url") @db.Text
+  bannerUrl       String?  @map("banner_url") @db.Text
+  vatNumber       String?  @map("vat_number") @db.VarChar(100)
+  bankAccountName String?  @map("bank_account_name") @db.VarChar(255)
+  sortCode        String?  @map("sort_code") @db.VarChar(50)
+  accountNumber   String?  @map("account_number") @db.VarChar(50)
+  createdAt       DateTime @default(now()) @map("created_at")
 
   user                 User                  @relation(fields: [userId], references: [id])
   subscriptions        HostSubscription[]
@@ -108,7 +114,7 @@ model Raffle {
   category            String?  @db.VarChar(100)
   prizeClassification String   @default("RIF") @map("prize_classification") @db.VarChar(50) // RIF, TWO_TONE_IF, ACCESSORY
   description         String?
-  mainImage           String?  @map("main_image") @db.VarChar(255)
+  mainImage           String?  @map("main_image") @db.Text
   prizeName           String?  @map("prize_name") @db.VarChar(255)
   mainPrizeValue      Decimal? @map("main_prize_value") @db.Decimal(10, 2)
   pricePerTicket      Decimal  @map("price_per_ticket") @db.Decimal(10, 2)
@@ -144,7 +150,7 @@ model InstantWin {
   ticketNumber Int      @map("ticket_number")
   prizeName    String   @map("prize_name") @db.VarChar(255)
   rrpValue     Decimal? @map("rrp_value") @db.Decimal(10, 2)
-  image        String?  @db.VarChar(255)
+  image        String?  @db.Text
   isClaimed    Boolean  @default(false) @map("is_claimed")
   createdAt    DateTime @default(now()) @map("created_at")
 

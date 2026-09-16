@@ -37,7 +37,15 @@ export class AdminHostsService {
           user: {
             select: {
               email: true,
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+              phone: true,
+              address: true,
+              location: true,
               isBlocked: true,
+              isEmailVerified: true,
+              createdAt: true,
             },
           },
           subscriptions: {
@@ -68,12 +76,28 @@ export class AdminHostsService {
         userId: host.userId,
         businessName: host.businessName,
         email: host.user.email,
+        firstName: host.user.firstName,
+        lastName: host.user.lastName,
+        avatarUrl: host.user.avatarUrl,
+        logoUrl: host.logoUrl || host.user.avatarUrl,
+        bannerUrl: host.bannerUrl,
+        bio: host.bio,
+        phone: host.phone || host.user.phone,
+        address: host.address || host.user.address || host.user.location,
+        slug: host.slug,
+        vatNumber: host.vatNumber,
+        bankAccountName: host.bankAccountName,
+        sortCode: host.sortCode,
+        accountNumber: host.accountNumber,
         isBlocked: host.user.isBlocked,
         isVerified: host.isVerified,
+        isEmailVerified: host.user.isEmailVerified,
         plan: !host.isVerified ? 'Pending Approval' : activePlan,
         raffles: host._count.raffles,
         revenue: revenue,
+        walletBalance: Number(host.walletBalance) || 0,
         createdAt: host.createdAt,
+        userCreatedAt: host.user.createdAt,
       };
     });
 
@@ -139,5 +163,85 @@ export class AdminHostsService {
         data: { role: 'CLIENT' },
       });
     });
+  }
+
+  async getHostById(id: string) {
+    const host = await this.prisma.hostProfile.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+            phone: true,
+            address: true,
+            location: true,
+            isBlocked: true,
+            isEmailVerified: true,
+            createdAt: true,
+          },
+        },
+        subscriptions: {
+          include: { plan: true },
+          orderBy: { createdAt: 'desc' },
+        },
+        raffles: {
+          take: 10,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            ticketsSold: true,
+            totalTickets: true,
+            pricePerTicket: true,
+            createdAt: true,
+          },
+        },
+        _count: {
+          select: { raffles: true, withdrawals: true },
+        },
+      },
+    });
+
+    if (!host) {
+      throw new NotFoundException('Host profile not found');
+    }
+
+    const activeSubscription = host.subscriptions.find((s) => s.status === 'ACTIVE');
+    const planName = activeSubscription ? activeSubscription.plan.name : 'Free';
+
+    return {
+      id: host.id,
+      userId: host.userId,
+      businessName: host.businessName,
+      email: host.user.email,
+      firstName: host.user.firstName,
+      lastName: host.user.lastName,
+      avatarUrl: host.user.avatarUrl,
+      logoUrl: host.logoUrl || host.user.avatarUrl,
+      bannerUrl: host.bannerUrl,
+      bio: host.bio,
+      phone: host.phone || host.user.phone,
+      address: host.address || host.user.address || host.user.location,
+      slug: host.slug,
+      vatNumber: host.vatNumber,
+      bankAccountName: host.bankAccountName,
+      sortCode: host.sortCode,
+      accountNumber: host.accountNumber,
+      walletBalance: Number(host.walletBalance) || 0,
+      isBlocked: host.user.isBlocked,
+      isVerified: host.isVerified,
+      isEmailVerified: host.user.isEmailVerified,
+      plan: !host.isVerified ? 'Pending Approval' : planName,
+      totalCompetitions: host._count.raffles,
+      recentCompetitions: host.raffles,
+      subscriptions: host.subscriptions,
+      createdAt: host.createdAt,
+      userCreatedAt: host.user.createdAt,
+    };
   }
 }

@@ -53,6 +53,7 @@ export class AuthService {
           passwordHash,
           firstName: registerDto.firstName,
           lastName: registerDto.lastName,
+          avatarUrl: registerDto.avatarUrl || registerDto.logoUrl,
           location: registerDto.location,
           phone: registerDto.phone,
           address: registerDto.address,
@@ -68,6 +69,12 @@ export class AuthService {
             bio: registerDto.bio,
             phone: registerDto.phone,
             address: registerDto.address,
+            logoUrl: registerDto.logoUrl || registerDto.avatarUrl,
+            bannerUrl: registerDto.bannerUrl,
+            vatNumber: registerDto.vatNumber,
+            bankAccountName: registerDto.bankAccountName,
+            sortCode: registerDto.sortCode,
+            accountNumber: registerDto.accountNumber,
           },
         });
 

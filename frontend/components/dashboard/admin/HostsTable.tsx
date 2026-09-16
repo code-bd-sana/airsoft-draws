@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminService, HostData } from "../../../services/admin.service";
-import ReviewHostModal, { HostApplicationData } from "./ReviewHostModal";
+import ReviewHostModal from "./ReviewHostModal";
 import ConfirmBlockModal from "./ConfirmBlockModal";
 
 export default function HostsTable() {
@@ -11,7 +11,7 @@ export default function HostsTable() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedHost, setSelectedHost] = useState<HostApplicationData | null>(null);
+  const [selectedHost, setSelectedHost] = useState<HostData | null>(null);
   
   const [blockModalHost, setBlockModalHost] = useState<HostData | null>(null);
 
@@ -99,17 +99,7 @@ export default function HostsTable() {
   };
 
   const handleReview = (host: HostData) => {
-    // Construct detailed data for the modal based on the selected row
-    setSelectedHost({
-      id: host.id,
-      brandName: host.businessName || "N/A",
-      email: host.email,
-      bio: "N/A", // This could be fetched from host profile if available
-      contact: "N/A", // This could be fetched from host profile if available
-      payoutMethod: "N/A",
-      social: "N/A",
-      isVerified: host.isVerified,
-    });
+    setSelectedHost(host);
     setIsModalOpen(true);
   };
 
@@ -235,14 +225,24 @@ export default function HostsTable() {
                 </td>
               </tr>
             ) : (
-              data?.hosts?.map((host: HostData, i: number) => (
+              data?.hosts?.map((host: HostData, i: number) => {
+                const hostLogo = host.logoUrl || host.avatarUrl;
+                return (
                 <tr key={host.id} className={`${i !== data.hosts.length - 1 ? 'border-b border-[#2D3C13]' : ''} hover:bg-[#1A230A] transition-colors`}>
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#1A230A] border border-[#43581E] flex items-center justify-center shrink-0">
-                        <span className="font-sans font-medium text-[11px] text-[#8CB34A]">
-                          {host.businessName?.substring(0, 2).toUpperCase() || 'NA'}
-                        </span>
+                      <div className="w-8 h-8 rounded-full bg-[#1A230A] border border-[#43581E] flex items-center justify-center shrink-0 overflow-hidden">
+                        {hostLogo ? (
+                          <img 
+                            src={hostLogo} 
+                            alt={host.businessName} 
+                            className="w-full h-full object-cover" 
+                          />
+                        ) : (
+                          <span className="font-sans font-medium text-[11px] text-[#8CB34A]">
+                            {host.businessName?.substring(0, 2).toUpperCase() || 'NA'}
+                          </span>
+                        )}
                       </div>
                       <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">{host.businessName || 'N/A'}</span>
                     </div>
@@ -328,7 +328,8 @@ export default function HostsTable() {
                     </div>
                   </td>
                 </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>

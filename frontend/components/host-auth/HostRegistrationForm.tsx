@@ -29,6 +29,7 @@ export default function HostRegistrationForm({
   const router = useRouter();
   const profilePhotoInputRef = useRef<HTMLInputElement>(null);
   const businessLogoInputRef = useRef<HTMLInputElement>(null);
+  const businessBannerInputRef = useRef<HTMLInputElement>(null);
 
   // Controlled Registration Data
   const [formData, setFormData] = useState<HostRegistrationFormValues>({
@@ -50,6 +51,7 @@ export default function HostRegistrationForm({
     businessPhone: "",
     vatNumber: "",
     businessLogo: null,
+    businessBanner: null,
     businessBio: "",
     bankAccountName: "",
     sortCode: "",
@@ -99,7 +101,10 @@ export default function HostRegistrationForm({
   };
 
   // Profile photo file selection with local uploader data URL preview
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, field: "profilePhoto" | "businessLogo") => {
+  const handlePhotoUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "profilePhoto" | "businessLogo" | "businessBanner"
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -174,10 +179,18 @@ export default function HostRegistrationForm({
           firstName: formData.firstName,
           lastName: formData.lastName,
           location: formData.city ? `${formData.city}, ${formData.country}` : formData.country,
+          address: formData.city ? `${formData.city}, ${formData.country}` : formData.country,
           role: 'HOST',
           businessName: formData.businessName || `${formData.firstName} ${formData.lastName}`,
           bio: formData.businessBio || formData.bio,
           phone: formData.phone || formData.businessPhone,
+          avatarUrl: formData.businessLogo || formData.profilePhoto || undefined,
+          logoUrl: formData.businessLogo || formData.profilePhoto || undefined,
+          bannerUrl: formData.businessBanner || undefined,
+          vatNumber: formData.vatNumber || undefined,
+          bankAccountName: formData.bankAccountName || undefined,
+          sortCode: formData.sortCode || undefined,
+          accountNumber: formData.accountNumber || undefined,
         });
         
         showToast("Host registration successful! Check your email to verify.");
@@ -855,6 +868,47 @@ export default function HostRegistrationForm({
                   <p className="font-sans text-xs md:text-sm text-text-secondary leading-normal max-w-sm pt-2">
                     PNG or JPG, at least 400×400px. This appears on your public Host Profile and in the Verified Hosts directory.
                   </p>
+                </div>
+              </div>
+
+              {/* Host Cover Banner Upload Box */}
+              <div className="flex flex-col gap-2">
+                <label className="font-sans font-medium text-xs md:text-sm text-text-primary">
+                  Host Profile Banner / Header Cover
+                </label>
+                <div className="flex flex-col gap-2">
+                  <div
+                    onClick={() => businessBannerInputRef.current?.click()}
+                    className="w-full h-32 md:h-36 bg-bg border border-dashed border-border hover:border-primary rounded-card flex flex-col items-center justify-center cursor-pointer overflow-hidden text-center transition-all duration-200 relative group"
+                  >
+                    {formData.businessBanner ? (
+                      <>
+                        <img
+                          alt="Banner preview"
+                          src={formData.businessBanner}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-medium">
+                          Click to change banner
+                        </div>
+                      </>
+                    ) : (
+                      <div className="p-4 flex flex-col items-center gap-1.5 select-none text-text-secondary hover:text-text-primary">
+                        <svg className="w-8 h-8 opacity-60 text-primary" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                        </svg>
+                        <span className="text-xs font-semibold text-text-brand">Click to upload Host Banner / Cover</span>
+                        <span className="text-[11px] text-text-secondary">Wide landscape image (recommended 1200×400px)</span>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    ref={businessBannerInputRef}
+                    onChange={(e) => handlePhotoUpload(e, "businessBanner")}
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                    className="hidden"
+                  />
                 </div>
               </div>
 

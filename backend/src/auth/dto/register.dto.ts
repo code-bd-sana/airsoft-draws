@@ -66,4 +66,43 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   bio?: string;
+
+  @ApiPropertyOptional({ example: 'https://example.com/avatar.jpg', description: 'Avatar or logo image URL' })
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://example.com/logo.jpg', description: 'Brand Logo URL' })
+  @IsOptional()
+  @IsString()
+  logoUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://example.com/banner.jpg', description: 'Brand Banner URL' })
+  @IsOptional()
+  @IsString()
+  bannerUrl?: string;
+
+  @ApiPropertyOptional({ example: 'GB123456789', description: 'VAT registration number' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  vatNumber?: string;
+
+  @ApiPropertyOptional({ example: 'John Doe Business Ltd', description: 'Bank Account Name' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  bankAccountName?: string;
+
+  @ApiPropertyOptional({ example: '20-00-00', description: 'Bank Sort Code' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  sortCode?: string;
+
+  @ApiPropertyOptional({ example: '12345678', description: 'Bank Account Number' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  accountNumber?: string;
 }
