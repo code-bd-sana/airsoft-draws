@@ -134,6 +134,68 @@ describe('TicketsService', () => {
       ).rejects.toThrow('A valid UKARA registration number is required');
     });
 
+    it('should throw BadRequestException if requested tickets is below minTickets', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'u-1',
+        dateOfBirth: new Date('1990-01-01'),
+        ukaraNumber: 'UKARA123',
+      });
+      mockPrisma.raffle.findUnique.mockResolvedValue({
+        id: 'r-1',
+        status: 'ACTIVE',
+        ticketsSold: 0,
+        totalTickets: 100,
+        minTickets: 5,
+        maxTickets: 20,
+      });
+
+      await expect(
+        service.allocateTicketsInDatabase('u-1', 'r-1', { quantity: 2 }),
+      ).rejects.toThrow('You must purchase at least 5 ticket(s) for this competition.');
+    });
+
+    it('should throw BadRequestException if requested tickets exceeds maxTickets per entrant', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'u-1',
+        dateOfBirth: new Date('1990-01-01'),
+        ukaraNumber: 'UKARA123',
+      });
+      mockPrisma.raffle.findUnique.mockResolvedValue({
+        id: 'r-1',
+        status: 'ACTIVE',
+        ticketsSold: 0,
+        totalTickets: 100,
+        minTickets: 1,
+        maxTickets: 10,
+      });
+      mockPrisma.ticket.count.mockResolvedValue(8);
+
+      await expect(
+        service.allocateTicketsInDatabase('u-1', 'r-1', { quantity: 5 }),
+      ).rejects.toThrow('You can only purchase up to 2 more ticket(s) for this competition');
+    });
+
+    it('should throw BadRequestException if user already reached maxTickets', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'u-1',
+        dateOfBirth: new Date('1990-01-01'),
+        ukaraNumber: 'UKARA123',
+      });
+      mockPrisma.raffle.findUnique.mockResolvedValue({
+        id: 'r-1',
+        status: 'ACTIVE',
+        ticketsSold: 0,
+        totalTickets: 100,
+        minTickets: 1,
+        maxTickets: 10,
+      });
+      mockPrisma.ticket.count.mockResolvedValue(10);
+
+      await expect(
+        service.allocateTicketsInDatabase('u-1', 'r-1', { quantity: 1 }),
+      ).rejects.toThrow('You have already reached the maximum ticket limit (10) for this competition.');
+    });
+
     it('should allocate tickets, create transaction, and detect instant wins', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({
         id: 'u-1',

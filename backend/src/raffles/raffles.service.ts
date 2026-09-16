@@ -68,6 +68,20 @@ export class RafflesService {
     const endDate = new Date(data.endDate);
 
     const totalTickets = Number(data.totalTickets) || 0;
+    const minTickets = data.minTickets ? Math.max(1, Number(data.minTickets)) : 1;
+    let maxTickets: number | null = null;
+    if (data.maxTickets !== undefined && data.maxTickets !== null && data.maxTickets !== '') {
+      const parsedMax = Number(data.maxTickets);
+      if (parsedMax > 0) {
+        if (parsedMax < minTickets) {
+          throw new BadRequestException('Maximum tickets per entrant must be greater than or equal to minimum tickets');
+        }
+        if (parsedMax > totalTickets) {
+          throw new BadRequestException('Maximum tickets per entrant cannot exceed total tickets available');
+        }
+        maxTickets = parsedMax;
+      }
+    }
 
     const raffle = await this.prisma.raffle.create({
       data: {
@@ -81,6 +95,8 @@ export class RafflesService {
           : null,
         pricePerTicket: data.ticketPrice || 0,
         totalTickets,
+        minTickets,
+        maxTickets,
         startDate,
         endDate,
         status: 'PENDING_APPROVAL', // Requires admin approval

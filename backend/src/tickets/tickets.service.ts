@@ -73,6 +73,32 @@ export class TicketsService {
       );
     }
 
+    // Min and Max Tickets per Entrant Validation
+    const minTickets = (raffle as any).minTickets || 1;
+    if (quantity < minTickets) {
+      throw new BadRequestException(
+        `You must purchase at least ${minTickets} ticket(s) for this competition.`,
+      );
+    }
+
+    const maxTickets = (raffle as any).maxTickets;
+    if (maxTickets && maxTickets > 0) {
+      const existingUserTicketsCount = await this.prisma.ticket.count({
+        where: { raffleId, userId },
+      });
+      const allowedRemaining = maxTickets - existingUserTicketsCount;
+      if (allowedRemaining <= 0) {
+        throw new BadRequestException(
+          `You have already reached the maximum ticket limit (${maxTickets}) for this competition.`,
+        );
+      }
+      if (quantity > allowedRemaining) {
+        throw new BadRequestException(
+          `You can only purchase up to ${allowedRemaining} more ticket(s) for this competition (maximum limit: ${maxTickets}, you already own: ${existingUserTicketsCount}).`,
+        );
+      }
+    }
+
     // 2. Terms Acceptance Check
     if (dto.acceptedTerms !== undefined && !dto.acceptedTerms) {
       throw new BadRequestException('You must accept the Terms and Conditions to complete entry.');
@@ -120,6 +146,17 @@ export class TicketsService {
 
     const result = await this.prisma.$transaction(
       async (tx) => {
+        if (maxTickets && maxTickets > 0) {
+          const txUserTicketsCount = await tx.ticket.count({
+            where: { raffleId, userId },
+          });
+          if (txUserTicketsCount + quantity > maxTickets) {
+            throw new BadRequestException(
+              `Maximum ticket limit (${maxTickets}) exceeded for this competition.`,
+            );
+          }
+        }
+
         // Determine available ticket numbers
         const existingTickets = await tx.ticket.findMany({
           where: { raffleId },
@@ -511,6 +548,32 @@ export class TicketsService {
         );
       }
 
+      // Min & Max Tickets per Entrant Validation
+      const minTickets = (raffle as any).minTickets || 1;
+      if (qty < minTickets) {
+        throw new BadRequestException(
+          `You must purchase at least ${minTickets} ticket(s) for "${raffle.title}".`,
+        );
+      }
+
+      const maxTickets = (raffle as any).maxTickets;
+      if (maxTickets && maxTickets > 0) {
+        const existingUserTicketsCount = await this.prisma.ticket.count({
+          where: { raffleId: raffle.id, userId },
+        });
+        const allowedRemaining = maxTickets - existingUserTicketsCount;
+        if (allowedRemaining <= 0) {
+          throw new BadRequestException(
+            `You have already reached the maximum ticket limit (${maxTickets}) for "${raffle.title}".`,
+          );
+        }
+        if (qty > allowedRemaining) {
+          throw new BadRequestException(
+            `You can only purchase up to ${allowedRemaining} more ticket(s) for "${raffle.title}" (maximum limit: ${maxTickets}, you already own: ${existingUserTicketsCount}).`,
+          );
+        }
+      }
+
       if ((raffle.prizeClassification || 'RIF') === 'RIF') {
         hasRifCompetition = true;
       }
@@ -605,6 +668,18 @@ export class TicketsService {
         for (const raffle of raffles) {
           const quantity = itemMap.get(raffle.id)!;
           const isRif = (raffle.prizeClassification || 'RIF') === 'RIF';
+
+          const maxTickets = (raffle as any).maxTickets;
+          if (maxTickets && maxTickets > 0) {
+            const txUserTicketsCount = await tx.ticket.count({
+              where: { raffleId: raffle.id, userId },
+            });
+            if (txUserTicketsCount + quantity > maxTickets) {
+              throw new BadRequestException(
+                `Maximum ticket limit (${maxTickets}) exceeded for "${raffle.title}".`,
+              );
+            }
+          }
 
           // Determine available ticket numbers
           const existingTickets = await tx.ticket.findMany({

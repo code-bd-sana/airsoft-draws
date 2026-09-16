@@ -31,6 +31,8 @@ export default function EditRaffleForm({ raffleId }: Props) {
         isAutoDraw: raffle.isAutoDraw,
         autoDrawDate: raffle.autoDrawDate,
         autoDrawSoldOut: raffle.autoDrawSoldOut,
+        minTickets: (raffle as any).minTickets || 1,
+        maxTickets: (raffle as any).maxTickets || "",
       });
     }
   }, [raffle]);
@@ -53,6 +55,9 @@ export default function EditRaffleForm({ raffleId }: Props) {
       // Convert numbers
       if (payload.totalTickets) payload.totalTickets = Number(payload.totalTickets);
       if (payload.pricePerTicket) payload.pricePerTicket = Number(payload.pricePerTicket);
+      if (payload.minTickets) payload.minTickets = Number(payload.minTickets);
+      if (payload.maxTickets !== undefined && payload.maxTickets !== "") payload.maxTickets = Number(payload.maxTickets);
+      else if (payload.maxTickets === "") payload.maxTickets = null;
 
       await updateMutation.mutateAsync({ id: raffleId, data: payload });
       toast.success("Competition updated successfully!");
@@ -138,6 +143,37 @@ export default function EditRaffleForm({ raffleId }: Props) {
               onChange={(e) => handleChange("pricePerTicket", e.target.value)}
               disabled={hasSoldTickets}
               className="h-[48px] px-[16px] bg-[#0d0d0b] border border-[#2d3c13] rounded-[8px] text-[#e8edd4] outline-none focus:border-[#8cb34a] disabled:opacity-50"
+            />
+          </div>
+        </div>
+
+        {/* Entrant Limits: Minimum & Maximum Tickets */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
+          <div className="flex flex-col gap-[8px]">
+            <label className="font-sans font-medium text-[13px] text-[#e8edd4]">
+              Minimum Tickets Per Order
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={formData.minTickets || ""}
+              onChange={(e) => handleChange("minTickets", e.target.value)}
+              placeholder="e.g. 1"
+              className="h-[48px] px-[16px] bg-[#0d0d0b] border border-[#2d3c13] rounded-[8px] text-[#e8edd4] outline-none focus:border-[#8cb34a]"
+            />
+          </div>
+
+          <div className="flex flex-col gap-[8px]">
+            <label className="font-sans font-medium text-[13px] text-[#e8edd4]">
+              Maximum Tickets Per Entrant (Optional)
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={formData.maxTickets || ""}
+              onChange={(e) => handleChange("maxTickets", e.target.value)}
+              placeholder="e.g. 25 (blank = unlimited)"
+              className="h-[48px] px-[16px] bg-[#0d0d0b] border border-[#2d3c13] rounded-[8px] text-[#e8edd4] outline-none focus:border-[#8cb34a]"
             />
           </div>
         </div>

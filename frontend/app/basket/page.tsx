@@ -139,6 +139,16 @@ export default function BasketPage() {
                             >
                               {isRif ? "RIF Legal Defence" : "Non-RIF Accessory"}
                             </span>
+                            {item.minTickets && item.minTickets > 1 && (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-[#1A230A] border-[#2D3C13] text-[#8CB34A]">
+                                Min: {item.minTickets}
+                              </span>
+                            )}
+                            {item.maxTickets && (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-[#1A230A] border-[#2D3C13] text-[#8CB34A]">
+                                Max: {item.maxTickets} per person
+                              </span>
+                            )}
                             <span className="text-[10px] text-[#72943A]">
                               {item.remainingTickets} left
                             </span>
@@ -163,8 +173,9 @@ export default function BasketPage() {
                         <div className="flex items-center h-9 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg overflow-hidden">
                           <button
                             onClick={() => updateQuantity(item.raffleId, item.quantity - 1)}
-                            disabled={item.quantity <= 1}
-                            className="w-8 h-full flex items-center justify-center bg-[#1A230A] text-[#8CB34A] hover:bg-[#2D3C13] disabled:text-[#43581E] disabled:hover:bg-[#1A230A] transition-colors text-sm font-bold"
+                            disabled={item.quantity <= (item.minTickets || 1)}
+                            className="w-8 h-full flex items-center justify-center bg-[#1A230A] text-[#8CB34A] hover:bg-[#2D3C13] disabled:text-[#43581E] disabled:hover:bg-[#1A230A] transition-colors text-sm font-bold cursor-pointer disabled:cursor-not-allowed"
+                            aria-label="Decrease ticket quantity"
                           >
                             -
                           </button>
@@ -173,8 +184,14 @@ export default function BasketPage() {
                           </span>
                           <button
                             onClick={() => updateQuantity(item.raffleId, item.quantity + 1)}
-                            disabled={item.quantity >= item.remainingTickets}
-                            className="w-8 h-full flex items-center justify-center bg-[#1A230A] text-[#8CB34A] hover:bg-[#2D3C13] disabled:text-[#43581E] disabled:hover:bg-[#1A230A] transition-colors text-sm font-bold"
+                            disabled={
+                              item.quantity >=
+                              (item.maxTickets
+                                ? Math.min(item.remainingTickets, item.maxTickets)
+                                : item.remainingTickets)
+                            }
+                            className="w-8 h-full flex items-center justify-center bg-[#1A230A] text-[#8CB34A] hover:bg-[#2D3C13] disabled:text-[#43581E] disabled:hover:bg-[#1A230A] transition-colors text-sm font-bold cursor-pointer disabled:cursor-not-allowed"
+                            aria-label="Increase ticket quantity"
                           >
                             +
                           </button>

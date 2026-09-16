@@ -130,6 +130,17 @@ export default function CheckoutPage() {
     }
     if (!isFormValid || isSubmitting) return;
 
+    for (const item of items) {
+      if (item.minTickets && item.quantity < item.minTickets) {
+        setErrorMessage(`"${item.title}" requires a minimum of ${item.minTickets} tickets.`);
+        return;
+      }
+      if (item.maxTickets && item.quantity > item.maxTickets) {
+        setErrorMessage(`"${item.title}" allows a maximum of ${item.maxTickets} tickets per person.`);
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     setErrorMessage(null);
 

@@ -22,6 +22,8 @@ export interface BasketItem {
   prizeClassification?: string;
   endDate?: string;
   hostName?: string;
+  minTickets?: number;
+  maxTickets?: number;
 }
 
 interface BasketContextType {
@@ -97,28 +99,42 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
 
       if (remaining <= 0) return false;
 
+      const minTickets = newItem.minTickets || 1;
+      const maxTickets = newItem.maxTickets;
+      const effectiveMax = maxTickets ? Math.min(remaining, maxTickets) : remaining;
+
       setItems((prev) => {
         const existingIndex = prev.findIndex((i) => i.raffleId === newItem.raffleId);
         if (existingIndex >= 0) {
           const existing = prev[existingIndex];
-          const newQuantity = Math.min(existing.quantity + newItem.quantity, remaining);
+          const newQuantity = Math.max(
+            minTickets,
+            Math.min(existing.quantity + newItem.quantity, effectiveMax),
+          );
           const updated = [...prev];
           updated[existingIndex] = {
             ...existing,
             ...newItem,
             quantity: newQuantity,
             remainingTickets: remaining,
+            minTickets,
+            maxTickets,
           };
           return updated;
         }
 
-        const validQuantity = Math.min(newItem.quantity, remaining);
+        const validQuantity = Math.max(
+          minTickets,
+          Math.min(newItem.quantity, effectiveMax),
+        );
         return [
           ...prev,
           {
             ...newItem,
             quantity: validQuantity,
             remainingTickets: remaining,
+            minTickets,
+            maxTickets,
           },
         ];
       });
@@ -133,7 +149,11 @@ export function BasketProvider({ children }: { children: React.ReactNode }) {
       prev
         .map((item) => {
           if (item.raffleId !== raffleId) return item;
-          const clamped = Math.max(1, Math.min(quantity, item.remainingTickets));
+          const minTickets = item.minTickets || 1;
+          const effectiveMax = item.maxTickets
+            ? Math.min(item.remainingTickets, item.maxTickets)
+            : item.remainingTickets;
+          const clamped = Math.max(minTickets, Math.min(quantity, effectiveMax));
           return { ...item, quantity: clamped };
         })
         .filter((item) => item.quantity > 0),

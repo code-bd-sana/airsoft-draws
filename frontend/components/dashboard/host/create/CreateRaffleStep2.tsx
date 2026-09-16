@@ -75,19 +75,62 @@ export default function CreateRaffleStep2({ formData, updateForm, onNext, onPrev
           </div>
         </div>
 
-        {/* Minimum Tickets (Optional depending on design, I'll add it) */}
-        <div className="flex flex-col gap-[8px]">
-          <label className="font-sans font-medium text-[13px] text-[#e8edd4]">
-            Minimum Tickets Per Person (Optional)
-          </label>
-          <input
-            type="number"
-            value={formData.minTickets}
-            onChange={(e) => updateForm({ minTickets: e.target.value })}
-            placeholder="e.g. 1"
-            className="h-[48px] px-[16px] bg-[#0d0d0b] border border-[#2d3c13] rounded-[8px] font-sans font-normal text-[14px] text-[#e8edd4] placeholder:text-[#5a752a] outline-none focus:border-[#8cb34a] transition-colors"
-          />
+        {/* Entrant Limits: Minimum & Maximum Tickets */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
+          {/* Minimum Tickets Per Order */}
+          <div className="flex flex-col gap-[8px]">
+            <div className="flex items-center justify-between">
+              <label className="font-sans font-medium text-[13px] text-[#e8edd4]">
+                Minimum Tickets Per Order
+              </label>
+              <span className="font-sans text-[11px] text-[#8cb34a]">Default: 1</span>
+            </div>
+            <input
+              type="number"
+              min="1"
+              value={formData.minTickets}
+              onChange={(e) => updateForm({ minTickets: e.target.value })}
+              placeholder="e.g. 1"
+              className="h-[48px] px-[16px] bg-[#0d0d0b] border border-[#2d3c13] rounded-[8px] font-sans font-normal text-[14px] text-[#e8edd4] placeholder:text-[#5a752a] outline-none focus:border-[#8cb34a] transition-colors"
+            />
+            <span className="font-sans text-[12px] text-[#8c9477]">
+              The minimum number of tickets an entrant must purchase in an order.
+            </span>
+          </div>
+
+          {/* Maximum Tickets Per Entrant */}
+          <div className="flex flex-col gap-[8px]">
+            <div className="flex items-center justify-between">
+              <label className="font-sans font-medium text-[13px] text-[#e8edd4]">
+                Maximum Tickets Per Entrant
+              </label>
+              <span className="font-sans text-[11px] text-[#8c9477]">Optional</span>
+            </div>
+            <input
+              type="number"
+              min="1"
+              value={formData.maxTickets || ""}
+              onChange={(e) => updateForm({ maxTickets: e.target.value })}
+              placeholder="e.g. 25 (blank = unlimited)"
+              className="h-[48px] px-[16px] bg-[#0d0d0b] border border-[#2d3c13] rounded-[8px] font-sans font-normal text-[14px] text-[#e8edd4] placeholder:text-[#5a752a] outline-none focus:border-[#8cb34a] transition-colors"
+            />
+            <span className="font-sans text-[12px] text-[#8c9477]">
+              Caps total tickets any single user can hold for this raffle.
+            </span>
+          </div>
         </div>
+
+        {/* Validation Errors */}
+        {formData.maxTickets && formData.minTickets && Number(formData.maxTickets) < Number(formData.minTickets) && (
+          <p className="text-red-400 text-xs font-sans mt-[-12px]">
+            Maximum tickets ({formData.maxTickets}) cannot be less than minimum tickets ({formData.minTickets}).
+          </p>
+        )}
+        {formData.maxTickets && formData.totalTickets && Number(formData.maxTickets) > Number(formData.totalTickets) && (
+          <p className="text-red-400 text-xs font-sans mt-[-12px]">
+            Maximum tickets per entrant ({formData.maxTickets}) cannot exceed total tickets ({formData.totalTickets}).
+          </p>
+        )}
       </div>
 
       {/* Footer Actions */}
@@ -100,7 +143,12 @@ export default function CreateRaffleStep2({ formData, updateForm, onNext, onPrev
         </button>
         <button
           onClick={onNext}
-          disabled={!formData.totalTickets || !formData.ticketPrice}
+          disabled={
+            !formData.totalTickets ||
+            !formData.ticketPrice ||
+            (!!formData.maxTickets && !!formData.minTickets && Number(formData.maxTickets) < Number(formData.minTickets)) ||
+            (!!formData.maxTickets && !!formData.totalTickets && Number(formData.maxTickets) > Number(formData.totalTickets))
+          }
           className="h-[48px] px-[32px] bg-[#8cb34a] disabled:bg-[#8cb34a]/50 disabled:cursor-not-allowed hover:bg-[#72943a] transition-colors rounded-[8px] flex items-center justify-center"
         >
           <span className="font-heading font-medium text-[16px] text-[#0d0d0b]">

@@ -84,6 +84,22 @@ export class CreateRaffleDto {
   @IsNotEmpty()
   totalTickets: number;
 
+  @ApiPropertyOptional({
+    example: 1,
+    description: 'Minimum tickets an entrant must purchase per order (defaults to 1)',
+  })
+  @IsNumber()
+  @IsOptional()
+  minTickets?: number;
+
+  @ApiPropertyOptional({
+    example: 25,
+    description: 'Maximum tickets an entrant can purchase in total for this competition',
+  })
+  @IsNumber()
+  @IsOptional()
+  maxTickets?: number;
+
   @ApiProperty({
     example: '2026-07-20T12:00:00.000Z',
     description: 'Raffle start date/time',

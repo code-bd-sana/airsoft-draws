@@ -16,7 +16,23 @@ interface RaffleEntryCardProps {
 }
 
 export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
-  const [quantity, setQuantity] = useState(1);
+  const {
+    ticketPrice,
+    totalPoolValue,
+    worthPrice,
+    totalTickets,
+    soldTickets,
+    endDate,
+  } = raffle;
+
+  const soldPercent = Math.min(Math.round((soldTickets / totalTickets) * 100), 100);
+  const remainingTickets = Math.max(totalTickets - soldTickets, 0);
+
+  const minTickets: number = raffle.minTickets || raffle.minimumTickets || 1;
+  const maxTickets: number | undefined = raffle.maxTickets || raffle.maximumTicketsPerOrder;
+  const effectiveMax: number = maxTickets ? Math.min(remainingTickets, maxTickets) : remainingTickets;
+
+  const [quantity, setQuantity] = useState<number>(minTickets);
   const [statusMessage, setStatusMessage] = useState<{type: 'success'|'error'|'info', text: string} | null>(null);
   const [purchaseSuccessData, setPurchaseSuccessData] = useState<TicketPurchaseSuccessData | null>(null);
   const [timeLeft, setTimeLeft] = useState("");
@@ -30,14 +46,7 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
   
   const purchaseMutation = usePurchaseTicketsMutation(raffle.id);
 
-  const {
-    ticketPrice,
-    totalPoolValue,
-    worthPrice,
-    totalTickets,
-    soldTickets,
-    endDate,
-  } = raffle;
+  const totalPrice = quantity * ticketPrice;
 
   useEffect(() => {
     if (!endDate) {
@@ -62,15 +71,29 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
     return () => clearInterval(interval);
   }, [endDate]);
 
-  const soldPercent = Math.min(Math.round((soldTickets / totalTickets) * 100), 100);
-  const remainingTickets = Math.max(totalTickets - soldTickets, 0);
-  const totalPrice = quantity * ticketPrice;
+  const quickPicks = React.useMemo(() => {
+    const candidates = minTickets === 1 ? [1, 5, 10, 20] : [minTickets, minTickets + 4, minTickets + 9, minTickets + 19];
+    const filtered = Array.from(new Set(candidates))
+      .filter((n) => n >= minTickets && n <= effectiveMax);
+    if (filtered.length === 0) return [minTickets];
+    return filtered.slice(0, 4);
+  }, [minTickets, effectiveMax]);
 
-  const handleQuickPick = (val: number) => setQuantity(val);
-  const handleDecrement = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
-  const handleIncrement = () => setQuantity(prev => prev + 1);
+  const handleQuickPick = (val: number) => setQuantity(Math.max(minTickets, Math.min(val, effectiveMax)));
+  const handleDecrement = () => setQuantity((prev: number) => (prev > minTickets ? prev - 1 : minTickets));
+  const handleIncrement = () => setQuantity((prev: number) => (prev < effectiveMax ? prev + 1 : prev));
 
   const handleAddToBasket = () => {
+    if (quantity < minTickets) {
+      setStatusMessage({ type: 'error', text: `Minimum ${minTickets} tickets required for this competition.` });
+      return;
+    }
+
+    if (maxTickets && quantity > maxTickets) {
+      setStatusMessage({ type: 'error', text: `Maximum ${maxTickets} tickets allowed per entrant.` });
+      return;
+    }
+
     if (quantity > remainingTickets) {
       setStatusMessage({ type: 'error', text: `Only ${remainingTickets} tickets left.` });
       return;
@@ -89,6 +112,8 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
       prizeClassification: (raffle as any).prizeClassification || 'RIF',
       endDate: raffle.endDate,
       hostName: raffle.hostName,
+      minTickets,
+      maxTickets,
     });
 
     if (success) {
@@ -104,6 +129,16 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
       return;
     }
     
+    if (quantity < minTickets) {
+      setStatusMessage({ type: 'error', text: `Minimum ${minTickets} tickets required for this competition.` });
+      return;
+    }
+
+    if (maxTickets && quantity > maxTickets) {
+      setStatusMessage({ type: 'error', text: `Maximum ${maxTickets} tickets allowed per entrant.` });
+      return;
+    }
+
     if (quantity > remainingTickets) {
       setStatusMessage({ type: 'error', text: `Only ${remainingTickets} tickets left.` });
       return;
@@ -203,10 +238,24 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
 
       {/* Ticket Selection */}
       <div className="flex flex-col gap-3 mb-6">
-        <span className="font-sans text-[12px] text-[#A0D056]">Number of tickets</span>
+        <div className="flex items-center justify-between">
+          <span className="font-sans text-[12px] text-[#A0D056]">Number of tickets</span>
+          <div className="flex items-center gap-1.5">
+            {minTickets > 1 && (
+              <span className="font-sans text-[11px] text-[#8CB34A] bg-[#1A230A] px-2 py-0.5 rounded border border-[#2D3C13]">
+                Min {minTickets}
+              </span>
+            )}
+            {maxTickets && (
+              <span className="font-sans text-[11px] text-[#8CB34A] bg-[#1A230A] px-2 py-0.5 rounded border border-[#2D3C13]">
+                Max {maxTickets} per entrant
+              </span>
+            )}
+          </div>
+        </div>
         
         <div className="grid grid-cols-4 gap-2">
-          {[1, 5, 10, 20].map((num) => (
+          {quickPicks.map((num) => (
             <button
               key={num}
               onClick={() => handleQuickPick(num)}
@@ -224,7 +273,10 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
         <div className="flex items-center h-[44px] bg-[#111210] border border-[#2D3C13] rounded-[8px] overflow-hidden mt-1">
           <button 
             onClick={handleDecrement}
-            className="w-[44px] h-full flex items-center justify-center bg-[#1A230A] text-[#8CB34A] hover:bg-[#2D3C13] transition-colors"
+            disabled={quantity <= minTickets}
+            className={`w-[44px] h-full flex items-center justify-center bg-[#1A230A] text-[#8CB34A] hover:bg-[#2D3C13] transition-colors ${
+              quantity <= minTickets ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
+            }`}
           >
             -
           </button>
@@ -233,7 +285,10 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
           </div>
           <button 
             onClick={handleIncrement}
-            className="w-[44px] h-full flex items-center justify-center bg-[#1A230A] text-[#8CB34A] hover:bg-[#2D3C13] transition-colors"
+            disabled={quantity >= effectiveMax}
+            className={`w-[44px] h-full flex items-center justify-center bg-[#1A230A] text-[#8CB34A] hover:bg-[#2D3C13] transition-colors ${
+              quantity >= effectiveMax ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
+            }`}
           >
             +
           </button>

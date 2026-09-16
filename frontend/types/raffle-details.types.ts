@@ -22,6 +22,8 @@ export interface RaffleDetail {
   totalPoolValue: number; // Value of main prize + instant wins
   minimumTickets?: number;
   maximumTicketsPerOrder?: number;
+  minTickets?: number;
+  maxTickets?: number;
   totalTickets: number;
   soldTickets: number;
   remainingTickets: number;
