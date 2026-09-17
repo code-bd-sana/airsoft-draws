@@ -4,17 +4,25 @@ import { PrismaService } from '../prisma/prisma.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { createMockPrismaService, MockPrismaService } from '../test-utils/prisma-mock';
 
+import { NotificationsService } from '../notifications/notifications.service';
+
 describe('HostsService', () => {
   let service: HostsService;
   let mockPrisma: MockPrismaService;
+  let mockNotificationsService: { createNotification: jest.Mock; notifyAdmins: jest.Mock };
 
   beforeEach(async () => {
     mockPrisma = createMockPrismaService();
+    mockNotificationsService = {
+      createNotification: jest.fn().mockResolvedValue({ id: 'notif-1' }),
+      notifyAdmins: jest.fn().mockResolvedValue({ count: 1 }),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         HostsService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: NotificationsService, useValue: mockNotificationsService },
       ],
     }).compile();
 
@@ -229,6 +237,19 @@ describe('HostsService', () => {
       expect(result.withdrawal.feePercent).toBe(10);
       expect(result.withdrawal.feeAmount).toBe(10);
       expect(result.withdrawal.netAmount).toBe(90);
+      expect(mockNotificationsService.notifyAdmins).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'WITHDRAWAL',
+          title: 'New Withdrawal Request',
+        }),
+      );
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'u-1',
+          type: 'WITHDRAWAL',
+          title: 'Withdrawal Request Submitted',
+        }),
+      );
     });
 
     it('should create withdrawal with 15% fee for Free plan hosts', async () => {

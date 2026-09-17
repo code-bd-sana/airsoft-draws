@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { RafflesService } from './raffles.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class DrawSchedulerService {
@@ -10,6 +11,8 @@ export class DrawSchedulerService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly rafflesService: RafflesService,
+    @Optional()
+    private readonly notificationsService?: NotificationsService,
   ) {}
 
   @Cron(CronExpression.EVERY_MINUTE)
@@ -66,6 +69,29 @@ export class DrawSchedulerService {
           where: { id: raffle.id },
           data: { status: 'ENDED' },
         });
+
+        if (this.notificationsService && raffle.hostId) {
+          try {
+            const host = await this.prisma.hostProfile.findUnique({
+              where: { id: raffle.hostId },
+            });
+            if (host?.userId) {
+              await this.notificationsService.createNotification({
+                userId: host.userId,
+                type: 'DRAW',
+                title: 'Competition Closed - Ready for Draw',
+                subtitle: `"${raffle.title}" has ended and is awaiting manual winner selection.`,
+                link: '/dashboard/host/competitions',
+                metadata: { raffleId: raffle.id },
+              });
+            }
+          } catch (notifErr) {
+            this.logger.error(
+              `Failed to notify host for closed raffle ID: ${raffle.id}`,
+              notifErr,
+            );
+          }
+        }
       } catch (error: any) {
         this.logger.error(
           `Failed to close manual-draw competition ID: ${raffle.id}`,

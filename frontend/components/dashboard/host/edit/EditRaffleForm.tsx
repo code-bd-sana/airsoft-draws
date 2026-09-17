@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useGetRaffleById, useUpdateRaffle } from "../../../../hooks/useRaffleHooks";
+import { usePublicCategories } from "../../../../hooks/useCategoryHooks";
 import { cn } from "../../../../lib/utils";
 import { toast } from "sonner";
 
@@ -13,6 +14,7 @@ interface Props {
 export default function EditRaffleForm({ raffleId }: Props) {
   const router = useRouter();
   const { data: raffle, isLoading } = useGetRaffleById(raffleId);
+  const { data: categories = [], isLoading: isCategoriesLoading } = usePublicCategories();
   const updateMutation = useUpdateRaffle();
 
   const [formData, setFormData] = useState<any>({});
@@ -105,6 +107,43 @@ export default function EditRaffleForm({ raffleId }: Props) {
             onChange={(e) => handleChange("prizeName", e.target.value)}
             className="h-[48px] px-[16px] bg-[#0d0d0b] border border-[#2d3c13] rounded-[8px] text-[#e8edd4] outline-none focus:border-[#8cb34a]"
           />
+        </div>
+
+        {/* Category */}
+        <div className="flex flex-col gap-[8px]">
+          <div className="flex items-center justify-between">
+            <label className="font-sans font-medium text-[13px] text-[#e8edd4]">Category</label>
+            {isCategoriesLoading && (
+              <span className="font-sans text-[11px] text-[#8cb34a] animate-pulse">Loading categories...</span>
+            )}
+          </div>
+          <div className="relative">
+            <select
+              value={formData.category || ""}
+              onChange={(e) => handleChange("category", e.target.value)}
+              disabled={isCategoriesLoading}
+              className="w-full h-[48px] px-[16px] bg-[#0d0d0b] border border-[#2d3c13] rounded-[8px] text-[#e8edd4] outline-none focus:border-[#8cb34a] appearance-none cursor-pointer disabled:opacity-50"
+            >
+              <option value="">Select Category</option>
+              {categories.map((cat) => (
+                <option key={cat.id || cat.name} value={cat.name}>
+                  {cat.name}
+                </option>
+              ))}
+              {formData.category && !categories.some((c) => c.name === formData.category) && (
+                <option value={formData.category}>{formData.category}</option>
+              )}
+            </select>
+            <svg
+              className="w-5 h-5 text-[#5a752a] absolute right-[16px] top-1/2 -translate-y-1/2 pointer-events-none"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </div>
         </div>
 
         <div className="flex flex-col gap-[8px]">

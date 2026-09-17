@@ -30,7 +30,7 @@ export default function WinnersPage() {
         <WinnersGrid />
 
         {/* Featured winner testimonial row */}
-        <WinnerHighlightCard />
+        {/* <WinnerHighlightCard /> */}
       </main>
 
       {/* Global website footer */}

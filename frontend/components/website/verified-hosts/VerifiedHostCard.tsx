@@ -17,10 +17,10 @@ export default function VerifiedHostCard({ host }: VerifiedHostCardProps) {
         <div className="flex flex-col gap-4 relative z-10">
           <div className="flex items-center justify-between">
             <div className="w-[56px] h-[56px] rounded-full bg-[#1A230A] border border-[#43581E] flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
-              {host.logo && (host.logo.startsWith('http') || host.logo.startsWith('/')) ? (
+              {host.logo && (host.logo.startsWith('http') || host.logo.startsWith('/') || host.logo.startsWith('data:')) ? (
                 <img src={host.logo} alt={host.name} className="w-full h-full object-cover" />
               ) : (
-                <span className="font-heading font-bold text-[#8CB34A] text-[20px]">{host.logo || host.name.charAt(0)}</span>
+                <span className="font-heading font-bold text-[#8CB34A] text-[20px]">{host.name.charAt(0).toUpperCase()}</span>
               )}
             </div>
             {host.isVerified && (
@@ -35,7 +35,7 @@ export default function VerifiedHostCard({ host }: VerifiedHostCardProps) {
               {host.name}
             </h3>
             <span className="font-sans text-[13px] text-[#72943A] line-clamp-2 leading-relaxed">
-              {host.description}
+              {host.description || host.bio || "Verified competition host"}
             </span>
           </div>
         </div>

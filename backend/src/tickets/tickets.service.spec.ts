@@ -5,15 +5,22 @@ import { RafflesService } from '../raffles/raffles.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { createMockPrismaService, MockPrismaService } from '../test-utils/prisma-mock';
 
+import { NotificationsService } from '../notifications/notifications.service';
+
 describe('TicketsService', () => {
   let service: TicketsService;
   let mockPrisma: MockPrismaService;
   let mockRafflesService: { drawWinner: jest.Mock };
+  let mockNotificationsService: { createNotification: jest.Mock; notifyAdmins: jest.Mock };
 
   beforeEach(async () => {
     mockPrisma = createMockPrismaService();
     mockRafflesService = {
       drawWinner: jest.fn(),
+    };
+    mockNotificationsService = {
+      createNotification: jest.fn().mockResolvedValue({ id: 'notif-1' }),
+      notifyAdmins: jest.fn().mockResolvedValue({ count: 1 }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -21,6 +28,7 @@ describe('TicketsService', () => {
         TicketsService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: RafflesService, useValue: mockRafflesService },
+        { provide: NotificationsService, useValue: mockNotificationsService },
       ],
     }).compile();
 
@@ -230,6 +238,82 @@ describe('TicketsService', () => {
       expect(result.message).toBe('Tickets purchased successfully');
       expect(mockPrisma.transaction.create).toHaveBeenCalled();
       expect(mockPrisma.ticket.createMany).toHaveBeenCalled();
+    });
+
+    it('should dispatch notifications to buyer and host on ticket purchase and instant win', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'u-1',
+        dateOfBirth: new Date('1990-01-01'),
+        ukaraNumber: 'UKARA123',
+      });
+      mockPrisma.raffle.findUnique.mockResolvedValue({
+        id: 'r-1',
+        title: 'Glock Raffle',
+        status: 'ACTIVE',
+        ticketsSold: 0,
+        totalTickets: 100,
+        pricePerTicket: '10.00',
+        instantWins: [
+          {
+            id: 'iw-1',
+            ticketNumber: 1,
+            prizeName: 'Bonus Magazine',
+            isClaimed: false,
+          },
+        ],
+        hostId: 'h-1',
+        host: { userId: 'host-user-1' },
+      });
+      mockPrisma.ticket.findMany.mockResolvedValue([
+        { id: 't-1', ticketNumber: 1 },
+      ]);
+      mockPrisma.transaction.create.mockResolvedValue({ id: 'tx-1' });
+      mockPrisma.ticket.createMany.mockResolvedValue({ count: 1 });
+      mockPrisma.raffle.update.mockResolvedValue({
+        id: 'r-1',
+        title: 'Glock Raffle',
+        ticketsSold: 1,
+        totalTickets: 100,
+        status: 'ACTIVE',
+        isAutoDraw: false,
+      });
+      mockPrisma.instantWin.update.mockResolvedValue({ id: 'iw-1' });
+      mockPrisma.winner.create.mockResolvedValue({
+        id: 'w-1',
+        prizeName: 'Bonus Magazine',
+        ticketId: 't-1',
+      });
+
+      await service.allocateTicketsInDatabase('u-1', 'r-1', { quantity: 1 });
+
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'u-1',
+          type: 'PAYMENT',
+          title: 'Ticket Purchase Confirmed',
+        }),
+      );
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'host-user-1',
+          type: 'PAYMENT',
+          title: 'New Ticket Sale',
+        }),
+      );
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'u-1',
+          type: 'WIN',
+          title: '🎉 Instant Win Prize Claimed!',
+        }),
+      );
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'host-user-1',
+          type: 'WIN',
+          title: 'Instant Win Hit on Competition',
+        }),
+      );
     });
   });
 

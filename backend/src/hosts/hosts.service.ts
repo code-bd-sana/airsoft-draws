@@ -2,17 +2,26 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class HostsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Optional()
+    private notificationsService?: NotificationsService,
+  ) {}
 
   async findAllVerifiedPublic() {
     const hosts = await this.prisma.hostProfile.findMany({
       where: {
         isVerified: true,
+        user: {
+          isBlocked: false,
+        },
       },
       include: {
         user: {
@@ -20,6 +29,7 @@ export class HostsService {
             firstName: true,
             lastName: true,
             avatarUrl: true,
+            isBlocked: true,
           },
         },
         _count: {
@@ -38,13 +48,18 @@ export class HostsService {
       id: host.id,
       slug: host.slug || host.id,
       name: host.businessName,
-      logo: host.user.avatarUrl,
-      description: null, // Host description can be added later
+      logo: host.logoUrl || host.user.avatarUrl,
+      banner: host.bannerUrl || null,
+      description: host.bio || null,
+      bio: host.bio || null,
+      phone: host.phone || null,
+      address: host.address || null,
       category: null,
       competitionCount: host._count.raffles,
       averageRating: 5.0, // Mocked for now
       totalReviews: 12, // Mocked for now
       isVerified: host.isVerified,
+      isBlocked: host.user.isBlocked ?? false,
     }));
   }
 
@@ -52,6 +67,9 @@ export class HostsService {
     const host = await this.prisma.hostProfile.findFirst({
       where: {
         OR: [{ slug }, { id: slug }],
+        user: {
+          isBlocked: false,
+        },
       },
       include: {
         user: {
@@ -59,12 +77,13 @@ export class HostsService {
             firstName: true,
             lastName: true,
             avatarUrl: true,
+            isBlocked: true,
           },
         },
         raffles: {
           where: {
             status: {
-              in: ['ACTIVE', 'ENDED'],
+              in: ['ACTIVE', 'ENDED', 'COMPLETED'],
             },
           },
           orderBy: {
@@ -78,7 +97,9 @@ export class HostsService {
           select: {
             raffles: {
               where: {
-                status: 'ACTIVE',
+                status: {
+                  in: ['ACTIVE', 'ENDED', 'COMPLETED'],
+                },
               },
             },
           },
@@ -94,8 +115,12 @@ export class HostsService {
       id: host.id,
       slug: host.slug || host.id,
       name: host.businessName,
-      logo: host.user.avatarUrl,
-      bio: null,
+      logo: host.logoUrl || host.user.avatarUrl,
+      banner: host.bannerUrl || null,
+      bio: host.bio || null,
+      phone: host.phone || null,
+      address: host.address || null,
+      vatNumber: host.vatNumber || null,
       isVerified: host.isVerified,
       drawsHosted: host._count.raffles,
       rating: 5.0, // Mocked
@@ -122,7 +147,7 @@ export class HostsService {
           soldTickets: raffle.ticketsSold,
           endDate: `Ends ${formattedEndDate}`,
           status: raffle.status, // ACTIVE, ENDED, etc.
-          category: 'airsoft', // Default or add to schema later
+          category: raffle.category || 'airsoft',
           isInstantWin: raffle.instantWins?.length > 0,
           instantWinsCount: raffle.instantWins?.length || 0,
         };
@@ -293,6 +318,36 @@ export class HostsService {
 
       return withdrawal;
     });
+
+    if (this.notificationsService) {
+      try {
+        await this.notificationsService.notifyAdmins({
+          type: 'WITHDRAWAL',
+          title: 'New Withdrawal Request',
+          subtitle: `${host.businessName || 'A host'} requested a payout of £${dto.amount.toFixed(2)}.`,
+          link: '/dashboard/admin/withdrawals',
+          metadata: {
+            withdrawalId: result.id,
+            hostId: host.id,
+            amount: dto.amount,
+          },
+        });
+
+        await this.notificationsService.createNotification({
+          userId,
+          type: 'WITHDRAWAL',
+          title: 'Withdrawal Request Submitted',
+          subtitle: `Your payout request of £${dto.amount.toFixed(2)} has been received and is pending review.`,
+          link: '/dashboard/host/wallet',
+          metadata: {
+            withdrawalId: result.id,
+            amount: dto.amount,
+          },
+        });
+      } catch (notifErr) {
+        console.error('Failed to dispatch withdrawal notifications:', notifErr);
+      }
+    }
 
     const resObj = result as any;
     return {

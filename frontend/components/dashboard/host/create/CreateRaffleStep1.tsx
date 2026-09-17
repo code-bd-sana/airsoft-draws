@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { RaffleFormData } from "./CreateRaffleWizard";
+import { usePublicCategories } from "../../../../hooks/useCategoryHooks";
 
 interface Props {
   formData: RaffleFormData;
@@ -7,16 +8,16 @@ interface Props {
   onNext: () => void;
 }
 
-const categories = [
-  "Airsoft Rifles",
-  "Airsoft Pistols",
-  "Tactical Gear",
-  "Accessories",
-  "Sniper Rifles",
-  "Bundles",
-];
-
 export default function CreateRaffleStep1({ formData, updateForm, onNext }: Props) {
+  const { data: categories = [], isLoading: isCategoriesLoading } = usePublicCategories();
+
+  // If no category is selected yet and dynamic categories load, preselect the first active category
+  useEffect(() => {
+    if (!formData.category && categories.length > 0) {
+      updateForm({ category: categories[0].name });
+    }
+  }, [categories, formData.category, updateForm]);
+
   return (
     <div className="flex flex-col w-full animate-in fade-in zoom-in-95 duration-200">
       <div className="flex flex-col gap-[8px] mb-[32px]">
@@ -45,20 +46,40 @@ export default function CreateRaffleStep1({ formData, updateForm, onNext }: Prop
 
         {/* Category */}
         <div className="flex flex-col gap-[8px]">
-          <label className="font-sans font-medium text-[13px] text-[#e8edd4]">
-            Category
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="font-sans font-medium text-[13px] text-[#e8edd4]">
+              Category <span className="text-[#f76b6b]">*</span>
+            </label>
+            {isCategoriesLoading && (
+              <span className="font-sans text-[11px] text-[#8cb34a] animate-pulse">
+                Loading categories...
+              </span>
+            )}
+          </div>
           <div className="relative">
             <select
               value={formData.category}
               onChange={(e) => updateForm({ category: e.target.value })}
-              className="w-full h-[48px] px-[16px] bg-[#0d0d0b] border border-[#2d3c13] rounded-[8px] font-sans font-normal text-[14px] text-[#e8edd4] outline-none focus:border-[#8cb34a] transition-colors appearance-none cursor-pointer"
+              disabled={isCategoriesLoading}
+              className="w-full h-[48px] px-[16px] bg-[#0d0d0b] border border-[#2d3c13] rounded-[8px] font-sans font-normal text-[14px] text-[#e8edd4] outline-none focus:border-[#8cb34a] transition-colors appearance-none cursor-pointer disabled:opacity-50"
             >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
+              {isCategoriesLoading ? (
+                <option value="">Loading categories...</option>
+              ) : categories.length === 0 ? (
+                <option value="">No categories available</option>
+              ) : (
+                <>
+                  {!formData.category && <option value="">Select Category</option>}
+                  {categories.map((cat) => (
+                    <option key={cat.id || cat.name} value={cat.name}>
+                      {cat.name}
+                    </option>
+                  ))}
+                  {formData.category && !categories.some((c) => c.name === formData.category) && (
+                    <option value={formData.category}>{formData.category}</option>
+                  )}
+                </>
+              )}
             </select>
             <svg
               className="w-5 h-5 text-[#5a752a] absolute right-[16px] top-1/2 -translate-y-1/2 pointer-events-none"
@@ -137,7 +158,7 @@ export default function CreateRaffleStep1({ formData, updateForm, onNext }: Prop
         ) : <div />}
         <button
           onClick={onNext}
-          disabled={!formData.title.trim() || !formData.isRif}
+          disabled={!formData.title.trim() || !formData.isRif || !formData.category}
           className="h-[48px] px-[32px] bg-[#8cb34a] disabled:bg-[#8cb34a]/50 disabled:cursor-not-allowed hover:bg-[#72943a] transition-colors rounded-[8px] flex items-center justify-center"
         >
           <span className="font-heading font-medium text-[16px] text-[#0d0d0b]">

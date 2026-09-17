@@ -4,17 +4,25 @@ import { PrismaService } from '../prisma/prisma.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { createMockPrismaService, MockPrismaService } from '../test-utils/prisma-mock';
 
+import { NotificationsService } from '../notifications/notifications.service';
+
 describe('SubscriptionsService', () => {
   let service: SubscriptionsService;
   let mockPrisma: MockPrismaService;
+  let mockNotificationsService: { createNotification: jest.Mock; notifyAdmins: jest.Mock };
 
   beforeEach(async () => {
     mockPrisma = createMockPrismaService();
+    mockNotificationsService = {
+      createNotification: jest.fn().mockResolvedValue({ id: 'notif-1' }),
+      notifyAdmins: jest.fn().mockResolvedValue({ count: 1 }),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SubscriptionsService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: NotificationsService, useValue: mockNotificationsService },
       ],
     }).compile();
 
@@ -139,10 +147,14 @@ describe('SubscriptionsService', () => {
       ).rejects.toThrow('Subscription plan not found');
     });
 
-    it('should create new pending request if none pending', async () => {
-      mockPrisma.hostProfile.findUnique.mockResolvedValue({ id: 'hp-1' });
+    it('should create new pending request if none pending and notify admin and host', async () => {
+      mockPrisma.hostProfile.findUnique.mockResolvedValue({
+        id: 'hp-1',
+        businessName: 'Apex Tactical',
+      });
       mockPrisma.subscriptionPlan.findUnique.mockResolvedValue({
         id: 'p-1',
+        name: 'Pro Host',
         durationDays: 30,
       });
       mockPrisma.subscriptionRequest.findFirst.mockResolvedValue(null);
@@ -154,6 +166,19 @@ describe('SubscriptionsService', () => {
       const result = await service.createSubscriptionRequest('u-1', 'p-1');
       expect(result.id).toBe('sr-1');
       expect(mockPrisma.subscriptionRequest.create).toHaveBeenCalled();
+      expect(mockNotificationsService.notifyAdmins).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'APPROVAL',
+          title: 'New Subscription Request',
+        }),
+      );
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'u-1',
+          type: 'APPROVAL',
+          title: 'Subscription Request Submitted',
+        }),
+      );
     });
   });
 
@@ -165,13 +190,13 @@ describe('SubscriptionsService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should expire previous subs, create active sub and transaction, and approve request', async () => {
+    it('should expire previous subs, create active sub and transaction, and approve request and notify host', async () => {
       mockPrisma.subscriptionRequest.findUnique.mockResolvedValue({
         id: 'sr-1',
         hostId: 'hp-1',
         planId: 'p-2',
         requestedDays: 30,
-        plan: { durationDays: 30, price: '29.00' },
+        plan: { name: 'Pro Host', durationDays: 30, price: '29.00' },
         host: { userId: 'u-1' },
       });
       mockPrisma.hostSubscription.create.mockResolvedValue({ id: 'hs-new' });
@@ -187,6 +212,13 @@ describe('SubscriptionsService', () => {
         where: { hostId: 'hp-1', status: 'ACTIVE' },
         data: { status: 'EXPIRED' },
       });
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'u-1',
+          type: 'APPROVAL',
+          title: 'Subscription Activated',
+        }),
+      );
     });
   });
 
@@ -198,15 +230,23 @@ describe('SubscriptionsService', () => {
       );
     });
 
-    it('should update request to REJECTED', async () => {
+    it('should update request to REJECTED and notify host', async () => {
       mockPrisma.subscriptionRequest.findUnique.mockResolvedValue({ id: 'sr-1' });
       mockPrisma.subscriptionRequest.update.mockResolvedValue({
         id: 'sr-1',
         status: 'REJECTED',
+        host: { userId: 'u-1' },
       });
 
       const result = await service.rejectSubscriptionRequest('sr-1', 'Reason');
       expect(result.status).toBe('REJECTED');
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'u-1',
+          type: 'APPROVAL',
+          title: 'Subscription Request Rejected',
+        }),
+      );
     });
   });
 

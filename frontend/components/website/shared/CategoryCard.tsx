@@ -15,7 +15,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
 
   return (
     <Link
-      href={`#live-draws?category=${slug}`}
+      href={`/live-raffles?category=${slug}`}
       className="group relative flex flex-col justify-end h-[160px] md:h-[200px] bg-surface border border-border rounded-card overflow-hidden shadow-card transition-all duration-300 hover:border-primary hover:shadow-glow"
     >
       {/* Background Image */}

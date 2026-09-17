@@ -19,7 +19,8 @@ export default async function VerifiedHostsPage() {
     });
     if (res.ok) {
       const json = await res.json();
-      verifiedHosts = json.data || json;
+      const rawHosts = Array.isArray(json) ? json : json.data || [];
+      verifiedHosts = rawHosts.filter((h: any) => h.isVerified && !h.isBlocked);
     }
   } catch (err) {
     console.error("Failed to fetch verified hosts", err);

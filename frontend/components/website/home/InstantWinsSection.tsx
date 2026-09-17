@@ -24,7 +24,7 @@ export default function InstantWinsSection() {
           categoryService.getPublicCategories(),
           raffleService.getInstantWinRaffles(12)
         ]);
-        
+
         setCategories(fetchedCategories);
 
         if (fetchedDraws.data && fetchedDraws.data.length > 0) {
@@ -62,12 +62,12 @@ export default function InstantWinsSection() {
   return (
     <section id="instant-wins" className="py-20 bg-bg border-t border-divider">
       <div className="container-custom">
-        
+
         {/* Section Header */}
         <SectionHeader
           badgeText="INSTANT WIN PRIZES NOW LIVE"
           headingText="Win Big. Every Day."
-          paragraphText="Buy a ticket, and if your randomly allocated ticket number matches any pre-determined winning numbers, you win instantly!"
+          paragraphText="All draws are conducted live on stream using a lottery ball machine, ensuring a fair and transparent draw process."
         />
 
         {/* Filter Tabs Row */}

@@ -4,8 +4,12 @@ import React from "react";
 
 interface HostProfileHeaderProps {
   name: string;
-  bio: string;
-  logo: string;
+  bio?: string | null;
+  logo?: string | null;
+  banner?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  vatNumber?: string | null;
   isVerified: boolean;
   drawsHosted: number;
   rating: number;
@@ -16,65 +20,140 @@ export default function HostProfileHeader({
   name,
   bio,
   logo,
+  banner,
+  phone,
+  address,
+  vatNumber,
   isVerified,
   drawsHosted,
   rating,
-  memberSince
+  memberSince,
 }: HostProfileHeaderProps) {
-  return (
-    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-[#2D3C13]">
-      <div className="flex items-center gap-5">
-        <div className="w-[88px] h-[88px] rounded-full bg-[#1A230A] border border-[#43581E] flex items-center justify-center shrink-0 overflow-hidden">
-          {logo && (logo.startsWith('http') || logo.startsWith('/')) ? (
-            <img src={logo} alt={name} className="w-full h-full object-cover" />
-          ) : (
-            <span className="font-heading font-bold text-[#8CB34A] text-[32px]">{logo}</span>
-          )}
-        </div>
+  const isImage = (val?: string | null) =>
+    Boolean(val && (val.startsWith("http") || val.startsWith("/") || val.startsWith("data:")));
 
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-            <h1 className="font-heading font-bold text-[28px] text-[#E8EDD4] tracking-tight">{name}</h1>
-            {isVerified && (
-              <span className="bg-[#8CB34A] text-[#0D0D0B] px-2 py-0.5 rounded-[4px] text-[11px] font-bold uppercase tracking-wide flex items-center gap-1">
-                Verified
+  const initials = name
+    .split(" ")
+    .map((w) => w[0])
+    .filter(Boolean)
+    .join("")
+    .substring(0, 2)
+    .toUpperCase() || "H";
+
+  return (
+    <div className="flex flex-col w-full pb-8 border-b border-[#2D3C13]">
+      {/* Banner */}
+      <div className="w-full h-[180px] sm:h-[220px] md:h-[260px] rounded-[16px] overflow-hidden relative border border-[#2D3C13] bg-[#111210]">
+        {isImage(banner) ? (
+          <img
+            src={banner!}
+            alt={`${name} banner`}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-r from-[#111210] via-[#1A230A] to-[#111210] flex items-center justify-end pr-8">
+            <div className="w-96 h-96 bg-[#8CB34A]/5 rounded-full blur-3xl pointer-events-none" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0D0D0B] via-transparent to-transparent opacity-80" />
+      </div>
+
+      {/* Main Profile Info Row */}
+      <div className="relative px-4 sm:px-6 -mt-[45px] sm:-mt-[55px] flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-end gap-5">
+          {/* Logo / Avatar */}
+          <div className="w-[90px] h-[90px] sm:w-[110px] sm:h-[110px] rounded-[18px] bg-[#141512] border-2 border-[#43581E] flex items-center justify-center shrink-0 overflow-hidden shadow-2xl relative z-10">
+            {isImage(logo) ? (
+              <img
+                src={logo!}
+                alt={name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="font-heading font-bold text-[#8CB34A] text-[32px] sm:text-[40px]">
+                {initials}
               </span>
             )}
           </div>
-          <p className="font-sans text-[14px] text-[#72943A] max-w-[500px]">
-            {bio}
-          </p>
-          <div className="flex items-center gap-4 mt-1">
-            <span className="font-sans text-[12px] text-[#A0D056] font-medium tracking-wide flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 bg-[#8CB34A] rounded-full" />
-              {drawsHosted} Draws Hosted
-            </span>
-            <span className="font-sans text-[12px] text-[#A0D056] font-medium tracking-wide flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 bg-[#8CB34A] rounded-full" />
-              {rating} Host Rating
-            </span>
-            <span className="font-sans text-[12px] text-[#A0D056] font-medium tracking-wide flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 bg-[#8CB34A] rounded-full" />
-              Member since {memberSince}
-            </span>
+
+          {/* Name & Basic Badges */}
+          <div className="flex flex-col gap-1.5 z-10 pb-1">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="font-heading font-bold text-[26px] sm:text-[32px] text-[#E8EDD4] tracking-tight">
+                {name}
+              </h1>
+              {isVerified && (
+                <span className="bg-[#8CB34A] text-[#0D0D0B] px-2.5 py-1 rounded-[6px] text-[11px] font-bold uppercase tracking-wide flex items-center gap-1.5 shadow-[0_0_12px_rgba(140,179,74,0.25)]">
+                  <span className="w-1.5 h-1.5 bg-[#0D0D0B] rounded-full" />
+                  Verified Partner
+                </span>
+              )}
+            </div>
+
+            {/* Location & Contact under Name */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-[#72943A]">
+              {address && (
+                <span className="flex items-center gap-1 text-[#A0D056]">
+                  <span>📍</span> {address}
+                </span>
+              )}
+              {phone && (
+                <a
+                  href={`tel:${phone}`}
+                  className="flex items-center gap-1 hover:text-[#E8EDD4] transition-colors"
+                >
+                  <span>📞</span> {phone}
+                </a>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Contact / Action buttons if phone is available */}
+        {phone && (
+          <div className="flex items-center gap-3 w-full md:w-auto mt-2 md:mt-0 z-10">
+            <a
+              href={`tel:${phone}`}
+              className="h-[38px] px-5 rounded-[8px] bg-[#8CB34A]/10 border border-[#8CB34A]/30 hover:bg-[#8CB34A]/20 hover:border-[#8CB34A] text-[#8CB34A] font-sans font-medium text-[13px] transition-colors flex items-center justify-center gap-2"
+            >
+              <span>📞</span> Contact Host
+            </a>
+          </div>
+        )}
       </div>
 
-      {/* <div className="flex items-center gap-3 w-full md:w-auto">
-        <button className="flex-1 md:flex-none h-[40px] px-6 rounded-[8px] bg-transparent border border-[#2D3C13] hover:border-[#43581E] text-[#E8EDD4] font-sans font-medium text-[13px] transition-colors flex items-center justify-center gap-2">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
-          </svg>
-          Follow Host
-        </button>
-        <button className="flex-1 md:flex-none h-[40px] px-6 rounded-[8px] bg-transparent border border-[#2D3C13] hover:border-[#43581E] text-[#E8EDD4] font-sans font-medium text-[13px] transition-colors flex items-center justify-center gap-2">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.43 3 11.996c0 2.29.9 4.35 2.37 5.865a8.471 8.471 0 0 0 1.25.992l1.62.972.18 1.8a18.3 18.3 0 0 0 3.58 0l.18-1.8.21-.108a9.488 9.488 0 0 0 2.58-.936c.15-.09.3-.18.45-.288Z" />
-          </svg>
-          Contact
-        </button>
-      </div> */}
+      {/* Bio & Stats Row */}
+      <div className="mt-6 px-4 sm:px-6 flex flex-col gap-4">
+        {bio ? (
+          <p className="font-sans text-[14px] sm:text-[15px] text-[#A6C47A] max-w-[750px] leading-relaxed whitespace-pre-line">
+            {bio}
+          </p>
+        ) : (
+          <p className="font-sans text-[14px] text-[#72943A] italic">
+            Official verified host on Airsoft Draws.
+          </p>
+        )}
+
+        <div className="flex flex-wrap items-center gap-3 sm:gap-5 pt-2">
+          <span className="font-sans text-[12px] text-[#A0D056] font-medium tracking-wide flex items-center gap-1.5 bg-[#141512] border border-[#2D3C13] px-3 py-1.5 rounded-[8px]">
+            <span className="w-1.5 h-1.5 bg-[#8CB34A] rounded-full" />
+            {drawsHosted} Draws Hosted
+          </span>
+          <span className="font-sans text-[12px] text-[#A0D056] font-medium tracking-wide flex items-center gap-1.5 bg-[#141512] border border-[#2D3C13] px-3 py-1.5 rounded-[8px]">
+            <span className="text-[#8CB34A]">★</span>
+            {rating ? Number(rating).toFixed(1) : "5.0"} Host Rating
+          </span>
+          <span className="font-sans text-[12px] text-[#A0D056] font-medium tracking-wide flex items-center gap-1.5 bg-[#141512] border border-[#2D3C13] px-3 py-1.5 rounded-[8px]">
+            <span className="w-1.5 h-1.5 bg-[#8CB34A] rounded-full" />
+            Member since {memberSince}
+          </span>
+          {vatNumber && (
+            <span className="font-sans text-[12px] text-[#72943A] font-medium tracking-wide flex items-center gap-1.5 bg-[#141512] border border-[#2D3C13] px-3 py-1.5 rounded-[8px]">
+              VAT: {vatNumber}
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

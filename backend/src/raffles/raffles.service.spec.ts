@@ -4,17 +4,25 @@ import { PrismaService } from '../prisma/prisma.service';
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { createMockPrismaService, MockPrismaService } from '../test-utils/prisma-mock';
 
+import { NotificationsService } from '../notifications/notifications.service';
+
 describe('RafflesService', () => {
   let service: RafflesService;
   let mockPrisma: MockPrismaService;
+  let mockNotificationsService: { createNotification: jest.Mock; notifyAdmins: jest.Mock };
 
   beforeEach(async () => {
     mockPrisma = createMockPrismaService();
+    mockNotificationsService = {
+      createNotification: jest.fn().mockResolvedValue({ id: 'notif-1' }),
+      notifyAdmins: jest.fn().mockResolvedValue({ count: 1 }),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RafflesService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: NotificationsService, useValue: mockNotificationsService },
       ],
     }).compile();
 
@@ -156,7 +164,7 @@ describe('RafflesService', () => {
       );
     });
 
-    it('should select winner and mark raffle as ENDED', async () => {
+    it('should select winner, mark raffle as ENDED, and dispatch notifications', async () => {
       mockPrisma.raffle.findUnique.mockResolvedValue({
         id: 'r-1',
         title: 'M4 Raffle',
@@ -167,11 +175,13 @@ describe('RafflesService', () => {
           { id: 't-1', ticketNumber: 1, userId: 'u-winner' },
           { id: 't-2', ticketNumber: 2, userId: 'u-other' },
         ],
+        host: { userId: 'host-user-1' },
       });
       mockPrisma.winner.create.mockResolvedValue({
         id: 'w-1',
         ticketId: 't-1',
         userId: 'u-winner',
+        prizeName: 'M4',
       });
       mockPrisma.raffle.update.mockResolvedValue({ id: 'r-1', status: 'ENDED' });
 
@@ -180,6 +190,20 @@ describe('RafflesService', () => {
       expect(mockPrisma.raffle.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ status: 'ENDED' }),
+        }),
+      );
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'u-winner',
+          type: 'WIN',
+          title: '🏆 You Won the Competition!',
+        }),
+      );
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'host-user-1',
+          type: 'DRAW',
+          title: 'Draw Completed',
         }),
       );
     });
@@ -212,15 +236,44 @@ describe('RafflesService', () => {
   });
 
   describe('admin operations', () => {
-    it('should approve a pending raffle', async () => {
+    it('should approve a pending raffle and notify host', async () => {
       mockPrisma.raffle.findUnique.mockResolvedValue({
         id: 'r-1',
+        title: 'M4 Raffle',
         status: 'PENDING_APPROVAL',
+        host: { userId: 'host-user-1' },
       });
       mockPrisma.raffle.update.mockResolvedValue({ id: 'r-1', status: 'ACTIVE' });
 
       const result = await service.approve('r-1');
       expect(result.status).toBe('ACTIVE');
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'host-user-1',
+          type: 'APPROVAL',
+          title: 'Competition Approved',
+        }),
+      );
+    });
+
+    it('should reject a pending raffle and notify host', async () => {
+      mockPrisma.raffle.findUnique.mockResolvedValue({
+        id: 'r-1',
+        title: 'M4 Raffle',
+        status: 'PENDING_APPROVAL',
+        host: { userId: 'host-user-1' },
+      });
+      mockPrisma.raffle.update.mockResolvedValue({ id: 'r-1', status: 'CANCELLED' });
+
+      const result = await service.reject('r-1', 'Terms violation');
+      expect(result.status).toBe('CANCELLED');
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'host-user-1',
+          type: 'APPROVAL',
+          title: 'Competition Rejected',
+        }),
+      );
     });
 
     it('should delete raffle as admin', async () => {

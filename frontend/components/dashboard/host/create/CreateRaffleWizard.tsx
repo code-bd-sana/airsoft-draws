@@ -43,7 +43,7 @@ export interface RaffleFormData {
 
 const initialData: RaffleFormData = {
   title: "",
-  category: "Airsoft Rifles",
+  category: "",
   prizeClassification: "RIF",
   description: "",
   isRif: false,

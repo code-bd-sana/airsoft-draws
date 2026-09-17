@@ -4,17 +4,25 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
 import { createMockPrismaService, MockPrismaService } from '../../test-utils/prisma-mock';
 
+import { NotificationsService } from '../../notifications/notifications.service';
+
 describe('AdminWithdrawalsService', () => {
   let service: AdminWithdrawalsService;
   let mockPrisma: MockPrismaService;
+  let mockNotificationsService: { createNotification: jest.Mock; notifyAdmins: jest.Mock };
 
   beforeEach(async () => {
     mockPrisma = createMockPrismaService();
+    mockNotificationsService = {
+      createNotification: jest.fn().mockResolvedValue({ id: 'notif-1' }),
+      notifyAdmins: jest.fn().mockResolvedValue({ count: 1 }),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AdminWithdrawalsService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: NotificationsService, useValue: mockNotificationsService },
       ],
     }).compile();
 
@@ -79,6 +87,7 @@ describe('AdminWithdrawalsService', () => {
         hostId: 'hp-1',
         amount: '100.00',
         status: 'PENDING',
+        host: { userId: 'host-user-1' },
       });
       mockPrisma.hostProfile.update.mockResolvedValue({ id: 'hp-1' });
       mockPrisma.withdrawal.update.mockResolvedValue({
@@ -95,14 +104,22 @@ describe('AdminWithdrawalsService', () => {
           data: { walletBalance: { increment: '100.00' } },
         }),
       );
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'host-user-1',
+          type: 'WITHDRAWAL',
+          title: 'Withdrawal Request Rejected',
+        }),
+      );
     });
 
-    it('should update status to COMPLETED without refunding wallet', async () => {
+    it('should update status to COMPLETED without refunding wallet and notify host', async () => {
       mockPrisma.withdrawal.findUnique.mockResolvedValue({
         id: 'w-1',
         hostId: 'hp-1',
         amount: '100.00',
         status: 'PENDING',
+        host: { userId: 'host-user-1' },
       });
       mockPrisma.withdrawal.update.mockResolvedValue({
         id: 'w-1',
@@ -112,6 +129,13 @@ describe('AdminWithdrawalsService', () => {
       const result = await service.updateStatus('w-1', 'COMPLETED');
       expect(result.status).toBe('COMPLETED');
       expect(mockPrisma.hostProfile.update).not.toHaveBeenCalled();
+      expect(mockNotificationsService.createNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'host-user-1',
+          type: 'WITHDRAWAL',
+          title: 'Withdrawal Approved',
+        }),
+      );
     });
   });
 });

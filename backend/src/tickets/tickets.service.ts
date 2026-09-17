@@ -4,11 +4,13 @@ import {
   NotFoundException,
   Inject,
   forwardRef,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as crypto from 'crypto';
 import { RafflesService } from '../raffles/raffles.service';
 import { BasketCheckoutDto } from './dto/checkout.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 export function calculateAge(dob: Date, referenceDate: Date = new Date()): number {
   let age = referenceDate.getFullYear() - dob.getFullYear();
@@ -25,6 +27,8 @@ export class TicketsService {
     private readonly prisma: PrismaService,
     @Inject(forwardRef(() => RafflesService))
     private readonly rafflesService: RafflesService,
+    @Optional()
+    private readonly notificationsService?: NotificationsService,
   ) {}
 
   async purchaseTickets(userId: string, raffleId: string, payload: any) {
@@ -57,7 +61,7 @@ export class TicketsService {
 
     const raffle = await this.prisma.raffle.findUnique({
       where: { id: raffleId },
-      include: { instantWins: true },
+      include: { instantWins: true, host: true },
     });
     if (!raffle) {
       throw new NotFoundException('Competition not found');
@@ -314,6 +318,71 @@ export class TicketsService {
       }
     }
 
+    // 9. Dispatch in-app notifications (Non-blocking)
+    if (this.notificationsService) {
+      try {
+        await this.notificationsService.createNotification({
+          userId,
+          type: 'PAYMENT',
+          title: 'Ticket Purchase Confirmed',
+          subtitle: `You successfully purchased ${quantity} ticket(s) for "${raffle.title}".`,
+          link: '/dashboard/user/tickets',
+          metadata: {
+            raffleId: raffle.id,
+            transactionId: result.transaction.id,
+            ticketCount: quantity,
+          },
+        });
+
+        if (raffle.host?.userId) {
+          await this.notificationsService.createNotification({
+            userId: raffle.host.userId,
+            type: 'PAYMENT',
+            title: 'New Ticket Sale',
+            subtitle: `${quantity} ticket(s) sold for "${raffle.title}".`,
+            link: '/dashboard/host/competitions',
+            metadata: {
+              raffleId: raffle.id,
+              quantity,
+            },
+          });
+        }
+
+        if (result.userInstantWins && result.userInstantWins.length > 0) {
+          for (const win of result.userInstantWins) {
+            await this.notificationsService.createNotification({
+              userId,
+              type: 'WIN',
+              title: '🎉 Instant Win Prize Claimed!',
+              subtitle: `Congratulations! You won "${win.prizeName}" in "${raffle.title}".`,
+              link: '/dashboard/user/wins',
+              metadata: {
+                raffleId: raffle.id,
+                prizeName: win.prizeName,
+                ticketId: win.ticketId,
+              },
+            });
+
+            if (raffle.host?.userId) {
+              await this.notificationsService.createNotification({
+                userId: raffle.host.userId,
+                type: 'WIN',
+                title: 'Instant Win Hit on Competition',
+                subtitle: `An entrant won "${win.prizeName}" on "${raffle.title}".`,
+                link: '/dashboard/host/competitions',
+                metadata: {
+                  raffleId: raffle.id,
+                  prizeName: win.prizeName,
+                },
+              });
+            }
+          }
+        }
+      } catch (notifErr) {
+        console.error('Failed to dispatch ticket purchase notifications:', notifErr);
+      }
+    }
+
     return {
       message: 'Tickets purchased successfully',
       transaction: result.transaction,
@@ -525,7 +594,7 @@ export class TicketsService {
     const raffleIds = Array.from(itemMap.keys());
     const raffles = await this.prisma.raffle.findMany({
       where: { id: { in: raffleIds } },
-      include: { instantWins: true },
+      include: { instantWins: true, host: true },
     });
 
     if (raffles.length !== raffleIds.length) {
@@ -832,6 +901,51 @@ export class TicketsService {
         } catch (err) {
           console.error('Failed to update manual raffle status on sold out:', err);
         }
+      }
+    }
+
+    if (this.notificationsService) {
+      try {
+        await this.notificationsService.createNotification({
+          userId,
+          type: 'PAYMENT',
+          title: 'Order Confirmed',
+          subtitle: `You purchased ${result.allCreatedTickets.length} ticket(s) across ${result.updatedRaffles.length} competition(s).`,
+          link: '/dashboard/user/tickets',
+          metadata: {
+            transactionId: result.transaction.id,
+            ticketCount: result.allCreatedTickets.length,
+          },
+        });
+
+        for (const r of result.updatedRaffles) {
+          const matchedRaffle = raffles.find((item) => item.id === r.id);
+          if (matchedRaffle?.host?.userId) {
+            await this.notificationsService.createNotification({
+              userId: matchedRaffle.host.userId,
+              type: 'PAYMENT',
+              title: 'New Ticket Sale',
+              subtitle: `Tickets sold for "${r.title}".`,
+              link: '/dashboard/host/competitions',
+              metadata: { raffleId: r.id },
+            });
+          }
+        }
+
+        for (const win of result.allUserInstantWins) {
+          await this.notificationsService.createNotification({
+            userId,
+            type: 'WIN',
+            title: '🎉 Instant Win Prize Claimed!',
+            subtitle: `Congratulations! You won "${win.prizeName}"!`,
+            link: '/dashboard/user/wins',
+            metadata: {
+              prizeName: win.prizeName,
+            },
+          });
+        }
+      } catch (notifErr) {
+        console.error('Failed to dispatch basket notifications:', notifErr);
       }
     }
 

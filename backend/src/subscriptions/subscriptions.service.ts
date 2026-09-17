@@ -2,12 +2,18 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class SubscriptionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Optional()
+    private notificationsService?: NotificationsService,
+  ) {}
 
   async getPlans() {
     return this.prisma.subscriptionPlan.findMany({
@@ -190,29 +196,59 @@ export class SubscriptionsService {
       where: { hostId: host.id, status: 'PENDING' },
     });
 
-    if (existingPending) {
-      return this.prisma.subscriptionRequest.update({
-        where: { id: existingPending.id },
-        data: {
-          planId,
-          requestedDays: requestedDays || plan.durationDays,
-          note: note || existingPending.note,
-          updatedAt: new Date(),
-        },
-        include: { plan: true, host: { include: { user: true } } },
-      });
+    const request = existingPending
+      ? await this.prisma.subscriptionRequest.update({
+          where: { id: existingPending.id },
+          data: {
+            planId,
+            requestedDays: requestedDays || plan.durationDays,
+            note: note || existingPending.note,
+            updatedAt: new Date(),
+          },
+          include: { plan: true, host: { include: { user: true } } },
+        })
+      : await this.prisma.subscriptionRequest.create({
+          data: {
+            hostId: host.id,
+            planId: plan.id,
+            status: 'PENDING',
+            requestedDays: requestedDays || plan.durationDays,
+            note: note || null,
+          },
+          include: { plan: true, host: { include: { user: true } } },
+        });
+
+    if (this.notificationsService) {
+      try {
+        await this.notificationsService.notifyAdmins({
+          type: 'APPROVAL',
+          title: 'New Subscription Request',
+          subtitle: `${host.businessName || 'A host'} requested the ${plan.name} plan.`,
+          link: '/dashboard/admin/subscriptions',
+          metadata: {
+            hostId: host.id,
+            planId: plan.id,
+            planName: plan.name,
+          },
+        });
+
+        await this.notificationsService.createNotification({
+          userId,
+          type: 'APPROVAL',
+          title: 'Subscription Request Submitted',
+          subtitle: `Your request for the ${plan.name} plan is pending review.`,
+          link: '/dashboard/host/billing',
+          metadata: {
+            planId: plan.id,
+            planName: plan.name,
+          },
+        });
+      } catch (err) {
+        console.error('Failed to dispatch subscription request notifications:', err);
+      }
     }
 
-    return this.prisma.subscriptionRequest.create({
-      data: {
-        hostId: host.id,
-        planId: plan.id,
-        status: 'PENDING',
-        requestedDays: requestedDays || plan.durationDays,
-        note: note || null,
-      },
-      include: { plan: true, host: { include: { user: true } } },
-    });
+    return request;
   }
 
   async getMySubscriptionRequest(userId: string) {
@@ -305,6 +341,26 @@ export class SubscriptionsService {
       include: { plan: true, host: { include: { user: true } } },
     });
 
+    if (this.notificationsService && subRequest.host?.userId) {
+      try {
+        await this.notificationsService.createNotification({
+          userId: subRequest.host.userId,
+          type: 'APPROVAL',
+          title: 'Subscription Activated',
+          subtitle: `Your ${subRequest.plan.name} subscription has been approved and activated for ${durationDays} days!`,
+          link: '/dashboard/host/billing',
+          metadata: {
+            subscriptionId: newSub.id,
+            planId: subRequest.planId,
+            planName: subRequest.plan.name,
+            durationDays,
+          },
+        });
+      } catch (err) {
+        console.error('Failed to dispatch subscription approval notification:', err);
+      }
+    }
+
     return {
       subscription: newSub,
       request: updatedRequest,
@@ -318,7 +374,7 @@ export class SubscriptionsService {
     });
     if (!subRequest) throw new NotFoundException('Subscription request not found');
 
-    return this.prisma.subscriptionRequest.update({
+    const updated = await this.prisma.subscriptionRequest.update({
       where: { id: requestId },
       data: {
         status: 'REJECTED',
@@ -327,6 +383,28 @@ export class SubscriptionsService {
       },
       include: { plan: true, host: { include: { user: true } } },
     });
+
+    if (this.notificationsService && updated.host?.userId) {
+      try {
+        await this.notificationsService.createNotification({
+          userId: updated.host.userId,
+          type: 'APPROVAL',
+          title: 'Subscription Request Rejected',
+          subtitle: adminNotes
+            ? `Your subscription request was rejected: ${adminNotes}`
+            : 'Your subscription request was not approved.',
+          link: '/dashboard/host/billing',
+          metadata: {
+            requestId,
+            reason: adminNotes,
+          },
+        });
+      } catch (err) {
+        console.error('Failed to dispatch subscription rejection notification:', err);
+      }
+    }
+
+    return updated;
   }
 
   async assignSubscriptionManually(

@@ -100,21 +100,58 @@ export default function HostRegistrationForm({
     }
   };
 
+  // Helper to scale & compress images on client to prevent excessive memory and network usage
+  const compressImage = (file: File, maxDim: number = 1200, quality: number = 0.85): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (readerEvent) => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(readerEvent.target?.result as string);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL(file.type === "image/png" ? "image/png" : "image/jpeg", quality));
+        };
+        img.onerror = () => resolve(readerEvent.target?.result as string);
+        img.src = readerEvent.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   // Profile photo file selection with local uploader data URL preview
-  const handlePhotoUpload = (
+  const handlePhotoUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     field: "profilePhoto" | "businessLogo" | "businessBanner"
   ) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
+      try {
+        const compressedDataUrl = await compressImage(file, field === "profilePhoto" ? 800 : 1200, 0.85);
         setFormData((prev) => ({
           ...prev,
-          [field]: reader.result as string,
+          [field]: compressedDataUrl,
         }));
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.error("Failed to process image:", err);
+      }
     }
   };
 

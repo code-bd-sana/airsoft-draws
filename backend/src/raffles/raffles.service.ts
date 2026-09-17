@@ -3,13 +3,19 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class RafflesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional()
+    private readonly notificationsService?: NotificationsService,
+  ) {}
 
   async create(hostId: string, data: any) {
     const hostProfile = await this.prisma.hostProfile.findUnique({
@@ -186,18 +192,40 @@ export class RafflesService {
     // Conditions array for Prisma whereClause
     const conditions: any[] = [{ status: 'ACTIVE' }];
 
-    // Category filter (flexible case-insensitive and partial match)
+    // Category filter (flexible case-insensitive and match against DB categories)
     if (category && category !== 'All' && category !== 'all') {
       const cleanCat = category.replace(/-/g, ' ').trim();
-      const tokens = cleanCat.split(/\s+/).filter((t: string) => t.length > 2);
+
+      // Look up matching Category from DB by slug or name
+      const matchedCategory = await this.prisma.category.findFirst({
+        where: {
+          OR: [
+            { slug: { equals: category, mode: 'insensitive' } },
+            { name: { equals: category, mode: 'insensitive' } },
+            { name: { equals: cleanCat, mode: 'insensitive' } },
+          ],
+        },
+      });
+
+      const categoryOrConditions: any[] = [
+        { category: { equals: category, mode: 'insensitive' } },
+        { category: { equals: cleanCat, mode: 'insensitive' } },
+      ];
+
+      if (matchedCategory) {
+        categoryOrConditions.push(
+          { category: { equals: matchedCategory.name, mode: 'insensitive' } },
+          { category: { equals: matchedCategory.slug, mode: 'insensitive' } },
+          { category: { contains: matchedCategory.name, mode: 'insensitive' } },
+        );
+      } else {
+        categoryOrConditions.push({
+          category: { contains: cleanCat, mode: 'insensitive' },
+        });
+      }
+
       conditions.push({
-        OR: [
-          { category: { equals: category, mode: 'insensitive' } },
-          { category: { contains: cleanCat, mode: 'insensitive' } },
-          ...tokens.map((token: string) => ({
-            category: { contains: token, mode: 'insensitive' },
-          })),
-        ],
+        OR: categoryOrConditions,
       });
     }
 
@@ -536,26 +564,84 @@ export class RafflesService {
   }
 
   async approve(id: string) {
-    const raffle = await this.prisma.raffle.findUnique({ where: { id } });
+    const raffle = await this.prisma.raffle.findUnique({
+      where: { id },
+      include: { host: true },
+    });
     if (!raffle) throw new NotFoundException('Raffle not found');
 
-    return this.prisma.raffle.update({
+    const updated = await this.prisma.raffle.update({
       where: { id },
       data: { status: 'ACTIVE' },
     });
+
+    if (this.notificationsService && raffle.host?.userId) {
+      try {
+        await this.notificationsService.createNotification({
+          userId: raffle.host.userId,
+          type: 'APPROVAL',
+          title: 'Competition Approved',
+          subtitle: `Your competition "${raffle.title}" has been approved and is now live!`,
+          link: '/dashboard/host/competitions',
+          metadata: { raffleId: raffle.id, status: 'ACTIVE' },
+        });
+      } catch (err) {
+        console.error('Failed to dispatch raffle approval notification:', err);
+      }
+    }
+
+    return updated;
+  }
+
+  async reject(id: string, reason?: string) {
+    const raffle = await this.prisma.raffle.findUnique({
+      where: { id },
+      include: { host: true },
+    });
+    if (!raffle) throw new NotFoundException('Raffle not found');
+
+    const updated = await this.prisma.raffle.update({
+      where: { id },
+      data: { status: 'CANCELLED' },
+    });
+
+    if (this.notificationsService && raffle.host?.userId) {
+      try {
+        await this.notificationsService.createNotification({
+          userId: raffle.host.userId,
+          type: 'APPROVAL',
+          title: 'Competition Rejected',
+          subtitle: reason
+            ? `Your competition "${raffle.title}" was not approved: ${reason}`
+            : `Your competition "${raffle.title}" was not approved.`,
+          link: '/dashboard/host/competitions',
+          metadata: { raffleId: raffle.id, status: 'CANCELLED', reason },
+        });
+      } catch (err) {
+        console.error('Failed to dispatch raffle rejection notification:', err);
+      }
+    }
+
+    return updated;
   }
 
   async drawWinner(raffleId: string, winningTicketNumber?: number) {
-    return this.prisma.$transaction(async (tx) => {
+    let hostUserId: string | undefined;
+    let raffleTitle: string = 'Competition';
+
+    const winner = await this.prisma.$transaction(async (tx) => {
       // 1. Get the raffle and check its status
       const raffle = await tx.raffle.findUnique({
         where: { id: raffleId },
-        include: { winners: true, tickets: true },
+        include: { winners: true, tickets: true, host: true },
       });
 
       if (!raffle) {
         throw new NotFoundException('Raffle not found');
       }
+
+      hostUserId = raffle.host?.userId;
+      raffleTitle = raffle.title;
 
       const hasMainWinner = raffle.winners.some(
         (w) => w.winType === 'MAIN_DRAW',
@@ -591,7 +677,7 @@ export class RafflesService {
       }
 
       // 3. Create the Winner record
-      const winner = await tx.winner.create({
+      const createdWinner = await tx.winner.create({
         data: {
           userId: winningTicket.userId,
           raffleId: raffle.id,
@@ -608,8 +694,46 @@ export class RafflesService {
         data: { status: 'ENDED' },
       });
 
-      return winner;
+      return createdWinner;
     });
+
+    // Notify Winner and Host (outside transaction)
+    if (this.notificationsService && winner) {
+      try {
+        // 1. Notify Winner
+        await this.notificationsService.createNotification({
+          userId: winner.userId,
+          type: 'WIN',
+          title: '🏆 You Won the Competition!',
+          subtitle: `Congratulations! You won "${winner.prizeName}" in "${raffleTitle}"!`,
+          link: '/dashboard/user/wins',
+          metadata: {
+            raffleId,
+            prizeName: winner.prizeName,
+            ticketId: winner.ticketId,
+          },
+        });
+
+        // 2. Notify Host
+        if (hostUserId) {
+          await this.notificationsService.createNotification({
+            userId: hostUserId,
+            type: 'DRAW',
+            title: 'Draw Completed',
+            subtitle: `Winner has been drawn for "${raffleTitle}".`,
+            link: '/dashboard/host/competitions',
+            metadata: {
+              raffleId,
+              winnerUserId: winner.userId,
+            },
+          });
+        }
+      } catch (err) {
+        console.error('Failed to dispatch draw notifications:', err);
+      }
+    }
+
+    return winner;
   }
 
   async getRaffleSoldTickets(raffleId: string) {

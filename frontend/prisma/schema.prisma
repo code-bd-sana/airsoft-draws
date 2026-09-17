@@ -27,6 +27,7 @@ model User {
   tickets      Ticket[]
   transactions Transaction[]
   winners      Winner[]
+  notifications Notification[]
 
   @@map("users")
 }
@@ -201,3 +202,22 @@ model Withdrawal {
 
   @@map("withdrawals")
 }
+
+model Notification {
+  id        String   @id @default(uuid()) @db.VarChar(255)
+  userId    String   @map("user_id") @db.VarChar(255)
+  type      String   @db.VarChar(50) // WIN, PAYMENT, DRAW, APPROVAL, WITHDRAWAL, SYSTEM
+  title     String   @db.VarChar(255)
+  subtitle  String?  @db.Text
+  link      String?  @db.VarChar(255)
+  isRead    Boolean  @default(false) @map("is_read")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+

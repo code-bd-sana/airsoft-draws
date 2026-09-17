@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { cn } from "../../../lib/utils";
+import { usePublicCategories } from "../../../hooks/useCategoryHooks";
 
 interface LiveRafflesFilterBarProps {
   activeCategory: string;
@@ -31,15 +32,33 @@ export default function LiveRafflesFilterBar({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const { data: dbCategories = [] } = usePublicCategories();
+
   const categories = [
     { label: "All", value: "all" },
-    { label: "Rifles", value: "rifles" },
-    { label: "Pistols", value: "pistols" },
-    { label: "Snipers", value: "sniper-rifles" },
-    { label: "Accessories", value: "accessories" },
-    { label: "Apparel", value: "gear-and-apparel" },
-    { label: "Cash Prizes", value: "cash-prizes" },
+    ...(dbCategories.length > 0
+      ? dbCategories.map((c) => ({ label: c.name, value: c.slug }))
+      : [
+          { label: "Rifles", value: "rifles" },
+          { label: "Pistols", value: "pistols" },
+          { label: "Snipers", value: "sniper-rifles" },
+          { label: "Accessories", value: "accessories" },
+          { label: "Apparel", value: "gear-and-apparel" },
+          { label: "Cash Prizes", value: "cash-prizes" },
+        ]),
   ];
+
+  const isCategoryActive = (catValue: string, catLabel: string) => {
+    if (catValue === "all") {
+      return !activeCategory || activeCategory === "all";
+    }
+    const current = (activeCategory || "").toLowerCase().trim();
+    return (
+      current === catValue.toLowerCase() ||
+      current === catLabel.toLowerCase() ||
+      current.replace(/-/g, " ") === catLabel.toLowerCase()
+    );
+  };
 
   const sortOptions = [
     { label: "Featured", value: "featured" },
@@ -68,20 +87,23 @@ export default function LiveRafflesFilterBar({
         
         {/* Category Pills (Horizontal scrolling list on small screens) */}
         <div className="overflow-x-auto -mx-5 px-5 lg:mx-0 lg:px-0 scrollbar-none flex items-center gap-2 select-none shrink-0 py-1">
-          {categories.map((cat) => (
-            <button
-              key={cat.value}
-              onClick={() => setActiveCategory(cat.value)}
-              className={cn(
-                "font-sans font-medium text-xs px-4 py-2 rounded-badge border shrink-0 transition-all duration-200 cursor-pointer select-none",
-                activeCategory === cat.value
-                  ? "bg-primary border-primary text-primary-text font-semibold hover:bg-primary-hover shadow-glow"
-                  : "bg-surface border-border text-text-secondary hover:text-text-primary hover:border-border-medium"
-              )}
-            >
-              {cat.label}
-            </button>
-          ))}
+          {categories.map((cat) => {
+            const isActive = isCategoryActive(cat.value, cat.label);
+            return (
+              <button
+                key={cat.value}
+                onClick={() => setActiveCategory(cat.value)}
+                className={cn(
+                  "font-sans font-medium text-xs px-4 py-2 rounded-badge border shrink-0 transition-all duration-200 cursor-pointer select-none",
+                  isActive
+                    ? "bg-primary border-primary text-primary-text font-semibold hover:bg-primary-hover shadow-glow"
+                    : "bg-surface border-border text-text-secondary hover:text-text-primary hover:border-border-medium"
+                )}
+              >
+                {cat.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Search, Sort & Layout Controls Row */}

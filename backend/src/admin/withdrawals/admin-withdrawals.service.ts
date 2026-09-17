@@ -1,9 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificationsService } from '../../notifications/notifications.service';
 
 @Injectable()
 export class AdminWithdrawalsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional()
+    private readonly notificationsService?: NotificationsService,
+  ) {}
 
   async findAll() {
     const withdrawals = await this.prisma.withdrawal.findMany({
@@ -78,7 +83,7 @@ export class AdminWithdrawalsService {
       return withdrawal;
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       // If rejected and previously PENDING, refund host's wallet
       if (status === 'REJECTED' && withdrawal.status === 'PENDING') {
         await tx.hostProfile.update({
@@ -101,5 +106,29 @@ export class AdminWithdrawalsService {
 
       return updated;
     });
+
+    if (this.notificationsService && withdrawal.host?.userId) {
+      try {
+        const isApproved = status === 'APPROVED' || status === 'COMPLETED';
+        await this.notificationsService.createNotification({
+          userId: withdrawal.host.userId,
+          type: 'WITHDRAWAL',
+          title: isApproved ? 'Withdrawal Approved' : 'Withdrawal Request Rejected',
+          subtitle: isApproved
+            ? `Your payout request of £${Number(withdrawal.amount).toFixed(2)} has been ${status.toLowerCase()}.`
+            : `Your payout request of £${Number(withdrawal.amount).toFixed(2)} was rejected.${adminNotes ? ' Reason: ' + adminNotes : ''}`,
+          link: '/dashboard/host/wallet',
+          metadata: {
+            withdrawalId: withdrawal.id,
+            status,
+            amount: Number(withdrawal.amount),
+          },
+        });
+      } catch (err) {
+        console.error('Failed to dispatch withdrawal status notification:', err);
+      }
+    }
+
+    return result;
   }
 }

@@ -16,6 +16,7 @@ import { TicketsModule } from './tickets/tickets.module';
 import { AdminModule } from './admin/admin.module';
 import { CategoriesModule } from './categories/categories.module';
 import { MarketingModule } from './marketing/marketing.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { MarketingModule } from './marketing/marketing.module';
     ScheduleModule.forRoot(),
     CategoriesModule,
     MarketingModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

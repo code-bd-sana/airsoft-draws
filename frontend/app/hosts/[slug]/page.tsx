@@ -75,14 +75,18 @@ export default async function HostProfilePage({ params }: PageProps) {
               <HostProfileHeader 
                 name={name}
                 logo={host.logo || initials}
-                bio={host.bio || "Airsoft draws host"}
+                banner={host.banner}
+                bio={host.bio}
+                phone={host.phone}
+                address={host.address}
+                vatNumber={host.vatNumber}
                 isVerified={host.isVerified}
                 drawsHosted={host.drawsHosted}
                 rating={host.rating}
                 memberSince={host.memberSince}
               />
               
-              <HostProfileTabs raffles={host.raffles} />
+              <HostProfileTabs host={host} raffles={host.raffles} />
             </div>
 
           </div>

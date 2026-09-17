@@ -448,4 +448,18 @@ export class RafflesController {
   approve(@Param('id') id: string) {
     return this.rafflesService.approve(id);
   }
+
+  @Patch('admin/:id/reject')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Reject a pending raffle' })
+  @ApiParam({ name: 'id', description: 'Raffle ID to reject' })
+  @ApiResponse({ status: 200, description: 'Raffle rejected successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Raffle not found' })
+  reject(@Param('id') id: string, @Body('reason') reason?: string) {
+    return this.rafflesService.reject(id, reason);
+  }
 }
