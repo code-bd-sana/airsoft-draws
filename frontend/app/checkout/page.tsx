@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import WebsiteNavbar from "../../components/website/layout/WebsiteNavbar";
 import WebsiteFooter from "../../components/website/layout/WebsiteFooter";
-import { useBasket } from "../../features/basket/BasketContext";
+import { useBasket, BasketItem } from "../../features/basket/BasketContext";
 import { useAuthUser } from "../../hooks/useAuthHooks";
 import { api } from "../../services/api";
 
@@ -140,18 +140,57 @@ interface PurchaseResult {
   totalAmount: number;
 }
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isDirectParam = searchParams.get("direct") === "true";
   const { data: user, isLoading: isUserLoading } = useAuthUser();
   const {
-    items,
-    itemCount,
-    ticketCount,
-    totalAmount,
-    hasRifItems,
-    isHydrated,
+    items: basketItems,
+    itemCount: basketItemCount,
+    ticketCount: basketTicketCount,
+    totalAmount: basketTotalAmount,
+    hasRifItems: basketHasRifItems,
+    isHydrated: isBasketHydrated,
     clearBasket,
+    removeFromBasket,
   } = useBasket();
+
+  const [directItem, setDirectItem] = useState<BasketItem | null>(null);
+  const [isDirectHydrated, setIsDirectHydrated] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("direct_checkout_item");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.raffleId) {
+            setDirectItem(parsed);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to parse direct_checkout_item:", e);
+      } finally {
+        setIsDirectHydrated(true);
+      }
+    }
+  }, []);
+
+  const isDirectCheckout = isDirectParam && !!directItem;
+  const isHydrated = isDirectParam ? (isDirectHydrated && isBasketHydrated) : isBasketHydrated;
+
+  const items: BasketItem[] = isDirectCheckout && directItem ? [directItem] : basketItems;
+  const itemCount = isDirectCheckout ? (directItem ? 1 : 0) : basketItemCount;
+  const ticketCount = isDirectCheckout
+    ? (directItem?.quantity || 0)
+    : basketTicketCount;
+  const totalAmount = isDirectCheckout
+    ? (directItem ? directItem.quantity * directItem.ticketPrice : 0)
+    : basketTotalAmount;
+  const hasRifItems = isDirectCheckout
+    ? (directItem ? (directItem.prizeClassification || "RIF") === "RIF" : false)
+    : basketHasRifItems;
 
   // Contact Information Form State
   const [firstName, setFirstName] = useState("");
@@ -250,9 +289,10 @@ export default function CheckoutPage() {
   // Immediate redirect for unauthenticated visitors
   useEffect(() => {
     if (!isUserLoading && !user) {
-      router.replace("/login?redirect=/checkout");
+      const redirectUrl = isDirectParam ? "/checkout?direct=true" : "/checkout";
+      router.replace(`/login?redirect=${encodeURIComponent(redirectUrl)}`);
     }
-  }, [isUserLoading, user, router]);
+  }, [isUserLoading, user, router, isDirectParam]);
 
   // Comprehensive pre-fill from authenticated user profile
   useEffect(() => {
@@ -395,6 +435,15 @@ export default function CheckoutPage() {
 
       // If Cashflows gateway redirect URL is present
       if (data?.url) {
+        if (isDirectCheckout) {
+          try {
+            localStorage.setItem("direct_checkout_pending", "true");
+            if (directItem?.raffleId) {
+              localStorage.setItem("direct_checkout_raffle_id", directItem.raffleId);
+            }
+            localStorage.removeItem("direct_checkout_item");
+          } catch {}
+        }
         window.location.href = data.url;
         return;
       }
@@ -408,8 +457,17 @@ export default function CheckoutPage() {
         totalAmount: data.totalAmount || totalAmount,
       });
 
-      // Clear basket after successful purchase
-      clearBasket();
+      if (isDirectCheckout) {
+        try {
+          localStorage.removeItem("direct_checkout_item");
+          if (directItem?.raffleId) {
+            removeFromBasket(directItem.raffleId);
+          }
+        } catch {}
+      } else {
+        // Clear basket after successful basket purchase
+        clearBasket();
+      }
     } catch (err: any) {
       const msg =
         err.response?.data?.message ||
@@ -465,13 +523,13 @@ export default function CheckoutPage() {
             </div>
             <div className="w-full flex flex-col gap-3">
               <Link
-                href="/login?redirect=/checkout"
+                href={`/login?redirect=${encodeURIComponent(isDirectParam ? "/checkout?direct=true" : "/checkout")}`}
                 className="w-full h-12 bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] font-heading font-semibold text-sm rounded-lg transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(140,179,74,0.2)]"
               >
                 Log In to Checkout →
               </Link>
               <Link
-                href="/register?redirect=/checkout"
+                href={`/register?redirect=${encodeURIComponent(isDirectParam ? "/checkout?direct=true" : "/checkout")}`}
                 className="w-full h-11 bg-transparent hover:bg-[#1A230A] border border-[#2D3C13] text-[#E8EDD4] font-sans font-medium text-xs rounded-lg transition-colors flex items-center justify-center"
               >
                 Create New Account
@@ -595,10 +653,12 @@ export default function CheckoutPage() {
             /* Empty Basket on Checkout */
             <div className="bg-[#111210] border border-[#2D3C13] rounded-2xl p-12 text-center flex flex-col items-center gap-5 max-w-xl mx-auto shadow-xl">
               <h3 className="font-heading font-bold text-xl text-[#E8EDD4]">
-                No Items in Basket
+                {isDirectParam ? "No Competition Selected" : "No Items in Basket"}
               </h3>
               <p className="font-sans text-xs text-[#72943A]">
-                You need to add competition tickets to your basket before proceeding to checkout.
+                {isDirectParam
+                  ? "We couldn't find your instant entry competition. Please select a competition to enter directly or add tickets to your basket."
+                  : "You need to add competition tickets to your basket before proceeding to checkout."}
               </p>
               <Link
                 href="/live-raffles"
@@ -642,6 +702,41 @@ export default function CheckoutPage() {
                       </p>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Instant Direct Entry Notification Banner */}
+              {isDirectCheckout && basketItems.length > 0 && (
+                <div className="bg-[#161810] border border-[#8CB34A]/40 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-md">
+                  <div className="flex items-center gap-2.5 text-[#E8EDD4]">
+                    <span className="text-base text-[#8CB34A] shrink-0">⚡</span>
+                    <p>
+                      <strong className="text-[#8CB34A]">Instant Direct Entry:</strong> You are checking out only this competition directly. Your <strong>{basketItemCount} other basket item{basketItemCount > 1 ? "s" : ""}</strong> (£{basketTotalAmount.toFixed(2)}) will remain safely saved in your shopping basket.
+                    </p>
+                  </div>
+                  <Link
+                    href="/checkout"
+                    className="text-[#8CB34A] hover:text-[#A0D056] font-semibold underline whitespace-nowrap self-start sm:self-auto shrink-0 transition-colors"
+                  >
+                    Checkout full basket instead ({basketItemCount}) →
+                  </Link>
+                </div>
+              )}
+
+              {!isDirectCheckout && directItem && (
+                <div className="bg-[#161810] border border-[#2D3C13] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-md">
+                  <div className="flex items-center gap-2.5 text-[#E8EDD4]">
+                    <span className="text-base text-[#8CB34A] shrink-0">⚡</span>
+                    <p>
+                      You also have a pending instant direct entry for <strong>{directItem.title}</strong> ({directItem.quantity} ticket{directItem.quantity > 1 ? "s" : ""} — £{(directItem.quantity * directItem.ticketPrice).toFixed(2)}).
+                    </p>
+                  </div>
+                  <Link
+                    href="/checkout?direct=true"
+                    className="text-[#8CB34A] hover:text-[#A0D056] font-semibold underline whitespace-nowrap self-start sm:self-auto shrink-0 transition-colors"
+                  >
+                    Switch to Instant Entry →
+                  </Link>
                 </div>
               )}
 
@@ -1006,9 +1101,16 @@ export default function CheckoutPage() {
 
                 {/* Right Column: Order Summary & Pay CTA */}
                 <div className="lg:col-span-5 bg-[#111210] border border-[#2D3C13] rounded-2xl p-6 flex flex-col gap-5 sticky top-28 shadow-xl">
-                  <h3 className="font-heading font-bold text-lg text-[#E8EDD4] border-b border-[#2D3C13] pb-3">
-                    Items in Order ({itemCount})
-                  </h3>
+                  <div className="flex items-center justify-between border-b border-[#2D3C13] pb-3">
+                    <h3 className="font-heading font-bold text-lg text-[#E8EDD4]">
+                      {isDirectCheckout ? "Direct Competition Entry" : `Items in Order (${itemCount})`}
+                    </h3>
+                    {isDirectCheckout && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#1A230A] text-[#8CB34A] border border-[#8CB34A]/40">
+                        Instant Entry
+                      </span>
+                    )}
+                  </div>
 
                   {/* Mini Cart Preview */}
                   <div className="flex flex-col gap-3 max-h-60 overflow-y-auto pr-1">
@@ -1097,5 +1199,30 @@ export default function CheckoutPage() {
 
       <WebsiteFooter />
     </>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <>
+          <WebsiteNavbar />
+          <main className="min-h-screen bg-[#0D0D0B] text-[#E8EDD4] pt-32 pb-24 px-4 flex flex-col items-center justify-center">
+            <div className="flex flex-col items-center gap-4 bg-[#111210] border border-[#2D3C13] rounded-2xl p-8 max-w-sm w-full text-center shadow-xl">
+              <div className="w-10 h-10 border-3 border-[#8CB34A] border-t-transparent rounded-full animate-spin" />
+              <div className="flex flex-col gap-1">
+                <h3 className="font-heading font-semibold text-sm text-[#E8EDD4]">
+                  Loading Checkout...
+                </h3>
+              </div>
+            </div>
+          </main>
+          <WebsiteFooter />
+        </>
+      }
+    >
+      <CheckoutContent />
+    </React.Suspense>
   );
 }

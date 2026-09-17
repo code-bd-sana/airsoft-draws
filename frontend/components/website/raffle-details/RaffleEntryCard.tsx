@@ -171,8 +171,8 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
     }
 
     if (!isAuthenticated) {
-      // Add tickets to basket so their selection is preserved across login
-      addToBasket({
+      // Save direct checkout item and redirect to login
+      const directItem = {
         raffleId: raffle.id,
         title: raffle.title,
         slug: raffle.slug,
@@ -187,8 +187,13 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
         hostName: raffle.hostName,
         minTickets,
         maxTickets,
-      });
-      router.push('/login?redirect=/checkout');
+      };
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("direct_checkout_item", JSON.stringify(directItem));
+        } catch {}
+      }
+      router.push(`/login?redirect=${encodeURIComponent('/checkout?direct=true')}`);
       return;
     }
 
@@ -211,8 +216,8 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
       } catch {}
     }
 
-    // Add tickets to basket
-    addToBasket({
+    // Save direct checkout item (do not pollute shopping basket)
+    const directItem = {
       raffleId: raffle.id,
       title: raffle.title,
       slug: raffle.slug,
@@ -227,11 +232,17 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
       hostName: raffle.hostName,
       minTickets,
       maxTickets,
-    });
+    };
+
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("direct_checkout_item", JSON.stringify(directItem));
+      } catch {}
+    }
 
     setIsComplianceModalOpen(false);
-    // Bring user to /checkout to verify email, phone, and delivery address before Cashflows payment
-    router.push('/checkout');
+    // Bring user to /checkout?direct=true to complete direct purchase
+    router.push('/checkout?direct=true');
   };
 
   return (

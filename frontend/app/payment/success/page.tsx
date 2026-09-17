@@ -11,7 +11,7 @@ import { api } from "../../../services/api";
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
-  const { clearBasket } = useBasket();
+  const { clearBasket, removeFromBasket } = useBasket();
   const { data: user } = useAuthUser();
 
   const orderNumber =
@@ -46,7 +46,20 @@ function PaymentSuccessContent() {
         if (isMounted) {
           setConfirmResult(res.data);
           if (res.data?.success) {
-            clearBasket();
+            const isDirectPending =
+              typeof window !== "undefined" &&
+              localStorage.getItem("direct_checkout_pending") === "true";
+
+            if (isDirectPending) {
+              const directRaffleId = localStorage.getItem("direct_checkout_raffle_id");
+              localStorage.removeItem("direct_checkout_pending");
+              if (directRaffleId) {
+                removeFromBasket(directRaffleId);
+                localStorage.removeItem("direct_checkout_raffle_id");
+              }
+            } else {
+              clearBasket();
+            }
           }
         }
       } catch (err: any) {
