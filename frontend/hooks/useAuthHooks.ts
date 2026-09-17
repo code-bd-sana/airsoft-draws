@@ -9,8 +9,16 @@ export const useLoginMutation = (customRedirect?: string) => {
   return useMutation({
     mutationFn: authService.login,
     onSuccess: (data: AuthResponse) => {
-      if (data?.user) {
-        queryClient.setQueryData(['user'], data.user);
+      const userObj = data?.user || (data as any);
+      if (userObj) {
+        queryClient.setQueryData(['user'], userObj);
+        
+        if (typeof window !== 'undefined' && userObj.email) {
+          try {
+            localStorage.setItem('user_email', userObj.email);
+            localStorage.setItem('user_data', JSON.stringify(userObj));
+          } catch {}
+        }
         
         let destination = customRedirect;
         if (!destination && typeof window !== 'undefined') {
@@ -48,8 +56,17 @@ export const useAuthUser = () => {
     queryKey: ['user'],
     queryFn: async () => {
       try {
-        const { user } = await authService.me();
-        return user;
+        const res: any = await authService.me();
+        const user = res?.user || res;
+        if (user && typeof window !== 'undefined') {
+          if (user.email) {
+            try {
+              localStorage.setItem('user_email', user.email);
+              localStorage.setItem('user_data', JSON.stringify(user));
+            } catch {}
+          }
+        }
+        return user || null;
       } catch (error) {
         return null;
       }
@@ -59,19 +76,29 @@ export const useAuthUser = () => {
   });
 };
 
-export const useLogout = () => {
+export const useLogoutMutation = () => {
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  return async () => {
-    try {
-      await authService.logout();
-    } catch (e) {
-      console.error('Logout failed', e);
-    } finally {
+  return useMutation({
+    mutationFn: authService.logout,
+    onSuccess: () => {
       queryClient.setQueryData(['user'], null);
-      queryClient.clear();
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.removeItem('user_email');
+          localStorage.removeItem('user_data');
+        } catch {}
+      }
       router.push('/login');
-    }
+    },
+  });
+};
+
+export const useLogout = () => {
+  const mutation = useLogoutMutation();
+  const logoutFn = async () => {
+    await mutation.mutateAsync();
   };
+  return Object.assign(logoutFn, mutation);
 };

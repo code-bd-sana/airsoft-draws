@@ -8,6 +8,107 @@ import WebsiteFooter from "../../components/website/layout/WebsiteFooter";
 import { useBasket } from "../../features/basket/BasketContext";
 import { useAuthUser } from "../../hooks/useAuthHooks";
 
+interface BasketQuantityInputProps {
+  raffleId: string;
+  quantity: number;
+  minTickets: number;
+  maxTickets: number;
+  onUpdate: (raffleId: string, newQuantity: number) => void;
+}
+
+function BasketQuantityInput({
+  raffleId,
+  quantity,
+  minTickets,
+  maxTickets,
+  onUpdate,
+}: BasketQuantityInputProps) {
+  const [inputValue, setInputValue] = React.useState(quantity.toString());
+
+  React.useEffect(() => {
+    setInputValue(quantity.toString());
+  }, [quantity]);
+
+  const commitValue = (valStr: string) => {
+    const parsed = parseInt(valStr, 10);
+    if (isNaN(parsed) || parsed < minTickets) {
+      onUpdate(raffleId, minTickets);
+      setInputValue(minTickets.toString());
+    } else if (parsed > maxTickets) {
+      onUpdate(raffleId, maxTickets);
+      setInputValue(maxTickets.toString());
+    } else {
+      onUpdate(raffleId, parsed);
+      setInputValue(parsed.toString());
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/[^0-9]/g, "");
+    setInputValue(raw);
+    if (raw !== "") {
+      const parsed = parseInt(raw, 10);
+      if (parsed >= minTickets && parsed <= maxTickets) {
+        onUpdate(raffleId, parsed);
+      }
+    }
+  };
+
+  const handleBlur = () => {
+    commitValue(inputValue);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.currentTarget.blur();
+    }
+  };
+
+  const handleDecrement = () => {
+    const next = Math.max(minTickets, quantity - 1);
+    onUpdate(raffleId, next);
+  };
+
+  const handleIncrement = () => {
+    const next = Math.min(maxTickets, quantity + 1);
+    onUpdate(raffleId, next);
+  };
+
+  return (
+    <div className="flex items-center h-9 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg overflow-hidden focus-within:border-[#8CB34A] transition-colors">
+      <button
+        type="button"
+        onClick={handleDecrement}
+        disabled={quantity <= minTickets}
+        className="w-8 h-full flex items-center justify-center bg-[#1A230A] text-[#8CB34A] hover:bg-[#2D3C13] disabled:text-[#43581E] disabled:hover:bg-[#1A230A] transition-colors text-sm font-bold cursor-pointer disabled:cursor-not-allowed shrink-0"
+        aria-label="Decrease ticket quantity"
+      >
+        -
+      </button>
+      <input
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        value={inputValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        className="w-12 h-full text-center bg-transparent font-sans font-medium text-xs text-[#E8EDD4] focus:outline-none focus:bg-[#1A230A] border-x border-[#2D3C13] select-all cursor-text [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-colors"
+        aria-label="Ticket quantity"
+      />
+      <button
+        type="button"
+        onClick={handleIncrement}
+        disabled={quantity >= maxTickets}
+        className="w-8 h-full flex items-center justify-center bg-[#1A230A] text-[#8CB34A] hover:bg-[#2D3C13] disabled:text-[#43581E] disabled:hover:bg-[#1A230A] transition-colors text-sm font-bold cursor-pointer disabled:cursor-not-allowed shrink-0"
+        aria-label="Increase ticket quantity"
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
 export default function BasketPage() {
   const { data: user } = useAuthUser();
   const {
@@ -172,32 +273,17 @@ export default function BasketPage() {
                       {/* Right: Quantity Controls & Subtotal */}
                       <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-[#2D3C13]/50 shrink-0">
                         {/* Quantity Counter */}
-                        <div className="flex items-center h-9 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg overflow-hidden">
-                          <button
-                            onClick={() => updateQuantity(item.raffleId, item.quantity - 1)}
-                            disabled={item.quantity <= (item.minTickets || 1)}
-                            className="w-8 h-full flex items-center justify-center bg-[#1A230A] text-[#8CB34A] hover:bg-[#2D3C13] disabled:text-[#43581E] disabled:hover:bg-[#1A230A] transition-colors text-sm font-bold cursor-pointer disabled:cursor-not-allowed"
-                            aria-label="Decrease ticket quantity"
-                          >
-                            -
-                          </button>
-                          <span className="w-10 h-full flex items-center justify-center font-sans font-medium text-xs text-[#E8EDD4]">
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(item.raffleId, item.quantity + 1)}
-                            disabled={
-                              item.quantity >=
-                              (item.maxTickets
-                                ? Math.min(item.remainingTickets, item.maxTickets)
-                                : item.remainingTickets)
-                            }
-                            className="w-8 h-full flex items-center justify-center bg-[#1A230A] text-[#8CB34A] hover:bg-[#2D3C13] disabled:text-[#43581E] disabled:hover:bg-[#1A230A] transition-colors text-sm font-bold cursor-pointer disabled:cursor-not-allowed"
-                            aria-label="Increase ticket quantity"
-                          >
-                            +
-                          </button>
-                        </div>
+                        <BasketQuantityInput
+                          raffleId={item.raffleId}
+                          quantity={item.quantity}
+                          minTickets={item.minTickets || 1}
+                          maxTickets={
+                            item.maxTickets
+                              ? Math.min(item.remainingTickets, item.maxTickets)
+                              : item.remainingTickets
+                          }
+                          onUpdate={updateQuantity}
+                        />
 
                         {/* Price */}
                         <div className="text-right min-w-[70px]">

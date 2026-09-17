@@ -79,6 +79,37 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
     return filtered.slice(0, 4);
   }, [minTickets, effectiveMax]);
 
+  const [quantityInput, setQuantityInput] = useState<string>(quantity.toString());
+
+  useEffect(() => {
+    setQuantityInput(quantity.toString());
+  }, [quantity]);
+
+  const commitQuantityInput = (valStr: string) => {
+    const parsed = parseInt(valStr, 10);
+    if (isNaN(parsed) || parsed < minTickets) {
+      setQuantity(minTickets);
+      setQuantityInput(minTickets.toString());
+    } else if (parsed > effectiveMax) {
+      setQuantity(effectiveMax);
+      setQuantityInput(effectiveMax.toString());
+    } else {
+      setQuantity(parsed);
+      setQuantityInput(parsed.toString());
+    }
+  };
+
+  const handleQuantityInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/[^0-9]/g, "");
+    setQuantityInput(raw);
+    if (raw !== "") {
+      const parsed = parseInt(raw, 10);
+      if (parsed >= minTickets && parsed <= effectiveMax) {
+        setQuantity(parsed);
+      }
+    }
+  };
+
   const handleQuickPick = (val: number) => setQuantity(Math.max(minTickets, Math.min(val, effectiveMax)));
   const handleDecrement = () => setQuantity((prev: number) => (prev > minTickets ? prev - 1 : minTickets));
   const handleIncrement = () => setQuantity((prev: number) => (prev < effectiveMax ? prev + 1 : prev));
@@ -124,11 +155,6 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
   };
 
   const handleOpenCheckoutModal = () => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-    
     if (quantity < minTickets) {
       setStatusMessage({ type: 'error', text: `Minimum ${minTickets} tickets required for this competition.` });
       return;
@@ -144,6 +170,28 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
       return;
     }
 
+    if (!isAuthenticated) {
+      // Add tickets to basket so their selection is preserved across login
+      addToBasket({
+        raffleId: raffle.id,
+        title: raffle.title,
+        slug: raffle.slug,
+        mainImage: raffle.images?.[0] || '',
+        ticketPrice: raffle.ticketPrice,
+        quantity,
+        totalTickets: raffle.totalTickets,
+        soldTickets: raffle.soldTickets,
+        remainingTickets,
+        prizeClassification: (raffle as any).prizeClassification || 'RIF',
+        endDate: raffle.endDate,
+        hostName: raffle.hostName,
+        minTickets,
+        maxTickets,
+      });
+      router.push('/login?redirect=/checkout');
+      return;
+    }
+
     setStatusMessage(null);
     setComplianceError(null);
     setIsComplianceModalOpen(true);
@@ -151,46 +199,39 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
 
   const handleConfirmCompliance = (complianceData: { dateOfBirth: string; ukaraNumber?: string; acceptedTerms: boolean }) => {
     setComplianceError(null);
-    purchaseMutation.mutate(
-      {
-        quantity,
-        dateOfBirth: complianceData.dateOfBirth,
-        ukaraNumber: complianceData.ukaraNumber,
-        acceptedTerms: complianceData.acceptedTerms,
-      },
-      {
-        onSuccess: (data) => {
-          setIsComplianceModalOpen(false);
-          if (data?.url) {
-            window.location.href = data.url;
-            return;
-          }
 
-          const formattedWins = (data.instantWins || []).map((iw: any) => {
-            const tk = (data.tickets || []).find((t: any) => t.id === iw.ticketId);
-            return {
-              id: iw.id,
-              ticketId: iw.ticketId,
-              prizeName: iw.prizeName,
-              ticketNumber: tk ? tk.ticketNumber : undefined,
-            };
-          });
+    // Save verified compliance inputs for checkout page prefill
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("checkout_dob", complianceData.dateOfBirth);
+        if (complianceData.ukaraNumber) {
+          localStorage.setItem("checkout_ukara", complianceData.ukaraNumber);
+        }
+        localStorage.setItem("checkout_accepted_terms", "true");
+      } catch {}
+    }
 
-          setPurchaseSuccessData({
-            raffleTitle: raffle.title,
-            tickets: data.tickets || [],
-            instantWins: formattedWins,
-            totalAmount: totalPrice,
-          });
+    // Add tickets to basket
+    addToBasket({
+      raffleId: raffle.id,
+      title: raffle.title,
+      slug: raffle.slug,
+      mainImage: raffle.images?.[0] || '',
+      ticketPrice: raffle.ticketPrice,
+      quantity,
+      totalTickets: raffle.totalTickets,
+      soldTickets: raffle.soldTickets,
+      remainingTickets,
+      prizeClassification: (raffle as any).prizeClassification || 'RIF',
+      endDate: raffle.endDate,
+      hostName: raffle.hostName,
+      minTickets,
+      maxTickets,
+    });
 
-          setQuantity(1);
-        },
-        onError: (error: any) => {
-          const errMsg = error.response?.data?.message || 'Failed to purchase tickets';
-          setComplianceError(errMsg);
-        },
-      }
-    );
+    setIsComplianceModalOpen(false);
+    // Bring user to /checkout to verify email, phone, and delivery address before Cashflows payment
+    router.push('/checkout');
   };
 
   return (
@@ -270,25 +311,41 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
           ))}
         </div>
 
-        <div className="flex items-center h-[44px] bg-[#111210] border border-[#2D3C13] rounded-[8px] overflow-hidden mt-1">
+        <div className="flex items-center h-[44px] bg-[#111210] border border-[#2D3C13] rounded-[8px] overflow-hidden mt-1 focus-within:border-[#8CB34A] transition-colors">
           <button 
+            type="button"
             onClick={handleDecrement}
             disabled={quantity <= minTickets}
-            className={`w-[44px] h-full flex items-center justify-center bg-[#1A230A] text-[#8CB34A] hover:bg-[#2D3C13] transition-colors ${
+            className={`w-[44px] h-full flex items-center justify-center bg-[#1A230A] text-[#8CB34A] hover:bg-[#2D3C13] transition-colors shrink-0 ${
               quantity <= minTickets ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
             }`}
+            aria-label="Decrease ticket quantity"
           >
             -
           </button>
-          <div className="flex-1 h-full flex items-center justify-center font-sans font-medium text-[14px] text-[#E8EDD4] border-x border-[#2D3C13]">
-            {quantity}
-          </div>
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={quantityInput}
+            onChange={handleQuantityInputChange}
+            onBlur={() => commitQuantityInput(quantityInput)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.currentTarget.blur();
+              }
+            }}
+            className="flex-1 h-full text-center bg-transparent font-sans font-medium text-[14px] text-[#E8EDD4] border-x border-[#2D3C13] focus:outline-none focus:bg-[#1A230A] select-all cursor-text [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-colors"
+            aria-label="Ticket quantity"
+          />
           <button 
+            type="button"
             onClick={handleIncrement}
             disabled={quantity >= effectiveMax}
-            className={`w-[44px] h-full flex items-center justify-center bg-[#1A230A] text-[#8CB34A] hover:bg-[#2D3C13] transition-colors ${
+            className={`w-[44px] h-full flex items-center justify-center bg-[#1A230A] text-[#8CB34A] hover:bg-[#2D3C13] transition-colors shrink-0 ${
               quantity >= effectiveMax ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
             }`}
+            aria-label="Increase ticket quantity"
           >
             +
           </button>
@@ -385,6 +442,7 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
         errorMessage={complianceError}
         userDob={(user as any)?.dateOfBirth || null}
         userUkara={(user as any)?.ukaraNumber || null}
+        submitButtonText={`Confirm & Proceed to Checkout — £${totalPrice.toFixed(2)}`}
       />
 
       {/* Instant Ticket Numbers & Instant Win Purchase Confirmation Modal */}

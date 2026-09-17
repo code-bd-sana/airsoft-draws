@@ -1,6 +1,8 @@
 import {
   Controller,
   Post,
+  Get,
+  Query,
   Body,
   Req,
   Headers,
@@ -99,6 +101,42 @@ export class PaymentController {
       headers['cashflow-signature'] ||
       '';
     return this.paymentService.handleWebhook(signature, req.body);
+  }
+
+  @Post('confirm')
+  @ApiOperation({
+    summary: 'Confirm a payment return from Cashflows gateway',
+    description: 'Verifies the orderNumber or paymentJobRef and allocates tickets or activates subscription.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Payment return successfully confirmed',
+  })
+  async confirmPayment(
+    @Body() body: { orderNumber?: string; paymentJobRef?: string },
+  ) {
+    return this.paymentService.confirmPaymentReturn(body);
+  }
+
+  @Get('confirm')
+  @ApiOperation({
+    summary: 'Confirm a payment return via GET query parameters',
+    description: 'Verifies ordernumber/paymentJobRef from gateway return query params.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Payment return successfully confirmed',
+  })
+  async confirmPaymentQuery(
+    @Query('ordernumber') ordernumber?: string,
+    @Query('order') order?: string,
+    @Query('paymentJobRef') paymentJobRef?: string,
+    @Query('ref') ref?: string,
+  ) {
+    return this.paymentService.confirmPaymentReturn({
+      orderNumber: ordernumber || order,
+      paymentJobRef: paymentJobRef || ref,
+    });
   }
 }
 

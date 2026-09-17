@@ -43,7 +43,7 @@ export class PaymentService {
     if (!host) throw new BadRequestException('Host profile not found');
 
     const baseUrl =
-      process.env.CASHFLOWS_BASE_URL || 'https://gateway-int.cashflows.com';
+      process.env.CASHFLOWS_BASE_URL || 'https://gateway.cashflows.com';
     const configId = process.env.CASHFLOWS_CONFIGURATION_ID || '';
 
     // Free Tier Payment Flow (Always activate immediately without payment gateway)
@@ -167,8 +167,8 @@ export class PaymentService {
           firstName: host!.user.firstName || '',
           lastName: host!.user.lastName || '',
         },
-        returnUrl: `${process.env.FRONTEND_URL}/dashboard/host/billing?status=success`,
-        cancelUrl: `${process.env.FRONTEND_URL}/dashboard/host/billing?status=cancel`,
+        returnUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/success?type=subscription&ordernumber=${orderNumber}`,
+        cancelUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/cancel?type=subscription&ordernumber=${orderNumber}`,
       },
     };
 
@@ -187,8 +187,8 @@ export class PaymentService {
         firstName: host.user.firstName || 'Valued',
         lastName: host.user.lastName || 'Customer',
       },
-      returnUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard/host/billing?status=success&ordernumber=${orderNumber}`,
-      cancelUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard/host/billing?status=cancel`,
+      returnUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/success?type=subscription&ordernumber=${orderNumber}`,
+      cancelUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/cancel?type=subscription&ordernumber=${orderNumber}`,
     };
 
     const innerRequestString = JSON.stringify(innerRequestPayload);
@@ -318,7 +318,7 @@ export class PaymentService {
         this.logger.log(`Fetching Cashflows payment-job details for reference: ${paymentJobRef}`);
         const apiKey = process.env.CASHFLOWS_API_KEY || '';
         const configId = process.env.CASHFLOWS_CONFIGURATION_ID || '';
-        const baseUrl = process.env.CASHFLOWS_BASE_URL || 'https://gateway-int.cashflows.com';
+        const baseUrl = process.env.CASHFLOWS_BASE_URL || 'https://gateway.cashflows.com';
 
         const getHash = crypto
           .createHash('sha512')
@@ -437,6 +437,61 @@ export class PaymentService {
         }
       }
 
+      // Handle Multi-Item Basket Order (orderNumber format: BSK_transactionId_timestamp)
+      if (orderNumber && orderNumber.startsWith('BSK_')) {
+        const parts = orderNumber.split('_');
+        const transactionId = parts[1];
+
+        if (transactionId) {
+          const pendingTx = await this.prisma.transaction.findUnique({
+            where: { id: transactionId },
+          });
+
+          if (pendingTx && pendingTx.status === 'PENDING') {
+            this.logger.log(
+              `Processing BSK basket order for transaction ${transactionId} via webhook...`,
+            );
+
+            await this.prisma.transaction.update({
+              where: { id: transactionId },
+              data: {
+                status: 'COMPLETED',
+                gatewayTransactionId: paymentJobRef || orderNumber,
+              },
+            });
+
+            if (
+              pendingTx.relatedEntityId &&
+              pendingTx.relatedEntityId.startsWith('BSK_ITEMS:')
+            ) {
+              const rawItems = pendingTx.relatedEntityId
+                .replace('BSK_ITEMS:', '')
+                .split(',');
+              for (const rawItem of rawItems) {
+                const [rId, qtyStr] = rawItem.split(':');
+                const qty = parseInt(qtyStr || '1', 10);
+                if (rId && qty > 0) {
+                  try {
+                    await this.ticketsService.allocateTicketsInDatabase(
+                      pendingTx.userId,
+                      rId,
+                      qty,
+                    );
+                    this.logger.log(
+                      `Allocated ${qty} ticket(s) in raffle ${rId} for user ${pendingTx.userId} via webhook`,
+                    );
+                  } catch (itemErr: any) {
+                    this.logger.warn(
+                      `Basket item allocation notice (${rId}): ${itemErr.message}`,
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
       return { success: true, message: 'Webhook notification processed successfully' };
     } catch (err: any) {
       this.logger.error(`Cashflow webhook error: ${err.message}`);
@@ -456,7 +511,7 @@ export class PaymentService {
     if (!orderNumber && paymentJobRef) {
       const apiKey = process.env.CASHFLOWS_API_KEY || '';
       const configId = process.env.CASHFLOWS_CONFIGURATION_ID || '';
-      const baseUrl = process.env.CASHFLOWS_BASE_URL || 'https://gateway-int.cashflows.com';
+      const baseUrl = process.env.CASHFLOWS_BASE_URL || 'https://gateway.cashflows.com';
       const getHash = crypto.createHash('sha512').update(apiKey).digest('hex').toUpperCase();
 
       try {
@@ -574,6 +629,66 @@ export class PaymentService {
             success: true,
             type: 'SUBSCRIPTION',
             subscription: sub,
+          };
+        }
+      }
+    }
+
+    // Process Multi-Item Basket Order
+    if (orderNumber.startsWith('BSK_')) {
+      const parts = orderNumber.split('_');
+      const transactionId = parts[1];
+
+      if (transactionId) {
+        const pendingTx = await this.prisma.transaction.findUnique({
+          where: { id: transactionId },
+        });
+
+        if (pendingTx) {
+          if (pendingTx.status === 'PENDING') {
+            await this.prisma.transaction.update({
+              where: { id: transactionId },
+              data: {
+                status: 'COMPLETED',
+                gatewayTransactionId: paymentJobRef || orderNumber,
+              },
+            });
+
+            if (
+              pendingTx.relatedEntityId &&
+              pendingTx.relatedEntityId.startsWith('BSK_ITEMS:')
+            ) {
+              const rawItems = pendingTx.relatedEntityId
+                .replace('BSK_ITEMS:', '')
+                .split(',');
+              for (const rawItem of rawItems) {
+                const [rId, qtyStr] = rawItem.split(':');
+                const qty = parseInt(qtyStr || '1', 10);
+                if (rId && qty > 0) {
+                  try {
+                    await this.ticketsService.allocateTicketsInDatabase(
+                      pendingTx.userId,
+                      rId,
+                      qty,
+                    );
+                    this.logger.log(
+                      `Confirmed & allocated ${qty} tickets for raffle ${rId} (user ${pendingTx.userId})`,
+                    );
+                  } catch (err: any) {
+                    this.logger.warn(
+                      `Basket ticket confirmation notice: ${err.message}`,
+                    );
+                  }
+                }
+              }
+            }
+          }
+
+          return {
+            success: true,
+            type: 'BASKET_PURCHASE',
+            transactionId: pendingTx.id,
+            message: 'Basket order confirmed and tickets allocated successfully',
           };
         }
       }

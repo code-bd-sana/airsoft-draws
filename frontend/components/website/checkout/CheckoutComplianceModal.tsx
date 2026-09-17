@@ -14,6 +14,7 @@ interface CheckoutComplianceModalProps {
   errorMessage?: string | null;
   userDob?: string | null;
   userUkara?: string | null;
+  submitButtonText?: string;
 }
 
 export function calculateAgeFromDobString(dobStr: string): number | null {
@@ -59,6 +60,7 @@ export default function CheckoutComplianceModal({
   errorMessage = null,
   userDob = null,
   userUkara = null,
+  submitButtonText,
 }: CheckoutComplianceModalProps) {
   const [dob, setDob] = useState(userDob || "");
   const [ukara, setUkara] = useState(userUkara || "");
@@ -94,39 +96,45 @@ export default function CheckoutComplianceModal({
   const totalPrice = quantity * ticketPrice;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-[#161810] border border-[#2D3C13] rounded-2xl w-full max-w-lg p-6 sm:p-8 flex flex-col gap-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md p-3 sm:p-4 flex min-h-full items-center justify-center animate-in fade-in duration-200">
+      <div className="relative bg-[#161810] border border-[#2D3C13] rounded-2xl w-full max-w-lg max-h-[90dvh] sm:max-h-[85dvh] flex flex-col shadow-2xl overflow-hidden my-auto animate-in zoom-in-95 duration-200">
         
-        {/* Header */}
-        <div className="flex items-start justify-between border-b border-[#2D3C13] pb-4">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#1A230A] border border-[#43581E] text-[#8CB34A]">
+        {/* Header - Fixed & Pinned */}
+        <div className="p-5 sm:p-6 border-b border-[#2D3C13] bg-[#161810] shrink-0 flex items-start justify-between">
+          <div className="flex flex-col gap-1 pr-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#1A230A] border border-[#43581E] text-[#8CB34A]">
                 18+ Compliance Verification
               </span>
-              <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
+              <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${
                 isRif ? 'bg-amber-950/40 border-amber-800 text-amber-400' : 'bg-blue-950/40 border-blue-800 text-blue-400'
               }`}>
                 {isRif ? 'RIF Competition' : 'Non-RIF Accessory'}
               </span>
             </div>
-            <h3 className="font-heading font-bold text-xl text-[#E8EDD4] mt-1">
+            <h3 className="font-heading font-bold text-lg sm:text-xl text-[#E8EDD4] mt-1">
               Checkout Eligibility Check
             </h3>
-            <p className="font-sans text-xs text-[#B3B8AA]">
+            <p className="font-sans text-xs text-[#B3B8AA] line-clamp-1">
               {raffleTitle} ({quantity} ticket{quantity > 1 ? 's' : ''} — £{totalPrice.toFixed(2)})
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="text-[#72943A] hover:text-[#E8EDD4] transition-colors p-1"
+            aria-label="Close modal"
+            className="text-[#72943A] hover:text-[#E8EDD4] hover:bg-[#1A230A] transition-colors p-1.5 rounded-lg text-lg leading-none shrink-0"
           >
             ✕
           </button>
         </div>
 
-        <form onSubmit={handleFormSubmit} className="flex flex-col gap-5">
-          
+        {/* Scrollable Form Body */}
+        <form
+          id="compliance-form"
+          onSubmit={handleFormSubmit}
+          className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 custom-scrollbar"
+        >
           {/* DOB Input */}
           <div className="flex flex-col gap-2">
             <label className="font-sans font-medium text-xs text-[#E8EDD4] flex items-center justify-between">
@@ -143,7 +151,7 @@ export default function CheckoutComplianceModal({
               onChange={(e) => setDob(e.target.value)}
               required
               style={{ colorScheme: "dark" }}
-              className="h-12 px-4 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg font-sans text-sm text-[#E8EDD4] focus:border-[#8CB34A] outline-none transition-colors [color-scheme:dark] cursor-pointer"
+              className="h-11 px-4 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg font-sans text-sm text-[#E8EDD4] focus:border-[#8CB34A] outline-none transition-colors [color-scheme:dark] cursor-pointer"
             />
             {isUnder18 && (
               <p className="font-sans text-xs text-[#F76B6B] bg-red-950/50 border border-red-900 p-2.5 rounded-lg">
@@ -167,7 +175,7 @@ export default function CheckoutComplianceModal({
                 onChange={(e) => setUkara(e.target.value)}
                 placeholder="e.g. UKARA123456"
                 required={isRif}
-                className="h-12 px-4 bg-[#161810] border border-[#2D3C13] rounded-lg font-sans text-sm text-[#E8EDD4] placeholder:text-[#5A752A] focus:border-[#8CB34A] outline-none transition-colors uppercase"
+                className="h-11 px-4 bg-[#161810] border border-[#2D3C13] rounded-lg font-sans text-sm text-[#E8EDD4] placeholder:text-[#5A752A] focus:border-[#8CB34A] outline-none transition-colors uppercase"
               />
               <p className="font-sans text-[11px] text-[#B3B8AA] leading-normal mt-1">
                 📌 Required as evidence supporting a statutory legal defence under VCRA Section 37 for Realistic Imitation Firearms. UKARA is checked following a win to confirm it is active and linked to the winner. <em className="text-[#8CB34A]">Note: UKARA is not a licence.</em>
@@ -202,25 +210,27 @@ export default function CheckoutComplianceModal({
               {errorMessage}
             </div>
           )}
-
-          {/* Actions */}
-          <div className="flex items-center justify-end gap-3 border-t border-[#2D3C13] pt-4 mt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="h-11 px-5 bg-transparent border border-[#2D3C13] hover:bg-[#1A230A] text-[#72943A] hover:text-[#E8EDD4] font-sans font-medium text-xs rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!isFormValid || isPending}
-              className="h-11 px-6 bg-[#8CB34A] hover:bg-[#A0D056] disabled:bg-[#8CB34A]/50 disabled:cursor-not-allowed text-[#0D0D0B] font-heading font-semibold text-sm rounded-lg transition-colors shadow-[0_0_15px_rgba(140,179,74,0.2)] flex items-center gap-2"
-            >
-              {isPending ? "Processing Entry..." : `Confirm & Pay — £${totalPrice.toFixed(2)}`}
-            </button>
-          </div>
         </form>
+
+        {/* Footer Actions - Fixed & Pinned */}
+        <div className="p-4 sm:p-5 border-t border-[#2D3C13] bg-[#111210] shrink-0 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-10 sm:h-11 px-4 sm:px-5 bg-transparent border border-[#2D3C13] hover:bg-[#1A230A] text-[#72943A] hover:text-[#E8EDD4] font-sans font-medium text-xs rounded-lg transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="compliance-form"
+            disabled={!isFormValid || isPending}
+            className="h-10 sm:h-11 px-5 sm:px-6 bg-[#8CB34A] hover:bg-[#A0D056] disabled:bg-[#8CB34A]/40 disabled:cursor-not-allowed text-[#0D0D0B] font-heading font-semibold text-xs sm:text-sm rounded-lg transition-colors shadow-[0_0_15px_rgba(140,179,74,0.2)] flex items-center gap-2 cursor-pointer"
+          >
+            {isPending ? "Processing..." : (submitButtonText || `Confirm & Proceed to Checkout — £${totalPrice.toFixed(2)}`)}
+          </button>
+        </div>
+
       </div>
     </div>
   );

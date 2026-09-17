@@ -126,13 +126,16 @@ export default function TermsContent() {
                 1. The Promoter
               </h2>
               <p>
-                1.1. The Promoter is: <strong className="text-[#E8EDD4]">Airsoft Draws Ltd</strong> ("Airsoft Draws") whose registered office is at Synergy House, Lawson Street, North Shields NE29 6TG.
+                1.1. The Promoter is: <strong className="text-[#E8EDD4]">Airsoft Draws Ltd</strong> ("Airsoft Draws"), a company incorporated in England and Wales with company registration number <strong className="text-[#A0D056]">17309648</strong>, whose registered office is at Synergy House, Lawson Street, North Shields, Tyne and Wear, NE29 6TG, United Kingdom.
               </p>
               <p>
-                1.2. Our correspondence address is: <span className="text-[#E8EDD4]">Synergy House, Lawson Street, North Shields NE29 6TG</span>.
+                1.2. Company Registration Number: <span className="text-[#E8EDD4] font-semibold">17309648</span>.
               </p>
               <p>
-                1.3. If you wish to contact us for any reason, please email us at{" "}
+                1.3. Our correspondence address is: <span className="text-[#E8EDD4]">Synergy House, Lawson Street, North Shields, Tyne and Wear, NE29 6TG</span>.
+              </p>
+              <p>
+                1.4. If you wish to contact us for any reason, please email us at{" "}
                 <a href="mailto:info@airsoftdraws.com" className="text-[#8CB34A] font-semibold hover:underline">
                   info@airsoftdraws.com
                 </a>.

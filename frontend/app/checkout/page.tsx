@@ -156,9 +156,19 @@ export default function CheckoutPage() {
   // Contact Information Form State
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("user_email") || "";
+    }
+    return "";
+  });
   const [phone, setPhone] = useState("");
-  const [dob, setDob] = useState("");
+  const [dob, setDob] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("checkout_dob") || "";
+    }
+    return "";
+  });
   const [dobDay, setDobDay] = useState("");
   const [dobMonth, setDobMonth] = useState("");
   const [dobYear, setDobYear] = useState("");
@@ -218,8 +228,18 @@ export default function CheckoutPage() {
   const [country, setCountry] = useState("United Kingdom");
 
   // Legal & Compliance State
-  const [ukara, setUkara] = useState("");
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [ukara, setUkara] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("checkout_ukara") || "";
+    }
+    return "";
+  });
+  const [acceptedTerms, setAcceptedTerms] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("checkout_accepted_terms") === "true";
+    }
+    return false;
+  });
   const [saveToProfile, setSaveToProfile] = useState(true);
 
   // Submission & Results State
@@ -236,42 +256,75 @@ export default function CheckoutPage() {
 
   // Comprehensive pre-fill from authenticated user profile
   useEffect(() => {
-    if (user) {
-      if (user.email) {
-        setEmail(user.email);
+    const currentUser = (user as any)?.user || user;
+    if (currentUser) {
+      const uEmail = currentUser.email;
+      if (uEmail) {
+        setEmail(uEmail);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem("user_email", uEmail);
+          } catch {}
+        }
       }
-      if (user.firstName) {
-        setFirstName(user.firstName);
+      if (currentUser.firstName) {
+        setFirstName(currentUser.firstName);
       }
-      if (user.lastName) {
-        setLastName(user.lastName);
+      if (currentUser.lastName) {
+        setLastName(currentUser.lastName);
       }
       // If firstName / lastName aren't set separately, extract from composite name or fullName
-      if (!user.firstName) {
-        const compositeName = (user as any).name || (user as any).fullName;
+      if (!currentUser.firstName) {
+        const compositeName = currentUser.name || currentUser.fullName;
         if (compositeName) {
           const parts = String(compositeName).trim().split(/\s+/);
           if (parts.length > 0) setFirstName(parts[0]);
           if (parts.length > 1) setLastName(parts.slice(1).join(" "));
         }
       }
-      const userPhone = user.phone || (user as any).hostProfile?.phone;
+      const userPhone = currentUser.phone || currentUser.hostProfile?.phone;
       if (userPhone) {
         setPhone(userPhone);
       }
-      if ((user as any).dateOfBirth) {
-        const formattedDob = formatDateForInput((user as any).dateOfBirth);
+      if (currentUser.dateOfBirth) {
+        const formattedDob = formatDateForInput(currentUser.dateOfBirth);
         if (formattedDob) setDob(formattedDob);
+      } else if (typeof window !== "undefined") {
+        const cachedDob = localStorage.getItem("checkout_dob");
+        if (cachedDob) setDob(cachedDob);
       }
-      if ((user as any).ukaraNumber) {
-        setUkara((user as any).ukaraNumber);
+      if (currentUser.ukaraNumber) {
+        setUkara(currentUser.ukaraNumber);
+      } else if (typeof window !== "undefined") {
+        const cachedUkara = localStorage.getItem("checkout_ukara");
+        if (cachedUkara) setUkara(cachedUkara);
       }
-      const parsedAddr = parseSavedAddress(user.address, user.location);
+      if (typeof window !== "undefined") {
+        const cachedAccepted = localStorage.getItem("checkout_accepted_terms");
+        if (cachedAccepted === "true") setAcceptedTerms(true);
+      }
+      const parsedAddr = parseSavedAddress(currentUser.address, currentUser.location);
       if (parsedAddr.addressLine1) setAddressLine1(parsedAddr.addressLine1);
       if (parsedAddr.addressLine2) setAddressLine2(parsedAddr.addressLine2);
       if (parsedAddr.city) setCity(parsedAddr.city);
       if (parsedAddr.postalCode) setPostalCode(parsedAddr.postalCode);
       if (parsedAddr.country) setCountry(parsedAddr.country);
+    } else if (typeof window !== "undefined") {
+      // Fallback from localStorage if user object is still syncing
+      const cachedEmail = localStorage.getItem("user_email");
+      if (cachedEmail) {
+        setEmail(cachedEmail);
+      }
+      try {
+        const cachedUserStr = localStorage.getItem("user_data");
+        if (cachedUserStr) {
+          const cachedUser = JSON.parse(cachedUserStr);
+          if (cachedUser.email) setEmail(cachedUser.email);
+          if (cachedUser.firstName) setFirstName(cachedUser.firstName);
+          if (cachedUser.lastName) setLastName(cachedUser.lastName);
+          if (cachedUser.phone) setPhone(cachedUser.phone);
+        }
+      } catch {}
     }
   }, [user]);
 
@@ -653,7 +706,7 @@ export default function CheckoutPage() {
                           required
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          placeholder="e.g. sd.rakib36@gmail.com"
+                          placeholder="e.g. john.smith@example.co.uk"
                           className="h-11 px-3.5 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg font-sans text-sm text-[#E8EDD4] focus:border-[#8CB34A] outline-none transition-colors"
                         />
                       </div>

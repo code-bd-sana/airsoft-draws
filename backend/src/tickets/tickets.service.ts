@@ -423,8 +423,9 @@ export class TicketsService {
   async createCashflowsTicketCheckout(
     userId: string,
     raffleId: string,
-    quantity: number,
+    payload: any,
   ) {
+    const quantity = typeof payload === 'number' ? payload : Number(payload?.quantity || 1);
     const raffle = await this.prisma.raffle.findUnique({
       where: { id: raffleId },
     });
@@ -445,7 +446,7 @@ export class TicketsService {
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     const baseUrl =
-      process.env.CASHFLOWS_BASE_URL || 'https://gateway-int.cashflows.com';
+      process.env.CASHFLOWS_BASE_URL || 'https://gateway.cashflows.com';
     const configId = process.env.CASHFLOWS_CONFIGURATION_ID || '';
     const apiKey = process.env.CASHFLOWS_API_KEY || '';
 
@@ -465,8 +466,8 @@ export class TicketsService {
         firstName: user?.firstName || '',
         lastName: user?.lastName || '',
       },
-      returnUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/live-raffles/${raffle.slug || raffle.id}?payment=success`,
-      cancelUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/live-raffles/${raffle.slug || raffle.id}?payment=cancel`,
+      returnUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/success?type=ticket&order=${orderNumber}&raffle=${raffle.slug || raffle.id}`,
+      cancelUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/cancel?type=ticket&order=${orderNumber}&raffle=${raffle.slug || raffle.id}`,
     };
 
     const innerRequestString = JSON.stringify(innerRequestPayload);
@@ -966,7 +967,7 @@ export class TicketsService {
   ) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     const baseUrl =
-      process.env.CASHFLOWS_BASE_URL || 'https://gateway-int.cashflows.com';
+      process.env.CASHFLOWS_BASE_URL || 'https://gateway.cashflows.com';
     const configId = process.env.CASHFLOWS_CONFIGURATION_ID || '';
     const apiKey = process.env.CASHFLOWS_API_KEY || '';
 
@@ -978,7 +979,7 @@ export class TicketsService {
         amount: totalBasketAmount,
         status: 'PENDING',
         paymentGateway: 'CASHFLOWS',
-        relatedEntityId: 'BASKET_PURCHASE',
+        relatedEntityId: `BSK_ITEMS:${dto.items.map((i) => `${i.raffleId}:${i.quantity}`).join(',')}`.slice(0, 255),
       },
     });
 
@@ -998,8 +999,8 @@ export class TicketsService {
         firstName: dto.firstName || user?.firstName || '',
         lastName: dto.lastName || user?.lastName || '',
       },
-      returnUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout?payment=success&order=${orderNumber}`,
-      cancelUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout?payment=cancel&order=${orderNumber}`,
+      returnUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/success?type=basket&order=${orderNumber}`,
+      cancelUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/cancel?type=basket&order=${orderNumber}`,
     };
 
     const innerRequestString = JSON.stringify(innerRequestPayload);

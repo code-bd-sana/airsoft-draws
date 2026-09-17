@@ -128,7 +128,7 @@ export default function PrivacyContent() {
               <div className="bg-[#111210] border border-[#2D3C13] rounded-xl p-5 space-y-2 mt-4">
                 <h3 className="font-heading font-bold text-sm text-[#A0D056]">Data Controller & Privacy Contact</h3>
                 <p className="text-xs text-[#E8EDD4]">
-                  Legal Entity Name: <strong>Airsoft Draws Ltd</strong>
+                  Legal Entity Name: <strong>Airsoft Draws Ltd</strong> (Company No: <strong>17309648</strong>)
                 </p>
                 <p className="text-xs text-[#B3B8AA]">
                   Data Privacy Manager: <strong>C Deane</strong>
