@@ -67,6 +67,10 @@ export class UsersService {
         if (userData.address !== undefined)
           hostProfileData.address = userData.address;
 
+        if (u.avatarUrl) {
+          hostProfileData.logoUrl = u.avatarUrl;
+        }
+
         if (Object.keys(hostProfileData).length > 0) {
           if (u.hostProfile) {
             await prisma.hostProfile.update({
@@ -112,14 +116,25 @@ export class UsersService {
   }
 
   async updateAvatar(userId: string, avatarUrl: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { hostProfile: true },
+    });
     if (!user) {
       throw new NotFoundException('User not found');
+    }
+
+    if (user.hostProfile) {
+      await this.prisma.hostProfile.update({
+        where: { userId },
+        data: { logoUrl: avatarUrl },
+      });
     }
 
     const updatedUser = await this.prisma.user.update({
       where: { id: userId },
       data: { avatarUrl },
+      include: { hostProfile: true },
     });
 
     const { passwordHash, ...userWithoutPassword } = updatedUser;

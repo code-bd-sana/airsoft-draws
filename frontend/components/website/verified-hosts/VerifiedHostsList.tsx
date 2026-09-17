@@ -5,6 +5,9 @@ import { VerifiedHost } from "../../../types/host.types";
 import VerifiedHostCard from "./VerifiedHostCard";
 import { cn } from "../../../lib/utils";
 
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../../../services/api";
+
 interface VerifiedHostsListProps {
   hosts: VerifiedHost[];
 }
@@ -14,11 +17,23 @@ const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 export default function VerifiedHostsList({ hosts }: VerifiedHostsListProps) {
   const [activeLetter, setActiveLetter] = useState<string>("ALL");
 
-  const validHosts = (hosts || []).filter(host => host.isVerified && !host.isBlocked);
+  const { data: liveHosts } = useQuery({
+    queryKey: ["verified-hosts"],
+    queryFn: async () => {
+      const res = await api.get("/hosts/verified");
+      const rawHosts = Array.isArray(res.data) ? res.data : res.data?.data || [];
+      return rawHosts;
+    },
+    initialData: hosts,
+    staleTime: 0,
+  });
+
+  const hostsToUse = liveHosts && liveHosts.length > 0 ? liveHosts : hosts;
+  const validHosts = (hostsToUse || []).filter((host: VerifiedHost) => host.isVerified && !host.isBlocked);
 
   const filteredHosts = activeLetter === "ALL" 
     ? validHosts 
-    : validHosts.filter(host => host.name.toUpperCase().startsWith(activeLetter));
+    : validHosts.filter((host: VerifiedHost) => host.name.toUpperCase().startsWith(activeLetter));
 
   return (
     <div className="flex flex-col w-full">
@@ -54,7 +69,7 @@ export default function VerifiedHostsList({ hosts }: VerifiedHostsListProps) {
       {/* Grid */}
       {filteredHosts.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredHosts.map((host) => (
+          {filteredHosts.map((host: VerifiedHost) => (
             <VerifiedHostCard key={host.id} host={host} />
           ))}
         </div>

@@ -29,7 +29,7 @@ export default function ReviewHostModal({
     ? data.businessName.substring(0, 2).toUpperCase()
     : "HO";
 
-  const hostLogo = data.logoUrl || data.avatarUrl;
+  const hostLogo = data.avatarUrl || data.logoUrl;
   const hostBanner = data.bannerUrl;
 
   const ownerFullName = [data.firstName, data.lastName].filter(Boolean).join(" ");

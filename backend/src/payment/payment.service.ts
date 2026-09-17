@@ -10,6 +10,26 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as crypto from 'crypto';
 import { TicketsService } from '../tickets/tickets.service';
 
+export const CASHFLOWS_SUCCESS_STATUSES = [
+  'PAID',
+  'SETTLED',
+  'AUTHORISED',
+  'AUTHORIZED',
+  'COMPLETED',
+  'SUCCESS',
+  'ACCEPTED',
+];
+
+export const CASHFLOWS_FAILED_STATUSES = [
+  'CANCELLED',
+  'CANCELED',
+  'FAILED',
+  'DECLINED',
+  'REJECTED',
+  'EXPIRED',
+  'ABANDONED',
+];
+
 @Injectable()
 export class PaymentService {
   private readonly logger = new Logger(PaymentService.name);
@@ -311,7 +331,19 @@ export class PaymentService {
       let orderNumber = data.order?.orderNumber || data.orderNumber;
       let status = (data.paymentStatus || data.status || parsedPayload.event || '').toString().toUpperCase();
 
-      const paymentJobRef = parsedPayload.paymentJobReference || parsedPayload.paymentReference || data.paymentJobReference;
+      const paymentJobRef =
+        parsedPayload.paymentJobReference ||
+        parsedPayload.paymentjobreference ||
+        parsedPayload.paymentJobRef ||
+        parsedPayload.paymentjobref ||
+        parsedPayload.paymentReference ||
+        parsedPayload.paymentref ||
+        data.paymentJobReference ||
+        data.paymentjobreference ||
+        data.paymentJobRef ||
+        data.paymentjobref ||
+        data.reference ||
+        parsedPayload.reference;
 
       // If webhook carries a paymentJobReference, fetch the full payment job details from Cashflows API
       if (paymentJobRef) {
@@ -357,28 +389,37 @@ export class PaymentService {
 
       this.logger.log(`Webhook Processing - Event Status: "${status}", OrderNumber: "${orderNumber}"`);
 
+      const isSuccess = CASHFLOWS_SUCCESS_STATUSES.includes(status);
+      const isFailedOrCancelled = CASHFLOWS_FAILED_STATUSES.includes(status);
+
       // Handle Ticket Purchase Order (orderNumber format: TCK_raffleIdPrefix_userIdPrefix_quantity_timestamp)
       if (orderNumber && orderNumber.startsWith('TCK_')) {
-        const parts = orderNumber.split('_');
-        const rafflePrefix = parts[1];
-        const userPrefix = parts[2];
-        const quantity = parseInt(parts[3] || '1', 10);
+        if (!isSuccess) {
+          this.logger.log(
+            `Skipping TCK ticket allocation for order "${orderNumber}": payment status is "${status}" (not paid/settled).`,
+          );
+        } else {
+          const parts = orderNumber.split('_');
+          const rafflePrefix = parts[1];
+          const userPrefix = parts[2];
+          const quantity = parseInt(parts[3] || '1', 10);
 
-        if (rafflePrefix && userPrefix && quantity > 0) {
-          const raffle = await this.prisma.raffle.findFirst({
-            where: { id: { startsWith: rafflePrefix } },
-          });
-          const user = await this.prisma.user.findFirst({
-            where: { id: { startsWith: userPrefix } },
-          });
+          if (rafflePrefix && userPrefix && quantity > 0) {
+            const raffle = await this.prisma.raffle.findFirst({
+              where: { id: { startsWith: rafflePrefix } },
+            });
+            const user = await this.prisma.user.findFirst({
+              where: { id: { startsWith: userPrefix } },
+            });
 
-          if (raffle && user) {
-            this.logger.log(`Allocating ${quantity} tickets for user ${user.id} in raffle ${raffle.id} via webhook...`);
-            try {
-              const ticketResult: any = await this.ticketsService.allocateTicketsInDatabase(user.id, raffle.id, quantity);
-              this.logger.log(`Successfully allocated ${quantity} ticket(s) via webhook: ${JSON.stringify(ticketResult?.tickets?.map((t: any) => t.ticketNumber))}`);
-            } catch (tckErr: any) {
-              this.logger.warn(`Webhook ticket allocation notice: ${tckErr.message}`);
+            if (raffle && user) {
+              this.logger.log(`Allocating ${quantity} tickets for user ${user.id} in raffle ${raffle.id} via webhook...`);
+              try {
+                const ticketResult: any = await this.ticketsService.allocateTicketsInDatabase(user.id, raffle.id, quantity);
+                this.logger.log(`Successfully allocated ${quantity} ticket(s) via webhook: ${JSON.stringify(ticketResult?.tickets?.map((t: any) => t.ticketNumber))}`);
+              } catch (tckErr: any) {
+                this.logger.warn(`Webhook ticket allocation notice: ${tckErr.message}`);
+              }
             }
           }
         }
@@ -386,53 +427,59 @@ export class PaymentService {
 
       // Handle Host Subscription Order (orderNumber format: SUB_hostIdPrefix_planIdPrefix_timestamp)
       if (orderNumber && orderNumber.startsWith('SUB_')) {
-        const parts = orderNumber.split('_');
-        const hostPrefix = parts[1];
-        const planPrefix = parts[2];
+        if (!isSuccess) {
+          this.logger.log(
+            `Skipping SUB subscription activation for order "${orderNumber}": payment status is "${status}" (not paid/settled).`,
+          );
+        } else {
+          const parts = orderNumber.split('_');
+          const hostPrefix = parts[1];
+          const planPrefix = parts[2];
 
-        if (hostPrefix && planPrefix) {
-          const plan = await this.prisma.subscriptionPlan.findFirst({
-            where: { id: { startsWith: planPrefix } },
-          });
-          const host = await this.prisma.hostProfile.findFirst({
-            where: { OR: [{ id: { startsWith: hostPrefix } }, { userId: { startsWith: hostPrefix } }] },
-          });
-
-          if (plan && host) {
-            const startDate = new Date();
-            const endDate = new Date();
-            endDate.setDate(endDate.getDate() + plan.durationDays);
-
-            await this.prisma.hostSubscription.updateMany({
-              where: { hostId: host.id, status: 'ACTIVE' },
-              data: { status: 'EXPIRED' },
+          if (hostPrefix && planPrefix) {
+            const plan = await this.prisma.subscriptionPlan.findFirst({
+              where: { id: { startsWith: planPrefix } },
+            });
+            const host = await this.prisma.hostProfile.findFirst({
+              where: { OR: [{ id: { startsWith: hostPrefix } }, { userId: { startsWith: hostPrefix } }] },
             });
 
-            const newSub = await this.prisma.hostSubscription.create({
-              data: {
-                hostId: host.id,
-                planId: plan.id,
-                status: 'ACTIVE',
-                startDate,
-                endDate,
-              },
-            });
+            if (plan && host) {
+              const startDate = new Date();
+              const endDate = new Date();
+              endDate.setDate(endDate.getDate() + plan.durationDays);
 
-            await this.prisma.transaction.create({
-              data: {
-                userId: host.userId,
-                type: 'SUBSCRIPTION_FEE',
-                amount: plan.price,
-                status: 'COMPLETED',
-                paymentGateway: 'CASHFLOWS',
-                gatewayTransactionId: data?.reference || `CASHFLOWS_${newSub.id.slice(0, 8)}`,
-                relatedEntityId: newSub.id,
-              },
-            });
+              await this.prisma.hostSubscription.updateMany({
+                where: { hostId: host.id, status: 'ACTIVE' },
+                data: { status: 'EXPIRED' },
+              });
 
-            this.logger.log(
-              `Activated subscription for host ${host.id} with plan ${plan.name} via webhook`,
-            );
+              const newSub = await this.prisma.hostSubscription.create({
+                data: {
+                  hostId: host.id,
+                  planId: plan.id,
+                  status: 'ACTIVE',
+                  startDate,
+                  endDate,
+                },
+              });
+
+              await this.prisma.transaction.create({
+                data: {
+                  userId: host.userId,
+                  type: 'SUBSCRIPTION_FEE',
+                  amount: plan.price,
+                  status: 'COMPLETED',
+                  paymentGateway: 'CASHFLOWS',
+                  gatewayTransactionId: data?.reference || `CASHFLOWS_${newSub.id.slice(0, 8)}`,
+                  relatedEntityId: newSub.id,
+                },
+              });
+
+              this.logger.log(
+                `Activated subscription for host ${host.id} with plan ${plan.name} via webhook`,
+              );
+            }
           }
         }
       }
@@ -447,46 +494,64 @@ export class PaymentService {
             where: { id: transactionId },
           });
 
-          if (pendingTx && pendingTx.status === 'PENDING') {
-            this.logger.log(
-              `Processing BSK basket order for transaction ${transactionId} via webhook...`,
-            );
+          if (pendingTx) {
+            if (isSuccess && pendingTx.status !== 'COMPLETED') {
+              this.logger.log(
+                `Processing verified paid BSK basket order for transaction ${transactionId} via webhook (status: "${status}")...`,
+              );
 
-            await this.prisma.transaction.update({
-              where: { id: transactionId },
-              data: {
-                status: 'COMPLETED',
-                gatewayTransactionId: paymentJobRef || orderNumber,
-              },
-            });
+              await this.prisma.transaction.update({
+                where: { id: transactionId },
+                data: {
+                  status: 'COMPLETED',
+                  gatewayTransactionId: paymentJobRef || orderNumber,
+                },
+              });
 
-            if (
-              pendingTx.relatedEntityId &&
-              pendingTx.relatedEntityId.startsWith('BSK_ITEMS:')
-            ) {
-              const rawItems = pendingTx.relatedEntityId
-                .replace('BSK_ITEMS:', '')
-                .split(',');
-              for (const rawItem of rawItems) {
-                const [rId, qtyStr] = rawItem.split(':');
-                const qty = parseInt(qtyStr || '1', 10);
-                if (rId && qty > 0) {
-                  try {
-                    await this.ticketsService.allocateTicketsInDatabase(
-                      pendingTx.userId,
-                      rId,
-                      qty,
-                    );
-                    this.logger.log(
-                      `Allocated ${qty} ticket(s) in raffle ${rId} for user ${pendingTx.userId} via webhook`,
-                    );
-                  } catch (itemErr: any) {
-                    this.logger.warn(
-                      `Basket item allocation notice (${rId}): ${itemErr.message}`,
-                    );
+              if (
+                pendingTx.relatedEntityId &&
+                pendingTx.relatedEntityId.startsWith('BSK_ITEMS:')
+              ) {
+                const rawItems = pendingTx.relatedEntityId
+                  .replace('BSK_ITEMS:', '')
+                  .split(',');
+                for (const rawItem of rawItems) {
+                  const [rId, qtyStr] = rawItem.split(':');
+                  const qty = parseInt(qtyStr || '1', 10);
+                  if (rId && qty > 0) {
+                    try {
+                      await this.ticketsService.allocateTicketsInDatabase(
+                        pendingTx.userId,
+                        rId,
+                        qty,
+                        pendingTx.id,
+                      );
+                      this.logger.log(
+                        `Allocated ${qty} ticket(s) in raffle ${rId} for user ${pendingTx.userId} via webhook`,
+                      );
+                    } catch (itemErr: any) {
+                      this.logger.warn(
+                        `Basket item allocation notice (${rId}): ${itemErr.message}`,
+                      );
+                    }
                   }
                 }
               }
+            } else if (isFailedOrCancelled && pendingTx.status === 'PENDING') {
+              this.logger.log(
+                `Marking transaction ${transactionId} as CANCELLED via webhook (gateway status: "${status}"). User can retry later from dashboard. No tickets allocated.`,
+              );
+              await this.prisma.transaction.update({
+                where: { id: transactionId },
+                data: {
+                  status: 'CANCELLED',
+                  gatewayTransactionId: paymentJobRef || orderNumber,
+                },
+              });
+            } else {
+              this.logger.log(
+                `BSK webhook event with status "${status}" received for tx ${transactionId} (current status: ${pendingTx.status}). Tickets are NOT allocated until payment is completed.`,
+              );
             }
           }
         }
@@ -501,44 +566,102 @@ export class PaymentService {
 
   async confirmPaymentReturn(params: {
     paymentJobRef?: string;
+    paymentjobref?: string;
     orderNumber?: string;
+    ordernumber?: string;
+    ref?: string;
+    reference?: string;
   }) {
-    let orderNumber = params.orderNumber;
-    const paymentJobRef = params.paymentJobRef;
+    let orderNumber = params.orderNumber || params.ordernumber;
+    const paymentJobRef =
+      params.paymentJobRef ||
+      params.paymentjobref ||
+      params.ref ||
+      params.reference;
+    let fetchedStatus = '';
 
-    this.logger.log(`confirmPaymentReturn called with paymentJobRef: "${paymentJobRef}", orderNumber: "${orderNumber}"`);
+    this.logger.log(
+      `confirmPaymentReturn called with paymentJobRef: "${paymentJobRef}", orderNumber: "${orderNumber}"`,
+    );
 
-    if (!orderNumber && paymentJobRef) {
+    if (paymentJobRef) {
       const apiKey = process.env.CASHFLOWS_API_KEY || '';
       const configId = process.env.CASHFLOWS_CONFIGURATION_ID || '';
-      const baseUrl = process.env.CASHFLOWS_BASE_URL || 'https://gateway.cashflows.com';
-      const getHash = crypto.createHash('sha512').update(apiKey).digest('hex').toUpperCase();
+      const baseUrl =
+        process.env.CASHFLOWS_BASE_URL || 'https://gateway.cashflows.com';
+      const getHash = crypto
+        .createHash('sha512')
+        .update(apiKey)
+        .digest('hex')
+        .toUpperCase();
 
       try {
-        const jobResponse = await fetch(`${baseUrl}/api/gateway/payment-jobs/${paymentJobRef}`, {
-          method: 'GET',
-          headers: {
-            ConfigurationId: configId,
-            Hash: getHash,
-            'Content-Type': 'application/json',
+        const jobResponse = await fetch(
+          `${baseUrl}/api/gateway/payment-jobs/${paymentJobRef}`,
+          {
+            method: 'GET',
+            headers: {
+              ConfigurationId: configId,
+              Hash: getHash,
+              'Content-Type': 'application/json',
+            },
           },
-        });
+        );
         const jobData = await jobResponse.json();
         const fetchedOrder = jobData.data?.order || jobData.order;
-        if (fetchedOrder?.orderNumber) {
+        if (!orderNumber && fetchedOrder?.orderNumber) {
           orderNumber = fetchedOrder.orderNumber;
         }
+        const s =
+          jobData.data?.paymentStatus ||
+          jobData.paymentStatus ||
+          jobData.status;
+        if (s) {
+          fetchedStatus = s.toString().toUpperCase();
+        }
+        this.logger.log(
+          `confirmPaymentReturn fetched Cashflows status: "${fetchedStatus}" for jobRef "${paymentJobRef}"`,
+        );
       } catch (err: any) {
-        this.logger.error(`Failed to fetch job ref ${paymentJobRef} in confirmation: ${err.message}`);
+        this.logger.error(
+          `Failed to fetch job ref ${paymentJobRef} in confirmation: ${err.message}`,
+        );
       }
     }
 
     if (!orderNumber) {
-      throw new BadRequestException('Order number or payment job reference is required');
+      throw new BadRequestException(
+        'Order number or payment job reference is required',
+      );
     }
 
-    // Process Ticket Purchase Order
+    const isLiveMode = process.env.USE_TEST_PAYMENT === 'false';
+    const isVerifiedPaid = CASHFLOWS_SUCCESS_STATUSES.includes(fetchedStatus);
+    const isFailedOrCancelled =
+      CASHFLOWS_FAILED_STATUSES.includes(fetchedStatus);
+
+    // Process Ticket Purchase Order (Legacy TCK_)
     if (orderNumber.startsWith('TCK_')) {
+      if (isLiveMode && paymentJobRef && !isVerifiedPaid) {
+        this.logger.warn(
+          `confirmPaymentReturn: TCK order ${orderNumber} payment not verified (status: "${fetchedStatus}"). Skipping allocation.`,
+        );
+        if (isFailedOrCancelled) {
+          return {
+            success: false,
+            status: 'CANCELLED',
+            type: 'TICKET_PURCHASE',
+            message: `Payment was ${fetchedStatus.toLowerCase()}. No tickets were allocated.`,
+          };
+        }
+        return {
+          success: false,
+          pending: true,
+          type: 'TICKET_PURCHASE',
+          message: 'Payment verification is awaiting gateway confirmation',
+        };
+      }
+
       const parts = orderNumber.split('_');
       const rafflePrefix = parts[1];
       const userPrefix = parts[2];
@@ -554,8 +677,15 @@ export class PaymentService {
 
         if (raffle && user) {
           try {
-            const result: any = await this.ticketsService.allocateTicketsInDatabase(user.id, raffle.id, quantity);
-            this.logger.log(`Confirmed & allocated ${quantity} tickets for user ${user.id} in raffle ${raffle.id}`);
+            const result: any =
+              await this.ticketsService.allocateTicketsInDatabase(
+                user.id,
+                raffle.id,
+                quantity,
+              );
+            this.logger.log(
+              `Confirmed & allocated ${quantity} tickets for user ${user.id} in raffle ${raffle.id}`,
+            );
             return {
               success: true,
               type: 'TICKET_PURCHASE',
@@ -575,6 +705,26 @@ export class PaymentService {
 
     // Process Host Subscription Order
     if (orderNumber.startsWith('SUB_')) {
+      if (isLiveMode && paymentJobRef && !isVerifiedPaid) {
+        this.logger.warn(
+          `confirmPaymentReturn: SUB order ${orderNumber} payment not verified (status: "${fetchedStatus}"). Skipping subscription activation.`,
+        );
+        if (isFailedOrCancelled) {
+          return {
+            success: false,
+            status: 'CANCELLED',
+            type: 'SUBSCRIPTION',
+            message: `Subscription payment was ${fetchedStatus.toLowerCase()}. Subscription was not activated.`,
+          };
+        }
+        return {
+          success: false,
+          pending: true,
+          type: 'SUBSCRIPTION',
+          message: 'Subscription payment is awaiting gateway confirmation',
+        };
+      }
+
       const parts = orderNumber.split('_');
       const hostPrefix = parts[1];
       const planPrefix = parts[2];
@@ -584,7 +734,12 @@ export class PaymentService {
           where: { id: { startsWith: planPrefix } },
         });
         const host = await this.prisma.hostProfile.findFirst({
-          where: { OR: [{ id: { startsWith: hostPrefix } }, { userId: { startsWith: hostPrefix } }] },
+          where: {
+            OR: [
+              { id: { startsWith: hostPrefix } },
+              { userId: { startsWith: hostPrefix } },
+            ],
+          },
         });
 
         if (plan && host) {
@@ -618,13 +773,16 @@ export class PaymentService {
                 amount: plan.price,
                 status: 'COMPLETED',
                 paymentGateway: 'CASHFLOWS',
-                gatewayTransactionId: paymentJobRef || orderNumber || `SUB_${sub.id.slice(0, 8)}`,
+                gatewayTransactionId:
+                  paymentJobRef || orderNumber || `SUB_${sub.id.slice(0, 8)}`,
                 relatedEntityId: sub.id,
               },
             });
           }
 
-          this.logger.log(`Confirmed subscription for host ${host.id} with plan ${plan.name}`);
+          this.logger.log(
+            `Confirmed subscription for host ${host.id} with plan ${plan.name}`,
+          );
           return {
             success: true,
             type: 'SUBSCRIPTION',
@@ -645,40 +803,84 @@ export class PaymentService {
         });
 
         if (pendingTx) {
-          if (pendingTx.status === 'PENDING') {
-            await this.prisma.transaction.update({
-              where: { id: transactionId },
-              data: {
-                status: 'COMPLETED',
-                gatewayTransactionId: paymentJobRef || orderNumber,
-              },
-            });
+          if (pendingTx.status === 'COMPLETED') {
+            return {
+              success: true,
+              type: 'BASKET_PURCHASE',
+              transactionId: pendingTx.id,
+              message:
+                'Basket order already confirmed and tickets allocated successfully',
+            };
+          }
 
-            if (
-              pendingTx.relatedEntityId &&
-              pendingTx.relatedEntityId.startsWith('BSK_ITEMS:')
-            ) {
-              const rawItems = pendingTx.relatedEntityId
-                .replace('BSK_ITEMS:', '')
-                .split(',');
-              for (const rawItem of rawItems) {
-                const [rId, qtyStr] = rawItem.split(':');
-                const qty = parseInt(qtyStr || '1', 10);
-                if (rId && qty > 0) {
-                  try {
-                    await this.ticketsService.allocateTicketsInDatabase(
-                      pendingTx.userId,
-                      rId,
-                      qty,
-                    );
-                    this.logger.log(
-                      `Confirmed & allocated ${qty} tickets for raffle ${rId} (user ${pendingTx.userId})`,
-                    );
-                  } catch (err: any) {
-                    this.logger.warn(
-                      `Basket ticket confirmation notice: ${err.message}`,
-                    );
-                  }
+          // If in LIVE mode and payment is not verified as PAID/SETTLED
+          if (isLiveMode && !isVerifiedPaid) {
+            this.logger.warn(
+              `confirmPaymentReturn for tx ${transactionId}: Cashflows status is "${fetchedStatus || 'UNVERIFIED'}" (not verified as PAID). Leaving tx as ${pendingTx.status}. Tickets will NOT be allocated yet.`,
+            );
+
+            if (isFailedOrCancelled) {
+              await this.prisma.transaction.update({
+                where: { id: transactionId },
+                data: {
+                  status: 'CANCELLED',
+                  gatewayTransactionId: paymentJobRef || orderNumber,
+                },
+              });
+
+              return {
+                success: false,
+                status: 'CANCELLED',
+                type: 'BASKET_PURCHASE',
+                transactionId: pendingTx.id,
+                message: `Payment was ${fetchedStatus.toLowerCase()}. No tickets were allocated.`,
+              };
+            }
+
+            return {
+              success: false,
+              pending: true,
+              type: 'BASKET_PURCHASE',
+              transactionId: pendingTx.id,
+              message:
+                'Payment verification is awaiting gateway confirmation. Tickets are reserved only after payment is completed.',
+            };
+          }
+
+          // Payment is verified or in test mode!
+          await this.prisma.transaction.update({
+            where: { id: transactionId },
+            data: {
+              status: 'COMPLETED',
+              gatewayTransactionId: paymentJobRef || orderNumber,
+            },
+          });
+
+          if (
+            pendingTx.relatedEntityId &&
+            pendingTx.relatedEntityId.startsWith('BSK_ITEMS:')
+          ) {
+            const rawItems = pendingTx.relatedEntityId
+              .replace('BSK_ITEMS:', '')
+              .split(',');
+            for (const rawItem of rawItems) {
+              const [rId, qtyStr] = rawItem.split(':');
+              const qty = parseInt(qtyStr || '1', 10);
+              if (rId && qty > 0) {
+                try {
+                  await this.ticketsService.allocateTicketsInDatabase(
+                    pendingTx.userId,
+                    rId,
+                    qty,
+                    pendingTx.id,
+                  );
+                  this.logger.log(
+                    `Confirmed & allocated ${qty} tickets for raffle ${rId} (user ${pendingTx.userId})`,
+                  );
+                } catch (err: any) {
+                  this.logger.warn(
+                    `Basket ticket confirmation notice: ${err.message}`,
+                  );
                 }
               }
             }

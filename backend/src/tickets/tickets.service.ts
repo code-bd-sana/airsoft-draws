@@ -45,7 +45,12 @@ export class TicketsService {
     return this.allocateTicketsInDatabase(userId, raffleId, payload);
   }
 
-  async allocateTicketsInDatabase(userId: string, raffleId: string, payload: any) {
+  async allocateTicketsInDatabase(
+    userId: string,
+    raffleId: string,
+    payload: any,
+    existingTransactionId?: string,
+  ) {
     const quantity = typeof payload === 'number' ? payload : payload?.quantity || 1;
     if (quantity <= 0) {
       throw new BadRequestException('Quantity must be at least 1');
@@ -189,28 +194,37 @@ export class TicketsService {
         }
         const assignedNumbers = availableNumbers.slice(0, quantity);
 
-        // Create Transaction Record
+        // Create or reuse Transaction Record
         const totalAmount = Number(raffle.pricePerTicket) * quantity;
-        const gatewayTransactionId = `SIM_PAY_${crypto.randomUUID()}`;
+        let transaction: any;
+        let finalTxId = existingTransactionId;
 
-        const transaction = await tx.transaction.create({
-          data: {
-            userId,
-            type: 'TICKET_PURCHASE',
-            amount: totalAmount,
-            status: 'COMPLETED',
-            paymentGateway: 'SIMULATED',
-            gatewayTransactionId,
-            relatedEntityId: raffle.id,
-          },
-        });
+        if (!finalTxId) {
+          const gatewayTransactionId = `SIM_PAY_${crypto.randomUUID()}`;
+          transaction = await tx.transaction.create({
+            data: {
+              userId,
+              type: 'TICKET_PURCHASE',
+              amount: totalAmount,
+              status: 'COMPLETED',
+              paymentGateway: 'SIMULATED',
+              gatewayTransactionId,
+              relatedEntityId: raffle.id,
+            },
+          });
+          finalTxId = transaction.id;
+        } else {
+          transaction = await tx.transaction.findUnique({
+            where: { id: finalTxId },
+          });
+        }
 
         // Create Tickets with Accepted Terms Metadata
         const now = new Date();
         const ticketsData = assignedNumbers.map((num) => ({
           raffleId: raffle.id,
           userId,
-          transactionId: transaction.id,
+          transactionId: finalTxId!,
           ticketNumber: num,
           acceptedTermsVersion: 'v1.0',
           acceptedTermsAt: now,
@@ -222,7 +236,10 @@ export class TicketsService {
 
         // Fetch created tickets
         const createdTickets = await tx.ticket.findMany({
-          where: { transactionId: transaction.id },
+          where: {
+            transactionId: finalTxId!,
+            raffleId: raffle.id,
+          },
         });
 
         // Check for Instant Wins
@@ -329,7 +346,7 @@ export class TicketsService {
           link: '/dashboard/user/tickets',
           metadata: {
             raffleId: raffle.id,
-            transactionId: result.transaction.id,
+            transactionId: result.transaction?.id || existingTransactionId,
             ticketCount: quantity,
           },
         });
@@ -451,7 +468,18 @@ export class TicketsService {
     const apiKey = process.env.CASHFLOWS_API_KEY || '';
 
     const totalAmount = (Number(raffle.pricePerTicket) * quantity).toFixed(2);
-    const orderNumber = `TCK_${raffleId}_${userId}_${quantity}_${Date.now()}`;
+    const pendingTx = await this.prisma.transaction.create({
+      data: {
+        userId,
+        type: 'TICKET_PURCHASE',
+        amount: Number(totalAmount),
+        status: 'PENDING',
+        paymentGateway: 'CASHFLOWS',
+        relatedEntityId: `BSK_ITEMS:${raffleId}:${quantity}`,
+      },
+    });
+
+    const orderNumber = `BSK_${pendingTx.id}_${Date.now()}`;
 
     const innerRequestPayload = {
       type: 'Payment',
@@ -466,8 +494,8 @@ export class TicketsService {
         firstName: user?.firstName || '',
         lastName: user?.lastName || '',
       },
-      returnUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/success?type=ticket&order=${orderNumber}&raffle=${raffle.slug || raffle.id}`,
-      cancelUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/cancel?type=ticket&order=${orderNumber}&raffle=${raffle.slug || raffle.id}`,
+      returnUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/success?type=basket&order=${orderNumber}`,
+      cancelUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/cancel?type=basket&order=${orderNumber}`,
     };
 
     const innerRequestString = JSON.stringify(innerRequestPayload);
@@ -1093,6 +1121,347 @@ export class TicketsService {
         throw error;
       }
       throw new BadRequestException(`Cashflows Gateway Error: ${error.message}`);
+    }
+  }
+
+  async getUserOrders(userId: string) {
+    const transactions = await this.prisma.transaction.findMany({
+      where: {
+        userId,
+        type: 'TICKET_PURCHASE',
+      },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        tickets: {
+          include: {
+            raffle: {
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+                mainImage: true,
+                pricePerTicket: true,
+                status: true,
+                endDate: true,
+                totalTickets: true,
+                ticketsSold: true,
+                prizeClassification: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // For any transaction (especially PENDING ones), extract competition items from relatedEntityId
+    const raffleIdsToFetch = new Set<string>();
+    for (const tx of transactions) {
+      if (tx.relatedEntityId && tx.relatedEntityId.startsWith('BSK_ITEMS:')) {
+        const rawItems = tx.relatedEntityId.replace('BSK_ITEMS:', '').split(',');
+        for (const rawItem of rawItems) {
+          const [rId] = rawItem.split(':');
+          if (rId) raffleIdsToFetch.add(rId);
+        }
+      }
+    }
+
+    const fetchedRaffles = await this.prisma.raffle.findMany({
+      where: { id: { in: Array.from(raffleIdsToFetch) } },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        mainImage: true,
+        pricePerTicket: true,
+        status: true,
+        endDate: true,
+        totalTickets: true,
+        ticketsSold: true,
+        prizeClassification: true,
+        minTickets: true,
+        maxTickets: true,
+      },
+    });
+
+    const raffleMap = new Map<string, any>();
+    fetchedRaffles.forEach((r) => raffleMap.set(r.id, r));
+
+    const now = new Date();
+
+    const orders = transactions.map((tx) => {
+      let items: any[] = [];
+      let isSoldOutOrClosed = false;
+      let closedReason: string | null = null;
+      let totalTicketsCount = 0;
+
+      if (tx.status === 'COMPLETED' && tx.tickets.length > 0) {
+        // Group completed tickets by raffle
+        const map = new Map<string, { raffle: any; quantity: number; ticketNumbers: number[] }>();
+        for (const t of tx.tickets) {
+          totalTicketsCount++;
+          if (!map.has(t.raffleId)) {
+            map.set(t.raffleId, {
+              raffle: t.raffle,
+              quantity: 0,
+              ticketNumbers: [],
+            });
+          }
+          const entry = map.get(t.raffleId)!;
+          entry.quantity++;
+          entry.ticketNumbers.push(t.ticketNumber);
+        }
+
+        items = Array.from(map.values()).map((entry) => ({
+          raffleId: entry.raffle.id,
+          title: entry.raffle.title,
+          slug: entry.raffle.slug,
+          mainImage: entry.raffle.mainImage || '',
+          pricePerTicket: Number(entry.raffle.pricePerTicket),
+          quantity: entry.quantity,
+          ticketNumbers: entry.ticketNumbers,
+          status: entry.raffle.status,
+          isEnded:
+            entry.raffle.status === 'ENDED' ||
+            (entry.raffle.endDate && new Date(entry.raffle.endDate) <= now),
+        }));
+      } else if (tx.relatedEntityId && tx.relatedEntityId.startsWith('BSK_ITEMS:')) {
+        // Parse pending or incomplete items
+        const rawItems = tx.relatedEntityId.replace('BSK_ITEMS:', '').split(',');
+        for (const rawItem of rawItems) {
+          const [rId, qtyStr] = rawItem.split(':');
+          const qty = parseInt(qtyStr || '1', 10);
+          const raffle = raffleMap.get(rId);
+
+          if (raffle) {
+            totalTicketsCount += qty;
+            const remaining = Math.max(0, raffle.totalTickets - raffle.ticketsSold);
+            const isRaffleEnded =
+              raffle.status !== 'ACTIVE' ||
+              (raffle.endDate && new Date(raffle.endDate) <= now);
+            const isRaffleSoldOut = remaining < qty;
+
+            if (isRaffleEnded || isRaffleSoldOut) {
+              isSoldOutOrClosed = true;
+              if (isRaffleEnded) {
+                closedReason = `"${raffle.title}" is closed or ended`;
+              } else if (isRaffleSoldOut) {
+                closedReason = `"${raffle.title}" is sold out (${remaining} ticket(s) left)`;
+              }
+            }
+
+            items.push({
+              raffleId: raffle.id,
+              title: raffle.title,
+              slug: raffle.slug,
+              mainImage: raffle.mainImage || '',
+              pricePerTicket: Number(raffle.pricePerTicket),
+              quantity: qty,
+              remainingTickets: remaining,
+              status: raffle.status,
+              isEnded: isRaffleEnded,
+              isSoldOut: isRaffleSoldOut,
+            });
+          }
+        }
+      }
+
+      const canPay =
+        (tx.status === 'PENDING' || tx.status === 'CANCELLED') &&
+        !isSoldOutOrClosed &&
+        items.length > 0;
+
+      return {
+        id: tx.id,
+        orderNumber: tx.gatewayTransactionId?.startsWith('BSK_')
+          ? tx.gatewayTransactionId
+          : `BSK_${tx.id.substring(0, 8).toUpperCase()}`,
+        amount: Number(tx.amount),
+        status: tx.status, // PENDING, COMPLETED, CANCELLED, FAILED
+        paymentGateway: tx.paymentGateway || 'CASHFLOWS',
+        createdAt: tx.createdAt.toISOString(),
+        items,
+        totalTickets: totalTicketsCount,
+        canPay,
+        isSoldOutOrClosed,
+        closedReason,
+      };
+    });
+
+    return orders;
+  }
+
+  async retryOrderPayment(userId: string, transactionId: string) {
+    const tx = await this.prisma.transaction.findUnique({
+      where: { id: transactionId },
+      include: { user: true },
+    });
+
+    if (!tx || tx.userId !== userId) {
+      throw new NotFoundException('Order not found');
+    }
+
+    if (tx.status === 'COMPLETED') {
+      throw new BadRequestException('This order has already been paid and completed.');
+    }
+
+    if (!tx.relatedEntityId || !tx.relatedEntityId.startsWith('BSK_ITEMS:')) {
+      throw new BadRequestException('Order items data is invalid or missing.');
+    }
+
+    const rawItems = tx.relatedEntityId.replace('BSK_ITEMS:', '').split(',');
+    const itemMap = new Map<string, number>();
+    for (const rawItem of rawItems) {
+      const [rId, qtyStr] = rawItem.split(':');
+      const qty = parseInt(qtyStr || '1', 10);
+      if (rId && qty > 0) {
+        itemMap.set(rId, qty);
+      }
+    }
+
+    const raffleIds = Array.from(itemMap.keys());
+    const raffles = await this.prisma.raffle.findMany({
+      where: { id: { in: raffleIds } },
+    });
+
+    if (raffles.length !== raffleIds.length) {
+      throw new BadRequestException(
+        'One or more competitions in this order are no longer available.',
+      );
+    }
+
+    const now = new Date();
+    for (const raffle of raffles) {
+      const qty = itemMap.get(raffle.id)!;
+      // 1. Check if competition is active and not ended
+      if (
+        raffle.status !== 'ACTIVE' ||
+        (raffle.endDate && new Date(raffle.endDate) <= now)
+      ) {
+        throw new BadRequestException(
+          `Oops! "${raffle.title}" is closed or ended.`,
+        );
+      }
+
+      // 2. Check if enough tickets remaining
+      const remaining = Math.max(0, raffle.totalTickets - raffle.ticketsSold);
+      if (qty > remaining) {
+        throw new BadRequestException(
+          `Oops! "${raffle.title}" is sold out. Only ${remaining} ticket(s) remaining.`,
+        );
+      }
+    }
+
+    // All competitions verified active and have available tickets!
+    const baseUrl =
+      process.env.CASHFLOWS_BASE_URL || 'https://gateway.cashflows.com';
+    const configId = process.env.CASHFLOWS_CONFIGURATION_ID || '';
+    const apiKey = process.env.CASHFLOWS_API_KEY || '';
+
+    const orderNumber = `BSK_${tx.id}_${Date.now()}`;
+    const totalAmountStr = Number(tx.amount).toFixed(2);
+
+    const innerRequestPayload = {
+      type: 'Payment',
+      amountToCollect: totalAmountStr,
+      currency: 'GBP',
+      order: {
+        orderNumber,
+        note: `Resume order payment: ${raffles.map((r) => r.title).join(', ')}`.slice(0, 100),
+      },
+      customer: {
+        email: tx.user?.email || '',
+        firstName: tx.user?.firstName || '',
+        lastName: tx.user?.lastName || '',
+      },
+      returnUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/success?type=basket&order=${orderNumber}`,
+      cancelUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/cancel?type=basket&order=${orderNumber}`,
+    };
+
+    const innerRequestString = JSON.stringify(innerRequestPayload);
+    const hash = crypto
+      .createHash('sha512')
+      .update(apiKey + innerRequestString)
+      .digest('hex')
+      .toUpperCase();
+
+    try {
+      const response = await fetch(`${baseUrl}/api/gateway/payment-jobs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ConfigurationId: configId,
+          Hash: hash,
+        },
+        body: innerRequestString,
+      });
+
+      const responseText = await response.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        data = { rawText: responseText };
+      }
+
+      if (!response.ok) {
+        throw new BadRequestException(
+          data.message || 'Failed to initialize payment gateway.',
+        );
+      }
+
+      let redirectUrl =
+        data.links?.action?.url ||
+        (typeof data.links?.action === 'string' ? data.links.action : null) ||
+        data.redirectUrl ||
+        data.paymentUrl ||
+        data.url ||
+        data.hostedPaymentPageUrl ||
+        data.checkoutUrl ||
+        data.href ||
+        data.link;
+
+      if (!redirectUrl && Array.isArray(data.actions)) {
+        const checkoutAction = data.actions.find(
+          (a: any) =>
+            a.rel === 'checkout' ||
+            a.rel === 'payment' ||
+            a.rel === 'redirect' ||
+            a.rel === 'hosted_checkout',
+        );
+        if (checkoutAction)
+          redirectUrl = checkoutAction.href || checkoutAction.url;
+      }
+
+      if (!redirectUrl && data.data?.reference) {
+        redirectUrl = `${baseUrl}/payment?ref=${data.data.reference}`;
+      }
+
+      if (!redirectUrl) {
+        throw new BadRequestException(
+          'Cashflows did not return a checkout payment URL.',
+        );
+      }
+
+      // Update gatewayTransactionId and ensure status is PENDING
+      await this.prisma.transaction.update({
+        where: { id: tx.id },
+        data: {
+          gatewayTransactionId: orderNumber,
+          status: 'PENDING',
+        },
+      });
+
+      return {
+        url: redirectUrl,
+      };
+    } catch (error: any) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(`Payment Gateway Error: ${error.message}`);
     }
   }
 }

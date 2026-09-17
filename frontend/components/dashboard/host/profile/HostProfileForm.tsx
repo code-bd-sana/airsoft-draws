@@ -56,12 +56,13 @@ export default function HostProfileForm() {
       return userService.uploadAvatar(file);
     },
     onSuccess: (data) => {
-      setMessage("Avatar updated successfully!");
+      setMessage("Logo updated successfully!");
       queryClient.setQueryData(["user"], data.user);
+      queryClient.invalidateQueries({ queryKey: ["user"] });
       setTimeout(() => setMessage(""), 3000);
     },
     onError: () => {
-      setMessage("Failed to update avatar.");
+      setMessage("Failed to update logo.");
     },
   });
 
@@ -101,6 +102,8 @@ export default function HostProfileForm() {
     ? formData.brandName.substring(0, 2).toUpperCase()
     : user?.firstName?.substring(0, 2).toUpperCase() || "TG";
 
+  const hostLogoSrc = user?.hostProfile?.logoUrl || user?.avatarUrl;
+
   return (
     <div className="bg-[#161810] border border-[#2d3c13] rounded-[16px] p-[24px] lg:p-[48px] flex flex-col lg:flex-row gap-[48px] lg:gap-[80px]">
       
@@ -117,8 +120,8 @@ export default function HostProfileForm() {
             className="hidden" 
           />
           <div className="relative w-[160px] h-[160px] rounded-full border-2 border-dashed border-[#2d3c13] flex items-center justify-center bg-[#0d0d0b] overflow-hidden">
-            {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt="Logo" className="w-full h-full object-cover" />
+            {hostLogoSrc ? (
+              <img src={hostLogoSrc} alt="Logo" className="w-full h-full object-cover" />
             ) : (
               <span className="font-heading font-bold text-[48px] text-[#8cb34a]">{initials}</span>
             )}

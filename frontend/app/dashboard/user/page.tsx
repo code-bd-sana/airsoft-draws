@@ -1,9 +1,13 @@
 import React from "react";
 import Image from "next/image";
+import IncompleteOrdersBanner from "@/components/dashboard/IncompleteOrdersBanner";
 
 export default function UserDashboardPage() {
   return (
     <div className="flex flex-col gap-5 p-8 max-w-[1660px] mx-auto w-full animate-fadeIn">
+      {/* Alert banner for any incomplete or pending orders */}
+      <IncompleteOrdersBanner />
+
       {/* KPI Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 w-full">
         {/* Total Tickets */}

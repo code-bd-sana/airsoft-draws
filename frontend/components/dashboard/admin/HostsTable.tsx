@@ -226,7 +226,7 @@ export default function HostsTable() {
               </tr>
             ) : (
               data?.hosts?.map((host: HostData, i: number) => {
-                const hostLogo = host.logoUrl || host.avatarUrl;
+                const hostLogo = host.avatarUrl || host.logoUrl;
                 return (
                 <tr key={host.id} className={`${i !== data.hosts.length - 1 ? 'border-b border-[#2D3C13]' : ''} hover:bg-[#1A230A] transition-colors`}>
                   <td className="py-4 px-6">

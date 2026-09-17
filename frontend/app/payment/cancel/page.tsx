@@ -73,8 +73,10 @@ function PaymentCancelContent() {
               </span>
             ) : (
               <span>
-                Your selected tickets are still in your basket. If you would like
-                to proceed, simply return to your basket and complete checkout.
+                Your incomplete order has been saved in your user dashboard. Note
+                that tickets are only reserved upon successful payment—you can
+                complete payment from your dashboard at any time before tickets
+                sell out or the draw closes!
               </span>
             )}
           </p>
@@ -83,9 +85,18 @@ function PaymentCancelContent() {
 
       {/* Action Buttons */}
       <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-4">
+        {paymentType !== "subscription" && (
+          <Link
+            href="/dashboard/user/transactions?tab=pending"
+            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#FBBF24] hover:to-[#F59E0B] text-[#0D0D0B] font-heading font-bold text-sm sm:text-base shadow-[0_4px_20px_rgba(245,158,11,0.3)] transition-all transform hover:-translate-y-0.5 text-center"
+          >
+            Complete Payment in Dashboard
+          </Link>
+        )}
+
         <Link
           href={paymentType === "subscription" ? "/pricing" : "/basket"}
-          className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#72943A] to-[#8CB34A] hover:from-[#8CB34A] hover:to-[#A0D056] text-[#0D0D0B] font-heading font-bold text-sm sm:text-base shadow-[0_4px_20px_rgba(140,179,74,0.3)] transition-all transform hover:-translate-y-0.5 text-center"
+          className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#72943A] to-[#8CB34A] hover:from-[#8CB34A] hover:to-[#A0D056] text-[#0D0D0B] font-heading font-bold text-sm sm:text-base shadow-[0_4px_20px_rgba(140,179,74,0.3)] transition-all transform hover:-translate-y-0.5 text-center"
         >
           {paymentType === "subscription" ? "View Pricing Plans" : "Return to Basket"}
         </Link>
@@ -94,7 +105,7 @@ function PaymentCancelContent() {
           href="/dashboard"
           className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-[#1A230A] hover:bg-[#2D3C13] border border-[#43581E] text-[#A0D056] font-heading font-bold text-sm sm:text-base transition-colors text-center"
         >
-          Go to Dashboard
+          Dashboard Overview
         </Link>
 
         <Link

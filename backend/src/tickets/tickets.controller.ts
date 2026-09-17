@@ -123,5 +123,43 @@ export class TicketsController {
     const userId = this.extractUserId(req);
     return this.ticketsService.getUserTickets(userId);
   }
+
+  @Get('orders')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiCookieAuth('accessToken')
+  @ApiOperation({
+    summary: 'Get all ticket orders and transactions for the authenticated user',
+    description: 'Retrieves all completed and pending incomplete orders with live competition availability and retry payment option.',
+  })
+  @ApiResponse({ status: 200, description: 'List of user orders' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getUserOrders(@Req() req: Request) {
+    const userId = this.extractUserId(req);
+    return this.ticketsService.getUserOrders(userId);
+  }
+
+  @Post('orders/:orderId/pay')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiCookieAuth('accessToken')
+  @ApiOperation({
+    summary: 'Retry or resume payment for an incomplete order',
+    description: 'Verifies the competition is still active and has remaining tickets, then initiates a new Cashflows payment session.',
+  })
+  @ApiParam({
+    name: 'orderId',
+    description: 'The transaction ID of the incomplete order',
+  })
+  @ApiResponse({ status: 200, description: 'Payment session initialized, returns redirect URL' })
+  @ApiResponse({ status: 400, description: 'Competition is closed or sold out' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async retryOrderPayment(
+    @Req() req: Request,
+    @Param('orderId') orderId: string,
+  ) {
+    const userId = this.extractUserId(req);
+    return this.ticketsService.retryOrderPayment(userId, orderId);
+  }
 }
 

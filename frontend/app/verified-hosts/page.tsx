@@ -5,6 +5,9 @@ import VerifiedHostsList from "../../components/website/verified-hosts/VerifiedH
 import WebsiteNavbar from "../../components/website/layout/WebsiteNavbar";
 import WebsiteFooter from "../../components/website/layout/WebsiteFooter";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Verified Hosts | Airsoft Draws",
   description: "Browse verified hosts running premium airsoft competitions.",

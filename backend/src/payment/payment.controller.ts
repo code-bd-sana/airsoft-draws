@@ -113,7 +113,16 @@ export class PaymentController {
     description: 'Payment return successfully confirmed',
   })
   async confirmPayment(
-    @Body() body: { orderNumber?: string; paymentJobRef?: string },
+    @Body()
+    body: {
+      orderNumber?: string;
+      ordernumber?: string;
+      order?: string;
+      paymentJobRef?: string;
+      paymentjobref?: string;
+      ref?: string;
+      reference?: string;
+    },
   ) {
     return this.paymentService.confirmPaymentReturn(body);
   }
@@ -129,13 +138,16 @@ export class PaymentController {
   })
   async confirmPaymentQuery(
     @Query('ordernumber') ordernumber?: string,
+    @Query('orderNumber') orderNumber?: string,
     @Query('order') order?: string,
+    @Query('paymentjobref') paymentjobref?: string,
     @Query('paymentJobRef') paymentJobRef?: string,
     @Query('ref') ref?: string,
+    @Query('reference') reference?: string,
   ) {
     return this.paymentService.confirmPaymentReturn({
-      orderNumber: ordernumber || order,
-      paymentJobRef: paymentJobRef || ref,
+      orderNumber: ordernumber || orderNumber || order,
+      paymentJobRef: paymentjobref || paymentJobRef || ref || reference,
     });
   }
 }

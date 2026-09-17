@@ -154,6 +154,102 @@ describe('PaymentService', () => {
       expect(result.success).toBe(true);
       expect(mockPrisma.hostSubscription.create).toHaveBeenCalled();
     });
+
+    it('should NOT allocate tickets if webhook payment status is CANCELLED or FAILED', async () => {
+      const orderNumber = 'TCK_raff_user_5_123456';
+      mockPrisma.raffle.findFirst.mockResolvedValue({ id: 'raff-1' });
+      mockPrisma.user.findFirst.mockResolvedValue({ id: 'user-1' });
+
+      const result = await service.handleWebhook('sig', {
+        order: { orderNumber },
+        paymentStatus: 'CANCELLED',
+      });
+
+      expect(result.success).toBe(true);
+      expect(mockTicketsService.allocateTicketsInDatabase).not.toHaveBeenCalled();
+    });
+
+    it('should mark transaction CANCELLED and NOT allocate tickets when BSK order receives CANCELLED', async () => {
+      const orderNumber = 'BSK_tx-1_123456';
+      mockPrisma.transaction.findUnique.mockResolvedValue({
+        id: 'tx-1',
+        status: 'PENDING',
+        userId: 'user-1',
+        relatedEntityId: 'BSK_ITEMS:raff-1:2',
+      });
+      mockPrisma.transaction.update.mockResolvedValue({
+        id: 'tx-1',
+        status: 'CANCELLED',
+      });
+
+      const result = await service.handleWebhook('sig', {
+        order: { orderNumber },
+        paymentStatus: 'CANCELLED',
+      });
+
+      expect(result.success).toBe(true);
+      expect(mockPrisma.transaction.update).toHaveBeenCalledWith({
+        where: { id: 'tx-1' },
+        data: expect.objectContaining({ status: 'CANCELLED' }),
+      });
+      expect(mockTicketsService.allocateTicketsInDatabase).not.toHaveBeenCalled();
+    });
+
+    it('should process paid BSK basket order and allocate tickets when PAID', async () => {
+      const orderNumber = 'BSK_tx-1_123456';
+      mockPrisma.transaction.findUnique.mockResolvedValue({
+        id: 'tx-1',
+        status: 'PENDING',
+        userId: 'user-1',
+        relatedEntityId: 'BSK_ITEMS:raff-1:2',
+      });
+      mockPrisma.transaction.update.mockResolvedValue({
+        id: 'tx-1',
+        status: 'COMPLETED',
+      });
+      mockTicketsService.allocateTicketsInDatabase.mockResolvedValue({
+        tickets: [{ ticketNumber: '101' }, { ticketNumber: '102' }],
+      });
+
+      const result = await service.handleWebhook('sig', {
+        order: { orderNumber },
+        paymentStatus: 'PAID',
+      });
+
+      expect(result.success).toBe(true);
+      expect(mockPrisma.transaction.update).toHaveBeenCalledWith({
+        where: { id: 'tx-1' },
+        data: expect.objectContaining({ status: 'COMPLETED' }),
+      });
+      expect(mockTicketsService.allocateTicketsInDatabase).toHaveBeenCalledWith(
+        'user-1',
+        'raff-1',
+        2,
+        'tx-1',
+      );
+    });
+
+    it('should NOT allocate tickets if webhook status is CANCELLED or DECLINED', async () => {
+      const orderNumber = 'BSK_tx-fail_123456';
+      mockPrisma.transaction.findUnique.mockResolvedValue({
+        id: 'tx-fail',
+        userId: 'user-fail',
+        status: 'PENDING',
+        relatedEntityId: 'BSK_ITEMS:raff-fail:2',
+      });
+
+      const result = await service.handleWebhook('sig', {
+        order: { orderNumber },
+        paymentStatus: 'CANCELLED',
+      });
+
+      expect(result.success).toBe(true);
+      expect(mockPrisma.transaction.update).toHaveBeenCalledWith({
+        where: { id: 'tx-fail' },
+        data: expect.objectContaining({ status: 'CANCELLED' }),
+      });
+      expect(mockTicketsService.allocateTicketsInDatabase).not.toHaveBeenCalled();
+    });
   });
 
   describe('confirmPaymentReturn', () => {
@@ -192,3 +288,4 @@ describe('PaymentService', () => {
     });
   });
 });
+
