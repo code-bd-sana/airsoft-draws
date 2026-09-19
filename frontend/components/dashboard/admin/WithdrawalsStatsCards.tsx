@@ -27,9 +27,15 @@ export default function WithdrawalsStatsCards({ withdrawals = [], isLoading }: W
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 animate-pulse">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="bg-[#161810] border border-[#2D3C13] rounded-[16px] p-6 h-28 animate-pulse" />
+          <div key={i} className="bg-[#161810] border border-[#2D3C13] rounded-[16px] p-6 flex flex-col justify-between h-[126px]">
+            <div className="h-3 w-28 bg-[#1A230A] rounded" />
+            <div className="flex flex-col gap-2 mt-2">
+              <div className="h-8 w-24 bg-[#1A230A] rounded" />
+              <div className="h-5 w-20 bg-[#1A230A]/60 rounded-full mt-1" />
+            </div>
+          </div>
         ))}
       </div>
     );

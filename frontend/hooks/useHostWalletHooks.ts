@@ -9,6 +9,14 @@ export const useHostDashboardOverview = () => {
   });
 };
 
+export const useHostSalesAnalytics = (timeRange: '7D' | '30D' | '1Y' = '7D') => {
+  return useQuery({
+    queryKey: ['host-sales-analytics', timeRange],
+    queryFn: () => hostWalletService.getSalesAnalytics(timeRange),
+    staleTime: 30 * 1000,
+  });
+};
+
 export const useHostWalletStats = () => {
   return useQuery({
     queryKey: ['host-wallet-stats'],

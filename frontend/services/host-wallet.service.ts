@@ -80,9 +80,42 @@ export interface HostDashboardOverviewData {
   }>;
 }
 
+export interface HostSalesAnalyticsResponse {
+  metrics: Array<{
+    id: string;
+    label: string;
+    value: string;
+    change: string;
+    trend: "up" | "down";
+  }>;
+  chartData: Array<{
+    date: string;
+    revenue: number;
+    sales: number;
+  }>;
+  raffles: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    image: string | null;
+    status: string;
+    ticketsSold: number;
+    totalTickets: number;
+    ticketPrice: number;
+    grossRevenue: number;
+    netRevenue: number;
+    createdAt: string;
+  }>;
+}
+
 export const hostWalletService = {
   async getDashboardOverview(): Promise<HostDashboardOverviewData> {
     const response = await api.get('/hosts/dashboard');
+    return response.data;
+  },
+
+  async getSalesAnalytics(timeRange: '7D' | '30D' | '1Y' = '7D'): Promise<HostSalesAnalyticsResponse> {
+    const response = await api.get('/hosts/sales', { params: { timeRange } });
     return response.data;
   },
 

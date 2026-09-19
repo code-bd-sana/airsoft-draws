@@ -10,7 +10,7 @@ interface WithdrawalsTableProps {
 }
 
 export default function WithdrawalsTable({ withdrawals: propWithdrawals, isLoading: propIsLoading }: WithdrawalsTableProps) {
-  const { data: fetchedWithdrawals, isLoading: isQueryLoading } = useAdminWithdrawals();
+  const { data: fetchedWithdrawals, isLoading: isQueryLoading, isFetching } = useAdminWithdrawals();
   
   const withdrawals: AdminPayoutData[] = propWithdrawals || fetchedWithdrawals || [];
   const isLoading = propIsLoading !== undefined ? propIsLoading : isQueryLoading;
@@ -43,16 +43,15 @@ export default function WithdrawalsTable({ withdrawals: propWithdrawals, isLoadi
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="w-full bg-[#161810] border border-[#2D3C13] rounded-[16px] p-8 text-center text-[#8CB34A] font-sans text-sm animate-pulse">
-        Loading withdrawal requests...
-      </div>
-    );
-  }
-
   return (
-    <div className="w-full bg-[#161810] border border-[#2D3C13] rounded-[16px] overflow-hidden overflow-x-auto mt-2 animate-fadeIn">
+    <div className="w-full bg-[#161810] border border-[#2D3C13] rounded-[16px] overflow-hidden overflow-x-auto mt-2 animate-fadeIn relative">
+      {/* Background Fetching Indicator Bar */}
+      <div className="h-0.5 w-full bg-transparent overflow-hidden">
+        {isFetching && !isLoading && (
+          <div className="h-full bg-gradient-to-r from-transparent via-[#8CB34A] to-transparent animate-pulse w-full shadow-[0_0_8px_#8CB34A]" />
+        )}
+      </div>
+
       <table className="w-full min-w-[1100px] text-left border-collapse">
         <thead>
           <tr className="border-b border-[#2D3C13] bg-[#111210]">
@@ -67,7 +66,45 @@ export default function WithdrawalsTable({ withdrawals: propWithdrawals, isLoadi
           </tr>
         </thead>
         <tbody>
-          {withdrawals.length === 0 ? (
+          {isLoading ? (
+            Array.from({ length: 5 }).map((_, idx) => (
+              <tr key={idx} className="border-b border-[#2D3C13]/40 animate-pulse">
+                <td className="py-4 px-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-[#1A230A] border border-[#2D3C13]/60 shrink-0" />
+                    <div className="flex flex-col gap-2">
+                      <div className="h-3.5 w-36 bg-[#1A230A] rounded" />
+                      <div className="h-2.5 w-24 bg-[#1A230A]/60 rounded" />
+                    </div>
+                  </div>
+                </td>
+                <td className="py-4 px-6 text-center">
+                  <div className="h-4 w-16 bg-[#1A230A] rounded mx-auto" />
+                </td>
+                <td className="py-4 px-6 text-center">
+                  <div className="h-4 w-14 bg-[#1A230A] rounded mx-auto" />
+                </td>
+                <td className="py-4 px-6 text-center">
+                  <div className="h-4 w-16 bg-[#1A230A] rounded mx-auto" />
+                </td>
+                <td className="py-4 px-6 text-center">
+                  <div className="h-5 w-20 bg-[#1A230A] rounded-full mx-auto" />
+                </td>
+                <td className="py-4 px-6 text-center">
+                  <div className="h-3.5 w-20 bg-[#1A230A] rounded mx-auto" />
+                </td>
+                <td className="py-4 px-6 text-center">
+                  <div className="h-6 w-20 bg-[#1A230A] border border-[#2D3C13]/60 rounded-full mx-auto" />
+                </td>
+                <td className="py-4 px-6 text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <div className="h-7 w-16 bg-[#1A230A] rounded-[6px]" />
+                    <div className="h-7 w-7 bg-[#1A230A] rounded-[6px]" />
+                  </div>
+                </td>
+              </tr>
+            ))
+          ) : withdrawals.length === 0 ? (
             <tr>
               <td colSpan={8} className="py-12 text-center text-[#72943A] font-sans text-sm">
                 No withdrawal requests found.

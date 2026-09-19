@@ -681,4 +681,201 @@ export class HostsService {
       recentActivity,
     };
   }
+
+  async getHostSalesAnalytics(userId: string, timeRange: '7D' | '30D' | '1Y' = '7D') {
+    const host = await this.getHostProfileByUserId(userId);
+    const activeSub = await this.getHostActiveSubscription(host.id);
+    const isPaidPlan = this.isProOrPremium(activeSub);
+    const feeRate = isPaidPlan ? 0.10 : 0.15;
+    const platformFeeRate = isPaidPlan ? 10 : 15;
+    const netEarningsRate = isPaidPlan ? 90 : 85;
+
+    // Fetch all host raffles
+    const hostRaffles = await this.prisma.raffle.findMany({
+      where: { hostId: host.id },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        _count: {
+          select: { tickets: true, winners: true },
+        },
+      },
+    });
+
+    const totalTicketsSold = hostRaffles.reduce((sum, r) => sum + r.ticketsSold, 0);
+    const totalGrossRevenue = Number(
+      hostRaffles.reduce(
+        (sum, r) => sum + Number(r.pricePerTicket) * r.ticketsSold,
+        0,
+      ).toFixed(2),
+    );
+    const totalNetRevenue = Number((totalGrossRevenue * (1 - feeRate)).toFixed(2));
+    const activeRaffles = hostRaffles.filter((r) => r.status === 'ACTIVE');
+
+    // Unique entrants across host's raffles
+    const uniqueEntrants = await this.prisma.ticket.groupBy({
+      by: ['userId'],
+      where: { raffle: { hostId: host.id } },
+    });
+    const totalEntrantsCount = uniqueEntrants.length;
+
+    // Fetch tickets for this host within the time range
+    const now = new Date();
+    let startDate = new Date();
+    if (timeRange === '7D') {
+      startDate.setDate(now.getDate() - 6);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (timeRange === '30D') {
+      startDate.setDate(now.getDate() - 29);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (timeRange === '1Y') {
+      startDate = new Date(now.getFullYear(), now.getMonth() - 11, 1, 0, 0, 0, 0);
+    }
+
+    const hostTickets = await this.prisma.ticket.findMany({
+      where: {
+        raffle: { hostId: host.id },
+        createdAt: { gte: startDate },
+      },
+      select: {
+        createdAt: true,
+        raffle: { select: { pricePerTicket: true } },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    // Generate chart data points based on timeRange
+    const chartData: Array<{ date: string; revenue: number; sales: number }> = [];
+
+    if (timeRange === '7D') {
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+        const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+
+        const bucketTickets = hostTickets.filter(
+          (t) => t.createdAt >= dayStart && t.createdAt <= dayEnd,
+        );
+        const dayGross = bucketTickets.reduce(
+          (sum, t) => sum + Number(t.raffle?.pricePerTicket || 0),
+          0,
+        );
+
+        chartData.push({
+          date: dayNames[d.getDay()],
+          revenue: Number(dayGross.toFixed(2)),
+          sales: bucketTickets.length,
+        });
+      }
+    } else if (timeRange === '30D') {
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      for (let i = 5; i >= 0; i--) {
+        const dStart = new Date(now);
+        dStart.setDate(dStart.getDate() - (i + 1) * 5);
+        dStart.setHours(0, 0, 0, 0);
+        const dEnd = new Date(now);
+        dEnd.setDate(dEnd.getDate() - i * 5);
+        dEnd.setHours(23, 59, 59, 999);
+
+        const bucketTickets = hostTickets.filter(
+          (t) => t.createdAt >= dStart && t.createdAt <= dEnd,
+        );
+        const bucketGross = bucketTickets.reduce(
+          (sum, t) => sum + Number(t.raffle?.pricePerTicket || 0),
+          0,
+        );
+
+        chartData.push({
+          date: `${dEnd.getDate()} ${monthNames[dEnd.getMonth()]}`,
+          revenue: Number(bucketGross.toFixed(2)),
+          sales: bucketTickets.length,
+        });
+      }
+    } else if (timeRange === '1Y') {
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const startOfMonth = new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0, 0);
+        const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+
+        const bucketTickets = hostTickets.filter(
+          (t) => t.createdAt >= startOfMonth && t.createdAt <= endOfMonth,
+        );
+        const bucketGross = bucketTickets.reduce(
+          (sum, t) => sum + Number(t.raffle?.pricePerTicket || 0),
+          0,
+        );
+
+        chartData.push({
+          date: monthNames[d.getMonth()],
+          revenue: Number(bucketGross.toFixed(2)),
+          sales: bucketTickets.length,
+        });
+      }
+    }
+
+    // Map competition list
+    const breakdownRaffles = hostRaffles.map((r) => {
+      const price = Number(r.pricePerTicket);
+      const gross = Number((price * r.ticketsSold).toFixed(2));
+      const net = Number((gross * (1 - feeRate)).toFixed(2));
+
+      let status = 'Draft';
+      if (r.status === 'ACTIVE') status = 'Live';
+      else if (r.status === 'COMPLETED' || r.status === 'ENDED') status = 'Completed';
+      else if (r.status === 'PENDING_APPROVAL') status = 'Pending Review';
+
+      return {
+        id: r.id,
+        name: r.title,
+        slug: r.slug || r.id,
+        image: r.mainImage || null,
+        status,
+        ticketsSold: r.ticketsSold,
+        totalTickets: r.totalTickets,
+        ticketPrice: price,
+        grossRevenue: gross,
+        netRevenue: net,
+        createdAt: r.createdAt,
+      };
+    });
+
+    const metrics = [
+      {
+        id: 'total_revenue',
+        label: 'Total Revenue',
+        value: `£${totalGrossRevenue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        change: `${platformFeeRate}% Platform Fee`,
+        trend: 'up' as const,
+      },
+      {
+        id: 'total_tickets_sold',
+        label: 'Tickets Sold',
+        value: totalTicketsSold.toLocaleString(),
+        change: `${totalEntrantsCount} Entrants`,
+        trend: 'up' as const,
+      },
+      {
+        id: 'net_earnings',
+        label: 'Net Earnings',
+        value: `£${totalNetRevenue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        change: `${netEarningsRate}% Net Share`,
+        trend: 'up' as const,
+      },
+      {
+        id: 'active_competitions',
+        label: 'Active Competitions',
+        value: activeRaffles.length.toString(),
+        change: `${hostRaffles.length} Total Draws`,
+        trend: 'up' as const,
+      },
+    ];
+
+    return {
+      metrics,
+      chartData,
+      raffles: breakdownRaffles,
+    };
+  }
 }
