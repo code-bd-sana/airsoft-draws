@@ -252,6 +252,11 @@ export class RafflesService {
       conditions.push({
         endDate: { lt: now },
       });
+    } else {
+      // Default to hiding future start date raffles
+      conditions.push({
+        startDate: { lte: now },
+      });
     }
 
     if (search) {
@@ -445,7 +450,11 @@ export class RafflesService {
 
   async findOnePublic(slug: string) {
     const raffle = await this.prisma.raffle.findFirst({
-      where: { slug, status: 'ACTIVE' },
+      where: { 
+        slug, 
+        status: 'ACTIVE',
+        startDate: { lte: new Date() }
+      },
       include: {
         host: { include: { user: true } },
         instantWins: true,
@@ -1066,13 +1075,17 @@ export class RafflesService {
 
     // 1. Total Active Live Draws
     const liveCount = await this.prisma.raffle.count({
-      where: { status: 'ACTIVE' },
+      where: { 
+        status: 'ACTIVE',
+        startDate: { lte: now } 
+      },
     });
 
     // 2. Draws Closing Today (status: ACTIVE and endDate is between now and next 24 hours)
     const closingTodayCount = await this.prisma.raffle.count({
       where: {
         status: 'ACTIVE',
+        startDate: { lte: now },
         endDate: {
           gte: now,
           lte: next24h,
@@ -1082,7 +1095,10 @@ export class RafflesService {
 
     // 3. Total Prizes Value of active live draws
     const activeRaffles = await this.prisma.raffle.findMany({
-      where: { status: 'ACTIVE' },
+      where: { 
+        status: 'ACTIVE',
+        startDate: { lte: now }
+      },
       select: {
         mainPrizeValue: true,
         pricePerTicket: true,
