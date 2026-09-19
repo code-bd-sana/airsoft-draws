@@ -424,7 +424,7 @@ function CheckoutContent() {
         postalCode: postalCode.trim().toUpperCase(),
         country: country.trim(),
       },
-      ukaraNumber: hasRifItems ? ukara.trim() : undefined,
+      ukaraNumber: ukara.trim() || undefined,
       acceptedTerms,
       saveToProfile,
     };
@@ -815,7 +815,7 @@ function CheckoutContent() {
                           required
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          placeholder="e.g. +1 (216) 688-7637"
+                          placeholder="+44 7000 123123"
                           className="h-11 px-3.5 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg font-sans text-sm text-[#E8EDD4] focus:border-[#8CB34A] outline-none transition-colors"
                         />
                       </div>
@@ -953,7 +953,7 @@ function CheckoutContent() {
                         required
                         value={addressLine1}
                         onChange={(e) => setAddressLine1(e.target.value)}
-                        placeholder="e.g. 573 South Oak Lane"
+                        placeholder="House number and street name"
                         className="h-11 px-3.5 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg font-sans text-sm text-[#E8EDD4] focus:border-[#8CB34A] outline-none transition-colors"
                       />
                     </div>
@@ -966,7 +966,7 @@ function CheckoutContent() {
                         type="text"
                         value={addressLine2}
                         onChange={(e) => setAddressLine2(e.target.value)}
-                        placeholder="Apartment, suite, unit, building floor"
+                        placeholder="Apartment, suite, unit, etc. (optional)"
                         className="h-11 px-3.5 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg font-sans text-sm text-[#E8EDD4] focus:border-[#8CB34A] outline-none transition-colors"
                       />
                     </div>
@@ -981,7 +981,7 @@ function CheckoutContent() {
                           required
                           value={city}
                           onChange={(e) => setCity(e.target.value)}
-                          placeholder="e.g. Occaecat eveniet ne"
+                          placeholder="Town / City"
                           className="h-11 px-3.5 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg font-sans text-sm text-[#E8EDD4] focus:border-[#8CB34A] outline-none transition-colors"
                         />
                       </div>
@@ -995,7 +995,7 @@ function CheckoutContent() {
                           required
                           value={postalCode}
                           onChange={(e) => setPostalCode(e.target.value)}
-                          placeholder="e.g. Incidunt rem enim e"
+                          placeholder="Postcode (e.g. SW1A 1AA)"
                           className="h-11 px-3.5 bg-[#0D0D0B] border border-[#2D3C13] rounded-lg font-sans text-sm text-[#E8EDD4] focus:border-[#8CB34A] outline-none transition-colors uppercase"
                         />
                       </div>
@@ -1026,33 +1026,40 @@ function CheckoutContent() {
                       </h3>
                     </div>
 
-                    {hasRifItems ? (
-                      <div className="flex flex-col gap-2 p-4 bg-[#0D0D0B] border border-amber-900/60 rounded-xl">
-                        <div className="flex items-center justify-between">
-                          <label className="font-sans font-medium text-xs text-[#E8EDD4]">
-                            UKARA Registration Number <span className="text-[#F76B6B]">*</span>
-                          </label>
-                          <span className="text-[10px] text-amber-400 font-bold uppercase">
+                    {/* UKARA Registration Input Field */}
+                    <div className="flex flex-col gap-2 p-4 bg-[#0D0D0B] border border-[#2D3C13] rounded-xl">
+                      <div className="flex items-center justify-between">
+                        <label className="font-sans font-medium text-xs text-[#E8EDD4]">
+                          UKARA Registration Number {hasRifItems && <span className="text-[#F76B6B]">*</span>}
+                        </label>
+                        {hasRifItems ? (
+                          <span className="text-[10px] text-amber-400 font-bold uppercase bg-amber-950/40 border border-amber-800/60 px-2 py-0.5 rounded">
                             Mandatory for RIF Competitions
                           </span>
-                        </div>
-                        <input
-                          type="text"
-                          required={hasRifItems}
-                          value={ukara}
-                          onChange={(e) => setUkara(e.target.value)}
-                          placeholder="e.g. UKARA123456"
-                          className="h-11 px-3.5 bg-[#161810] border border-[#2D3C13] rounded-lg font-sans text-sm text-[#E8EDD4] focus:border-[#8CB34A] outline-none transition-colors uppercase"
-                        />
+                        ) : (
+                          <span className="text-[10px] text-[#8CB34A] font-medium bg-[#1A230A] border border-[#2D3C13] px-2 py-0.5 rounded">
+                            Optional for Accessories / Non-RIF
+                          </span>
+                        )}
+                      </div>
+                      <input
+                        type="text"
+                        required={hasRifItems}
+                        value={ukara}
+                        onChange={(e) => setUkara(e.target.value)}
+                        placeholder="e.g. UKARA123456"
+                        className="h-11 px-3.5 bg-[#161810] border border-[#2D3C13] rounded-lg font-sans text-sm text-[#E8EDD4] focus:border-[#8CB34A] outline-none transition-colors uppercase"
+                      />
+                      {hasRifItems ? (
                         <p className="font-sans text-[11px] text-[#72943A] leading-normal">
                           Required as evidence supporting a statutory legal defence under VCRA Section 37 for Realistic Imitation Firearms. Checked following a win to confirm it is active.
                         </p>
-                      </div>
-                    ) : (
-                      <div className="p-3 bg-[#1A230A] border border-[#2D3C13] rounded-xl text-xs text-[#8CB34A]">
-                        ✓ <strong>UKARA Not Required:</strong> Your current basket contains accessories only. UKARA defence details are not required.
-                      </div>
-                    )}
+                      ) : (
+                        <p className="font-sans text-[11px] text-[#72943A] leading-normal">
+                          Your current basket contains non-RIF items. You can optionally enter your UKARA number here to link and save it to your account for future RIF competitions.
+                        </p>
+                      )}
+                    </div>
 
                     {/* Terms Acceptance */}
                     <div className="flex items-start gap-3 p-3.5 bg-[#0D0D0B] border border-[#2D3C13] rounded-xl">
