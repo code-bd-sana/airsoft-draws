@@ -1149,7 +1149,6 @@ export class RafflesService {
 
     // 2. Happy Winners (Count of winners)
     const totalWinners = await this.prisma.winner.count();
-    const displayWinners = totalWinners > 0 ? `${totalWinners}` : '68';
 
     // 3. Running total of prizes won (main draw values + claimed instant wins)
     const endedRaffles = await this.prisma.raffle.findMany({
@@ -1188,19 +1187,17 @@ export class RafflesService {
     });
 
     const totalWonInPrizes = mainDrawsWonTotal + instantWinsWonTotal;
-    const formattedWonPrizes = totalWonInPrizes > 0
-      ? `£${totalWonInPrizes.toLocaleString('en-GB')}`
-      : '£1,000';
+    const formattedWonPrizes = `£${totalWonInPrizes.toLocaleString('en-GB')}`;
 
     return [
       {
         id: 1,
-        value: `${drawsCompleted > 0 ? drawsCompleted : '22'}`,
+        value: `${drawsCompleted}`,
         label: 'Draws Completed',
       },
       {
         id: 2,
-        value: displayWinners,
+        value: `${totalWinners}`,
         label: 'Winning Operators',
       },
       {

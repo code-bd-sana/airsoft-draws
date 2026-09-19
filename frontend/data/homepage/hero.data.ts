@@ -1,4 +1,3 @@
-import { StatItem } from "../../types/homepage.types";
 import { Draw } from "../../types/draw.types";
 
 export interface HeroData {
@@ -9,7 +8,6 @@ export interface HeroData {
   primaryCtaHref: string;
   secondaryCtaLabel: string;
   secondaryCtaHref: string;
-  stats: StatItem[];
   featuredDraw: Draw;
 }
 
@@ -21,23 +19,6 @@ export const heroData: HeroData = {
   primaryCtaHref: "#live-draws",
   secondaryCtaLabel: "How It Works",
   secondaryCtaHref: "#how-it-works",
-  stats: [
-    {
-      id: "hero-stat-1",
-      value: "22",
-      label: "Draws Completed",
-    },
-    {
-      id: "hero-stat-2",
-      value: "68",
-      label: "Winning Operators",
-    },
-    {
-      id: "hero-stat-3",
-      value: "£1,000",
-      label: "Won in prizes!",
-    },
-  ],
   featuredDraw: {
     id: "hero-feat-1",
     title: "VFC HK416 GBBR Bundle",

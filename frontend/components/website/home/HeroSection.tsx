@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
 import { heroData } from '../../../data/homepage/hero.data';
 import { raffleService } from '../../../services/raffle.service';
 
@@ -12,30 +13,15 @@ import { raffleService } from '../../../services/raffle.service';
  * - PC (>= lg): Tactical operator image on the right with a seamless gradient blending into a matching dark background on the left.
  */
 export default function HeroSection() {
-  const [dynamicStats, setDynamicStats] = useState<{ id: number | string; value: string; label: string }[] | null>(null);
-
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        const stats = await raffleService.getPublicStats();
-        if (stats && stats.length > 0) {
-          setDynamicStats(stats);
-        }
-      } catch (error) {
-        console.error("Failed to fetch stats:", error);
-      }
-    }
-
-    fetchStats();
-  }, []);
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['publicStats'],
+    queryFn: () => raffleService.getPublicStats(),
+  });
 
   const {
     badgeText,
     paragraphText,
-    stats: fallbackStats,
   } = heroData;
-
-  const statsToShow = dynamicStats || fallbackStats;
 
   return (
     <section className="relative min-h-[85vh] lg:min-h-[90vh] flex items-center pt-28 pb-16 lg:pt-36 lg:pb-24 overflow-hidden bg-[#0a0b08]">
@@ -113,9 +99,20 @@ export default function HeroSection() {
               </Link>
             </div>
 
-            {/* Stats Row */}
+            {/* Stats Row - 100% Real Live Data from API */}
             <div className="grid grid-cols-3 gap-6 sm:gap-10 pt-8 border-t border-[#2D3C13]/80 w-full max-w-lg">
-              {statsToShow.map((stat) => (
+              {isLoading && (
+                <>
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex flex-col gap-2">
+                      <div className="h-8 sm:h-9 w-16 bg-[#1A230A] rounded animate-pulse" />
+                      <div className="h-3 w-20 bg-[#1A230A]/60 rounded animate-pulse" />
+                    </div>
+                  ))}
+                </>
+              )}
+
+              {!isLoading && stats?.map((stat) => (
                 <div key={stat.id} className="flex flex-col">
                   <div className="font-heading font-bold text-2xl sm:text-3xl lg:text-4xl text-[#8CB34A] tracking-tight drop-shadow-md">
                     {stat.value}

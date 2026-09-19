@@ -1,34 +1,9 @@
-import { StatItem } from "../../types/homepage.types";
-
 export interface TrustBenefit {
   id: string;
   title: string;
   description: string;
   iconName: string;
 }
-
-export const trustStatsData: StatItem[] = [
-  {
-    id: "trust-stat-1",
-    value: "2,400+",
-    label: "Draws Completed",
-  },
-  {
-    id: "trust-stat-2",
-    value: "£180,000+",
-    label: "Prizes Won",
-  },
-  {
-    id: "trust-stat-3",
-    value: "1,500+",
-    label: "Happy Winners",
-  },
-  {
-    id: "trust-stat-4",
-    value: "100%",
-    label: "Fair & Verified",
-  },
-];
 
 export const trustBenefitsData: TrustBenefit[] = [
   {
