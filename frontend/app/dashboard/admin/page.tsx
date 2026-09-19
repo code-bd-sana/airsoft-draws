@@ -1,36 +1,15 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
-import { useAdminOverviewStats } from "../../../hooks/useAdminHooks";
+import { useAdminOverviewStats, useAdminRevenueStats } from "../../../hooks/useAdminHooks";
 
-const REVENUE_DATA = [
-  { name: 'Jan', value: 30000 },
-  { name: 'Feb', value: 45000 },
-  { name: 'Mar', value: 42000 },
-  { name: 'Apr', value: 65000 },
-  { name: 'May', value: 60000 },
-  { name: 'Jun', value: 75000 },
-  { name: 'Jul', value: 85000 },
-  { name: 'Aug', value: 82000 },
-  { name: 'Sep', value: 95000 },
-  { name: 'Oct', value: 90000 },
-  { name: 'Nov', value: 105000 },
-  { name: 'Dec', value: 98000 },
-];
-
-const GROWTH_DATA = [
-  { name: 'Jan', Users: 120, Hosts: 40 },
-  { name: 'Feb', Users: 150, Hosts: 50 },
-  { name: 'Mar', Users: 180, Hosts: 60 },
-  { name: 'Apr', Users: 240, Hosts: 75 },
-  { name: 'May', Users: 280, Hosts: 90 },
-  { name: 'Jun', Users: 350, Hosts: 120 },
-];
 
 export default function AdminDashboardPage() {
-  const { data: overview, isLoading } = useAdminOverviewStats();
+  const { data: overview, isLoading: isOverviewLoading } = useAdminOverviewStats();
+  const [period, setPeriod] = useState('1Y');
+  const { data: revenueStats, isFetching: isRevenueLoading } = useAdminRevenueStats(period);
 
   return (
     <div className="flex flex-col gap-6 p-8 max-w-[1660px] mx-auto w-full animate-fadeIn">
@@ -45,7 +24,7 @@ export default function AdminDashboardPage() {
           </span>
           <div className="flex flex-col gap-1 mt-1">
             <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">
-              {isLoading ? "..." : overview?.stats.totalUsers ?? 0}
+              {isOverviewLoading ? "..." : overview?.stats.totalUsers ?? 0}
             </span>
             <div className="flex items-center gap-1.5 mt-2">
               <div className="px-2 py-0.5 rounded-full bg-[#083b18] flex items-center justify-center">
@@ -62,7 +41,7 @@ export default function AdminDashboardPage() {
           </span>
           <div className="flex flex-col gap-1 mt-1">
             <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">
-              {isLoading ? "..." : overview?.stats.activeHosts ?? 0}
+              {isOverviewLoading ? "..." : overview?.stats.activeHosts ?? 0}
             </span>
             <div className="flex items-center gap-1.5 mt-2">
               <span className="font-sans text-[11px] text-[#8CB34A]">Verified Operators</span>
@@ -77,7 +56,7 @@ export default function AdminDashboardPage() {
           </span>
           <div className="flex flex-col gap-1 mt-1">
             <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">
-              {isLoading ? "..." : overview?.stats.liveRaffles ?? 0}
+              {isOverviewLoading ? "..." : overview?.stats.liveRaffles ?? 0}
             </span>
             <div className="flex items-center gap-1.5 mt-2">
               <div className="px-2 py-0.5 rounded-full bg-[#083b18] flex items-center justify-center">
@@ -94,7 +73,7 @@ export default function AdminDashboardPage() {
           </span>
           <div className="flex flex-col gap-1 mt-1">
             <span className="font-heading font-bold text-[32px] text-[#E8EDD4] leading-none">
-              {isLoading ? "..." : `£${(overview?.stats.totalRevenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              {isOverviewLoading ? "..." : `£${(overview?.stats.totalRevenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             </span>
             <div className="flex items-center gap-1.5 mt-2">
               <span className="font-sans text-[11px] text-[#5A752A]">Ticket Sales</span>
@@ -114,7 +93,9 @@ export default function AdminDashboardPage() {
               <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">Platform Revenue</span>
               <div className="flex items-center gap-3">
                 <span className="font-heading font-bold text-[28px] text-[#E8EDD4]">
-                  {isLoading ? "..." : `£${(overview?.stats.totalRevenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  {isRevenueLoading && !revenueStats
+                    ? "..."
+                    : `£${(revenueStats ? revenueStats.periodRevenue : (overview?.periodRevenue ?? overview?.stats.totalRevenue ?? 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 </span>
                 <div className="px-2 py-0.5 rounded-full bg-[#083b18] flex items-center justify-center">
                   <svg className="w-3 h-3 text-[#4ADE80]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -127,11 +108,12 @@ export default function AdminDashboardPage() {
             
             {/* Chart Filters */}
             <div className="flex items-center gap-1 bg-[#0D0D0B] border border-[#2D3C13] rounded-[8px] p-1">
-              {['7D', '1M', '6M', '1Y'].map((filter, i) => (
+              {['7D', '1M', '6M', '1Y'].map((filter) => (
                 <button 
                   key={filter} 
-                  className={`px-3 py-1 rounded-[6px] font-sans font-medium text-[11px] transition-colors ${
-                    i === 3 ? 'bg-[#1A230A] text-[#8CB34A]' : 'text-[#72943A] hover:text-[#E8EDD4]'
+                  onClick={() => setPeriod(filter)}
+                  className={`px-3 py-1 rounded-[6px] font-sans font-medium text-[11px] transition-colors cursor-pointer ${
+                    period === filter ? 'bg-[#1A230A] text-[#8CB34A]' : 'text-[#72943A] hover:text-[#E8EDD4]'
                   }`}
                 >
                   {filter}
@@ -142,7 +124,7 @@ export default function AdminDashboardPage() {
           
           <div className="w-full h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={REVENUE_DATA} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+              <AreaChart data={revenueStats?.revenueData || overview?.revenueData || []} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#8CB34A" stopOpacity={0.3}/>
@@ -178,13 +160,13 @@ export default function AdminDashboardPage() {
             <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">Awaiting Your Review</span>
             <div className="w-[18px] h-[18px] rounded-full bg-[#f76b6b] flex items-center justify-center shrink-0">
               <span className="font-sans font-bold text-[10px] text-[#0D0D0B]">
-                {isLoading ? "..." : overview?.awaitingReview.count ?? 0}
+                {isOverviewLoading ? "..." : overview?.awaitingReview.count ?? 0}
               </span>
             </div>
           </div>
           
           <div className="flex flex-col gap-4 flex-1">
-            {isLoading ? (
+            {isOverviewLoading ? (
               <div className="py-8 text-center text-[#5A752A] font-sans text-sm animate-pulse">Loading review items...</div>
             ) : overview?.awaitingReview.list.length === 0 ? (
               <div className="py-8 text-center text-[#5A752A] font-sans text-sm">No items pending review.</div>
@@ -233,7 +215,7 @@ export default function AdminDashboardPage() {
           
           <div className="w-full h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={GROWTH_DATA} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+              <BarChart data={overview?.growthData || []} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                 <XAxis 
                   dataKey="name" 
                   axisLine={false} 
@@ -299,7 +281,7 @@ export default function AdminDashboardPage() {
         <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">Recent Activity</span>
         
         <div className="flex items-center gap-6 overflow-x-auto no-scrollbar pb-2">
-          {isLoading ? (
+          {isOverviewLoading ? (
             <div className="py-4 text-center text-[#5A752A] font-sans text-sm animate-pulse">Loading recent activity...</div>
           ) : overview?.recentActivity.length === 0 ? (
             <div className="py-4 text-center text-[#5A752A] font-sans text-sm">No recent activity.</div>

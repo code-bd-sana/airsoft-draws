@@ -130,7 +130,15 @@ export interface GetLogsResponse {
   };
 }
 
+export interface RevenueStatsResponse {
+  periodRevenue: number;
+  revenueData: { name: string; value: number }[];
+}
+
 export interface AdminDashboardOverview {
+  periodRevenue?: number;
+  revenueData?: { name: string; value: number }[];
+  growthData?: { name: string; Users: number; Hosts: number }[];
   stats: {
     totalUsers: number;
     activeHosts: number;
@@ -198,6 +206,11 @@ export const adminService = {
 
   async getOverviewStats(): Promise<AdminDashboardOverview> {
     const { data } = await api.get('/admin/dashboard/stats');
+    return data;
+  },
+
+  async getRevenueStats(period: string = '1Y'): Promise<RevenueStatsResponse> {
+    const { data } = await api.get('/admin/dashboard/revenue', { params: { period } });
     return data;
   },
 

@@ -5,7 +5,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class AdminDashboardService {
   constructor(private prisma: PrismaService) {}
 
-  async getOverviewStats() {
+    async getOverviewStats() {
+    const now = new Date();
     const [totalUsers, activeHosts, liveRaffles, revenueAggregate, awaitingReviewCount, awaitingReviewList] = await Promise.all([
       // Total users count
       this.prisma.user.count(),
@@ -112,7 +113,55 @@ export class AdminDashboardService {
         alert: act.alert,
       }));
 
+    // Calculate fixed 6-month growth data
+    const growthStartDate = new Date();
+    growthStartDate.setMonth(now.getMonth() - 6);
+
+    const chartUsers = await this.prisma.user.findMany({
+      where: { createdAt: { gte: growthStartDate } },
+      select: { createdAt: true }
+    });
+    const chartHosts = await this.prisma.hostProfile.findMany({
+      where: { createdAt: { gte: growthStartDate } },
+      select: { createdAt: true }
+    });
+
+    const usersMap = new Map<string, number>();
+    const hostsMap = new Map<string, number>();
+
+    const getMonthKey = (d: Date) => d.toLocaleDateString('en-GB', { month: 'short' });
+
+    const currentMonth = new Date(growthStartDate);
+    while (currentMonth <= now) {
+      const k = getMonthKey(currentMonth);
+      if (!usersMap.has(k)) usersMap.set(k, 0);
+      if (!hostsMap.has(k)) hostsMap.set(k, 0);
+      currentMonth.setMonth(currentMonth.getMonth() + 1);
+      currentMonth.setDate(1);
+    }
+
+    chartUsers.forEach(u => {
+      const k = getMonthKey(u.createdAt);
+      if (usersMap.has(k)) usersMap.set(k, usersMap.get(k)! + 1);
+    });
+    chartHosts.forEach(h => {
+      const k = getMonthKey(h.createdAt);
+      if (hostsMap.has(k)) hostsMap.set(k, hostsMap.get(k)! + 1);
+    });
+
+    const growthData = Array.from(usersMap.entries()).map(([name, usersCount]) => ({
+      name,
+      Users: usersCount,
+      Hosts: hostsMap.get(name) || 0
+    }));
+
+    // Default 1Y revenue stats
+    const defaultRevenue = await this.getRevenueStats('1Y');
+
     return {
+      revenueData: defaultRevenue.revenueData,
+      periodRevenue: defaultRevenue.periodRevenue,
+      growthData,
       stats: {
         totalUsers,
         activeHosts,
@@ -129,6 +178,60 @@ export class AdminDashboardService {
         })),
       },
       recentActivity,
+    };
+  }
+
+  async getRevenueStats(period: string = '1Y') {
+    const now = new Date();
+    let startDate = new Date();
+    if (period === '7D') startDate.setDate(now.getDate() - 7);
+    else if (period === '1M') startDate.setMonth(now.getMonth() - 1);
+    else if (period === '6M') startDate.setMonth(now.getMonth() - 6);
+    else startDate.setFullYear(now.getFullYear() - 1);
+
+    const chartTransactions = await this.prisma.transaction.findMany({
+      where: { status: 'COMPLETED', type: 'TICKET_PURCHASE', createdAt: { gte: startDate } },
+      select: { createdAt: true, amount: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const groupBy = (period === '7D' || period === '1M') ? 'day' : 'month';
+    const revenueMap = new Map<string, number>();
+
+    const getKey = (d: Date) => {
+      if (groupBy === 'day') return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      return d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+    };
+
+    const current = new Date(startDate);
+    while (current <= now) {
+      const k = getKey(current);
+      if (!revenueMap.has(k)) revenueMap.set(k, 0);
+      
+      if (groupBy === 'day') current.setDate(current.getDate() + 1);
+      else {
+        current.setMonth(current.getMonth() + 1);
+        current.setDate(1);
+      }
+    }
+
+    let periodRevenue = 0;
+    chartTransactions.forEach(t => {
+      const k = getKey(t.createdAt);
+      const amt = Number(t.amount) || 0;
+      periodRevenue += amt;
+      if (revenueMap.has(k)) {
+        revenueMap.set(k, revenueMap.get(k)! + amt);
+      } else {
+        revenueMap.set(k, amt);
+      }
+    });
+
+    const revenueData = Array.from(revenueMap.entries()).map(([name, value]) => ({ name, value }));
+
+    return {
+      periodRevenue,
+      revenueData,
     };
   }
 

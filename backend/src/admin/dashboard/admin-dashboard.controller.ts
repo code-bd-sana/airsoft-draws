@@ -33,6 +33,17 @@ export class AdminDashboardController {
     return this.adminDashboardService.getOverviewStats();
   }
 
+  @Get('revenue')
+  @ApiOperation({
+    summary: 'Get platform revenue metrics by period (Admin only)',
+    description: 'Returns revenue chart points and period sum filtered by 7D, 1M, 6M, or 1Y.',
+  })
+  @ApiResponse({ status: 200, description: 'Revenue chart data and period total' })
+  @ApiQuery({ name: 'period', required: false, type: String, example: '1Y' })
+  async getRevenueStats(@Query('period') period?: string) {
+    return this.adminDashboardService.getRevenueStats(period || '1Y');
+  }
+
   @Get('logs')
   @ApiOperation({
     summary: 'Get administrative system logs (Admin only)',
