@@ -249,28 +249,28 @@ export default function AdminDashboardPage() {
           </div>
           
           <div className="flex flex-col gap-4">
-            {[
-              { rank: 1, name: "Tactical Gear UK", revenue: "£12,400", initials: "TG" },
-              { rank: 2, name: "Airsoft World", revenue: "£10,800", initials: "AW" },
-              { rank: 3, name: "Combat Zone Ltd", revenue: "£9,200", initials: "CZ" },
-              { rank: 4, name: "Elite Shooters", revenue: "£7,800", initials: "ES" },
-              { rank: 5, name: "Strike Force Co", revenue: "£5,400", initials: "SF" },
-            ].map((host) => (
-              <div key={host.rank} className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <span className="font-sans font-medium text-[12px] text-[#5A752A] w-4 text-right">
-                    {host.rank}
-                  </span>
-                  <div className="w-7 h-7 rounded-full bg-[#1A230A] border border-[#2D3C13] flex items-center justify-center shrink-0">
-                    <span className="font-sans font-medium text-[9px] text-[#8CB34A]">{host.initials}</span>
+            {isOverviewLoading ? (
+              <div className="py-8 text-center text-[#5A752A] font-sans text-sm animate-pulse">Loading top hosts...</div>
+            ) : (overview?.topHosts || []).length === 0 ? (
+              <div className="py-8 text-center text-[#5A752A] font-sans text-sm">No hosts found.</div>
+            ) : (
+              overview?.topHosts?.map((host) => (
+                <div key={host.rank} className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <span className="font-sans font-medium text-[12px] text-[#5A752A] w-4 text-right">
+                      {host.rank}
+                    </span>
+                    <div className="w-7 h-7 rounded-full bg-[#1A230A] border border-[#2D3C13] flex items-center justify-center shrink-0">
+                      <span className="font-sans font-medium text-[9px] text-[#8CB34A]">{host.initials}</span>
+                    </div>
+                    <span className="font-sans text-[13px] text-[#E8EDD4]">{host.name}</span>
                   </div>
-                  <span className="font-sans text-[13px] text-[#E8EDD4]">{host.name}</span>
+                  <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">
+                    {host.revenue}
+                  </span>
                 </div>
-                <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">
-                  {host.revenue}
-                </span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 

@@ -14,7 +14,7 @@ export default function AdminSubscriptionsManagementPage() {
       <SubscriptionRequestsTable />
 
       {/* Active Subscriptions & Analytics */}
-      <div className="grid grid-cols-1 xl:grid-cols-[400px_1fr] gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-6 items-start">
         <PlanDistributionChart />
         <SubscriptionTable />
       </div>

@@ -136,6 +136,7 @@ export interface RevenueStatsResponse {
 }
 
 export interface AdminDashboardOverview {
+  topHosts?: { rank: number; name: string; revenue: string; initials: string }[];
   periodRevenue?: number;
   revenueData?: { name: string; value: number }[];
   growthData?: { name: string; Users: number; Hosts: number }[];

@@ -158,7 +158,52 @@ export class AdminDashboardService {
     // Default 1Y revenue stats
     const defaultRevenue = await this.getRevenueStats('1Y');
 
+    // Real verified top hosts
+    const verifiedHosts = await this.prisma.hostProfile.findMany({
+      where: { isVerified: true, user: { isBlocked: false } },
+      take: 5,
+      include: {
+        raffles: {
+          include: {
+            tickets: {
+              where: {
+                transaction: { status: 'COMPLETED' }
+              },
+              include: {
+                transaction: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const topHosts = verifiedHosts.map((h, i) => {
+      let hostRev = 0;
+      h.raffles?.forEach((r) => {
+        r.tickets?.forEach((t) => {
+          if (t.transaction) {
+            hostRev += Number(t.transaction.amount) || 0;
+          }
+        });
+      });
+      return {
+        rank: i + 1,
+        name: h.businessName,
+        revenue: `£${hostRev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        initials: h.businessName.substring(0, 2).toUpperCase(),
+        numericRevenue: hostRev,
+      };
+    }).sort((a, b) => b.numericRevenue - a.numericRevenue)
+      .map((h, idx) => ({
+        rank: idx + 1,
+        name: h.name,
+        revenue: h.revenue,
+        initials: h.initials,
+      }));
+
     return {
+      topHosts,
       revenueData: defaultRevenue.revenueData,
       periodRevenue: defaultRevenue.periodRevenue,
       growthData,

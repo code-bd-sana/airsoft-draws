@@ -38,7 +38,7 @@ export default function SubscriptionTable() {
   };
 
   return (
-    <div className="w-full bg-[#161810] border border-[#2D3C13] rounded-[16px] overflow-hidden overflow-x-auto h-full flex flex-col">
+    <div className="w-full bg-[#161810] border border-[#2D3C13] rounded-[16px] overflow-hidden overflow-x-auto flex flex-col">
       <table className="w-full min-w-[1000px] text-left border-collapse">
         <thead>
           <tr className="border-b border-[#2D3C13] bg-[#111210]">
