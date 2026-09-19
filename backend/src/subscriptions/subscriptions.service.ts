@@ -105,18 +105,51 @@ export class SubscriptionsService {
     });
   }
 
-  async getAllSubscriptions() {
-    const subscriptions = await this.prisma.hostSubscription.findMany({
-      include: {
-        plan: true,
-        host: {
-          include: { user: true },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  async getAllSubscriptions(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+  }) {
+    const page = Math.max(1, Number(params?.page) || 1);
+    const limit = Math.max(1, Number(params?.limit) || 10);
+    const skip = (page - 1) * limit;
+    const search = params?.search?.trim();
+    const status = params?.status?.trim();
 
-    return Promise.all(
+    const where: any = {};
+
+    if (status && status !== 'ALL') {
+      where.status = status;
+    }
+
+    if (search) {
+      where.OR = [
+        { host: { businessName: { contains: search, mode: 'insensitive' } } },
+        { host: { user: { email: { contains: search, mode: 'insensitive' } } } },
+        { host: { user: { firstName: { contains: search, mode: 'insensitive' } } } },
+        { host: { user: { lastName: { contains: search, mode: 'insensitive' } } } },
+        { plan: { name: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [total, subscriptions] = await Promise.all([
+      this.prisma.hostSubscription.count({ where }),
+      this.prisma.hostSubscription.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          plan: true,
+          host: {
+            include: { user: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    const subscriptionsWithTx = await Promise.all(
       subscriptions.map(async (sub) => {
         const transaction = await this.prisma.transaction.findFirst({
           where: { relatedEntityId: sub.id, type: 'SUBSCRIPTION_FEE' },
@@ -125,6 +158,16 @@ export class SubscriptionsService {
         return { ...sub, transaction };
       }),
     );
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      subscriptions: subscriptionsWithTx,
+      total,
+      page,
+      limit,
+      totalPages,
+    };
   }
 
   async getAdminStats() {

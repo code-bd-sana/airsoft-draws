@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Req,
+  Query,
   UseGuards,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -12,6 +13,7 @@ import {
   ApiOperation,
   ApiBearerAuth,
   ApiCookieAuth,
+  ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
 import { SubscriptionsService } from './subscriptions.service';
@@ -125,14 +127,23 @@ export class SubscriptionsController {
   @ApiBearerAuth()
   @ApiCookieAuth('accessToken')
   @ApiOperation({
-    summary: 'Get all subscriptions for admin',
-    description: 'Lists all host subscriptions across the platform with pagination and status filters.',
+    summary: 'Get all subscriptions for admin with pagination and filters',
+    description: 'Lists host subscriptions across the platform with pagination, search, and status filters.',
   })
-  @ApiResponse({ status: 200, description: 'List of all subscriptions' })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'status', required: false, type: String })
+  @ApiResponse({ status: 200, description: 'Paginated list of all subscriptions' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin only access' })
-  async getAllSubscriptions() {
-    return this.subscriptionsService.getAllSubscriptions();
+  async getAllSubscriptions(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+  ) {
+    return this.subscriptionsService.getAllSubscriptions({ page, limit, search, status });
   }
 
   @Get('admin/stats')

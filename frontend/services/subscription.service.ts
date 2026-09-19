@@ -60,6 +60,14 @@ export interface SubscriptionRequest {
   };
 }
 
+export interface GetSubscriptionsAdminResponse {
+  subscriptions: any[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export const subscriptionService = {
   async getPlans(): Promise<SubscriptionPlan[]> {
     const response = await api.get('/subscriptions/plans');
@@ -81,8 +89,13 @@ export const subscriptionService = {
     return response.data;
   },
 
-  async getAllSubscriptionsForAdmin(): Promise<any[]> {
-    const response = await api.get('/subscriptions/admin');
+  async getAllSubscriptionsForAdmin(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+  }): Promise<GetSubscriptionsAdminResponse> {
+    const response = await api.get('/subscriptions/admin', { params });
     return response.data;
   },
 
