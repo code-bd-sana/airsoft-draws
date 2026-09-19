@@ -14,7 +14,7 @@ export const NAV_LINKS: NavLink[] = [
 
 export const SOCIAL_LINKS: SocialLink[] = [
   { platform: "Facebook", href: "https://www.facebook.com/share/18zThK3JPJ/?mibextid=wwXIfr", iconName: "facebook" },
-  { platform: "Instagram", href: "https://instagram.com/airsoftdraws", iconName: "instagram" },
+  { platform: "Instagram", href: "https://www.instagram.com/airsoftdrawsltd?stkn=Y2g2NnZrY2gxaDdz", iconName: "instagram" },
 ];
 
 export const FOOTER_SECTIONS = [

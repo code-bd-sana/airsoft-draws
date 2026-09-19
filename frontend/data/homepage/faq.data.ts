@@ -4,7 +4,7 @@ export const faqData: FaqItem[] = [
   {
     id: "faq-1",
     question: "How are winners selected?",
-    answer: "Once a draw sells out or its timer expires, the winner is selected live on stream using our in-house lottery ball machine streamed live on our <a href=\"https://instagram.com/airsoftdraws\" target=\"_blank\" class=\"text-[#8CB34A] hover:underline\">Instagram</a>."
+    answer: "Once a draw sells out or its timer expires, the winner is selected live on stream using our in-house lottery ball machine streamed live on our <a href=\"https://www.instagram.com/airsoftdrawsltd?stkn=Y2g2NnZrY2gxaDdz\" target=\"_blank\" class=\"text-[#8CB34A] hover:underline\">Instagram</a>."
   },
   {
     id: "faq-2",
