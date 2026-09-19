@@ -17,6 +17,14 @@ export const useHostSalesAnalytics = (timeRange: '7D' | '30D' | '1Y' = '7D') => 
   });
 };
 
+export const useHostPerformanceAnalytics = (timeframe: '7D' | '1M' | '3M' | '1Y' = '1M') => {
+  return useQuery({
+    queryKey: ['host-performance-analytics', timeframe],
+    queryFn: () => hostWalletService.getPerformanceAnalytics(timeframe),
+    staleTime: 30 * 1000,
+  });
+};
+
 export const useHostWalletStats = () => {
   return useQuery({
     queryKey: ['host-wallet-stats'],

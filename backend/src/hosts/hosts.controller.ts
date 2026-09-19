@@ -84,6 +84,21 @@ export class HostsController {
     return this.hostsService.getHostSalesAnalytics(userId, timeRange || '7D');
   }
 
+  @Get('performance')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current host performance stats (revenue trend, categories, top raffles, demographics)' })
+  @ApiResponse({ status: 200, description: 'Host performance analytics' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  getPerformanceAnalytics(
+    @Req() req: Request,
+    @Query('timeframe') timeframe?: '7D' | '1M' | '3M' | '1Y',
+  ) {
+    const userId = this.extractUserId(req);
+    return this.hostsService.getHostPerformanceAnalytics(userId, timeframe || '1M');
+  }
+
   @Get('wallet')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')

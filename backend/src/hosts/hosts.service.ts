@@ -878,4 +878,204 @@ export class HostsService {
       raffles: breakdownRaffles,
     };
   }
+
+  async getHostPerformanceAnalytics(
+    userId: string,
+    timeframe: '7D' | '1M' | '3M' | '1Y' = '1M',
+  ) {
+    const host = await this.getHostProfileByUserId(userId);
+
+    // 1. Fetch host's raffles
+    const hostRaffles = await this.prisma.raffle.findMany({
+      where: { hostId: host.id },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        _count: {
+          select: { tickets: true },
+        },
+      },
+    });
+
+    // 2. Revenue Trend over timeframe
+    const now = new Date();
+    let startDate = new Date();
+    if (timeframe === '7D') {
+      startDate.setDate(now.getDate() - 6);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (timeframe === '1M') {
+      startDate.setDate(now.getDate() - 29);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (timeframe === '3M') {
+      startDate.setDate(now.getDate() - 89);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (timeframe === '1Y') {
+      startDate = new Date(now.getFullYear(), now.getMonth() - 11, 1, 0, 0, 0, 0);
+    }
+
+    const hostTickets = await this.prisma.ticket.findMany({
+      where: {
+        raffle: { hostId: host.id },
+        createdAt: { gte: startDate },
+      },
+      include: {
+        raffle: { select: { pricePerTicket: true, category: true } },
+        user: { select: { location: true } },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const revenueTrend: Array<{ month: string; revenue: number }> = [];
+
+    if (timeframe === '7D') {
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+        const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+
+        const bucket = hostTickets.filter((t) => t.createdAt >= dayStart && t.createdAt <= dayEnd);
+        const gross = bucket.reduce((sum, t) => sum + Number(t.raffle?.pricePerTicket || 0), 0);
+        revenueTrend.push({
+          month: dayNames[d.getDay()],
+          revenue: Number(gross.toFixed(2)),
+        });
+      }
+    } else if (timeframe === '1M') {
+      // 6 intervals of 5 days
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      for (let i = 5; i >= 0; i--) {
+        const dStart = new Date(now);
+        dStart.setDate(dStart.getDate() - (i + 1) * 5);
+        dStart.setHours(0, 0, 0, 0);
+        const dEnd = new Date(now);
+        dEnd.setDate(dEnd.getDate() - i * 5);
+        dEnd.setHours(23, 59, 59, 999);
+
+        const bucket = hostTickets.filter((t) => t.createdAt >= dStart && t.createdAt <= dEnd);
+        const gross = bucket.reduce((sum, t) => sum + Number(t.raffle?.pricePerTicket || 0), 0);
+        revenueTrend.push({
+          month: `${dEnd.getDate()} ${monthNames[dEnd.getMonth()]}`,
+          revenue: Number(gross.toFixed(2)),
+        });
+      }
+    } else if (timeframe === '3M') {
+      // 6 intervals of 15 days
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      for (let i = 5; i >= 0; i--) {
+        const dStart = new Date(now);
+        dStart.setDate(dStart.getDate() - (i + 1) * 15);
+        dStart.setHours(0, 0, 0, 0);
+        const dEnd = new Date(now);
+        dEnd.setDate(dEnd.getDate() - i * 15);
+        dEnd.setHours(23, 59, 59, 999);
+
+        const bucket = hostTickets.filter((t) => t.createdAt >= dStart && t.createdAt <= dEnd);
+        const gross = bucket.reduce((sum, t) => sum + Number(t.raffle?.pricePerTicket || 0), 0);
+        revenueTrend.push({
+          month: `${dEnd.getDate()} ${monthNames[dEnd.getMonth()]}`,
+          revenue: Number(gross.toFixed(2)),
+        });
+      }
+    } else if (timeframe === '1Y') {
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const startOfMonth = new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0, 0);
+        const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+
+        const bucket = hostTickets.filter((t) => t.createdAt >= startOfMonth && t.createdAt <= endOfMonth);
+        const gross = bucket.reduce((sum, t) => sum + Number(t.raffle?.pricePerTicket || 0), 0);
+        revenueTrend.push({
+          month: monthNames[d.getMonth()],
+          revenue: Number(gross.toFixed(2)),
+        });
+      }
+    }
+
+    // 3. Category Sales Distribution
+    const categoryPalette = ['#8cb34a', '#a0d056', '#5a752a', '#72943a', '#445922', '#384719'];
+    const categoryCounts = new Map<string, number>();
+
+    const hasTickets = hostTickets.length > 0;
+    if (hasTickets) {
+      hostTickets.forEach((t) => {
+        const cat = t.raffle?.category || 'General';
+        categoryCounts.set(cat, (categoryCounts.get(cat) || 0) + 1);
+      });
+    } else {
+      hostRaffles.forEach((r) => {
+        const cat = r.category || 'General';
+        categoryCounts.set(cat, (categoryCounts.get(cat) || 0) + 1);
+      });
+    }
+
+    const totalCategoryVolume = Array.from(categoryCounts.values()).reduce((a, b) => a + b, 0);
+    const categorySales = Array.from(categoryCounts.entries()).map(([name, count], index) => {
+      const percentage = totalCategoryVolume > 0 ? Math.round((count / totalCategoryVolume) * 100) : 0;
+      return {
+        name,
+        value: count,
+        percentage,
+        color: categoryPalette[index % categoryPalette.length],
+      };
+    });
+
+    // 4. Top Performing Raffles
+    const sortedRaffles = [...hostRaffles].sort((a, b) => {
+      const pctA = a.totalTickets > 0 ? a.ticketsSold / a.totalTickets : 0;
+      const pctB = b.totalTickets > 0 ? b.ticketsSold / b.totalTickets : 0;
+      return b.ticketsSold - a.ticketsSold || pctB - pctA;
+    });
+
+    const topRaffles = sortedRaffles.slice(0, 5).map((r) => ({
+      id: r.id,
+      name: r.title,
+      percentage: r.totalTickets > 0 ? Math.round((r.ticketsSold / r.totalTickets) * 100) : 0,
+      ticketsSold: r.ticketsSold,
+      totalTickets: r.totalTickets,
+      revenue: Number(r.pricePerTicket) * r.ticketsSold,
+    }));
+
+    // 5. Entrant Demographics (User locations)
+    const locationCounts = new Map<string, number>();
+    const allEntrantTickets = await this.prisma.ticket.findMany({
+      where: { raffle: { hostId: host.id } },
+      select: { user: { select: { location: true } } },
+    });
+
+    allEntrantTickets.forEach((t) => {
+      let loc = (t.user?.location || '').trim();
+      if (!loc) loc = 'Other';
+      else if (/england|london|birmingham|manchester|liverpool/i.test(loc)) loc = 'England';
+      else if (/scotland|edinburgh|glasgow/i.test(loc)) loc = 'Scotland';
+      else if (/wales|cardiff|swansea/i.test(loc)) loc = 'Wales';
+      else if (/ireland|dublin|belfast/i.test(loc)) loc = 'Ireland';
+      else if (/united states|usa|us/i.test(loc)) loc = 'United States';
+      else if (/united kingdom|uk/i.test(loc)) loc = 'United Kingdom';
+      else loc = 'Other';
+
+      locationCounts.set(loc, (locationCounts.get(loc) || 0) + 1);
+    });
+
+    const totalEntrants = allEntrantTickets.length;
+    let demographics: Array<{ region: string; percentage: number }> = [];
+
+    if (totalEntrants > 0) {
+      demographics = Array.from(locationCounts.entries())
+        .map(([region, count]) => ({
+          region,
+          percentage: Math.round((count / totalEntrants) * 100),
+        }))
+        .sort((a, b) => b.percentage - a.percentage)
+        .slice(0, 5);
+    }
+
+    return {
+      revenueTrend,
+      categorySales,
+      topRaffles,
+      demographics,
+    };
+  }
 }
