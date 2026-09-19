@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminService, AdminDashboardOverview, RevenueStatsResponse } from '../services/admin.service';
+import { adminService, AdminDashboardOverview, RevenueStatsResponse, ReportsAnalyticsResponse } from '../services/admin.service';
 
 export const useAdminUsers = (params: { page?: number; limit?: number; search?: string; role?: string }) => {
   return useQuery({
@@ -76,6 +76,16 @@ export const useAdminRevenueStats = (period: string = '1Y', options?: any) => {
     queryKey: ['adminRevenueStats', period],
     queryFn: () => adminService.getRevenueStats(period),
     staleTime: 30 * 1000,
+    ...options,
+  });
+};
+
+export const useAdminReportsAnalytics = (timeFilter: string = '3M', options?: any) => {
+  return useQuery<ReportsAnalyticsResponse>({
+    queryKey: ['adminReportsAnalytics', timeFilter],
+    queryFn: () => adminService.getReportsAnalytics(timeFilter),
+    placeholderData: (previousData) => previousData,
+    staleTime: 60 * 1000,
     ...options,
   });
 };

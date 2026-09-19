@@ -13,6 +13,11 @@ export default function AdminCategoriesPage() {
   const [currentCategory, setCurrentCategory] = useState<Partial<Category>>({});
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [error, setError] = useState('');
+  
+  // Custom Delete Warning Modal State
+  const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     fetchCategories();
@@ -92,15 +97,19 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this category?')) {
-      try {
-        await categoryService.deleteCategory(id);
-        fetchCategories();
-      } catch (err) {
-        console.error('Failed to delete category', err);
-        alert('Failed to delete category. It might be in use.');
-      }
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    setDeleteError('');
+    try {
+      await categoryService.deleteCategory(deleteTarget.id);
+      setDeleteTarget(null);
+      fetchCategories();
+    } catch (err: any) {
+      console.error('Failed to delete category', err);
+      setDeleteError(err?.response?.data?.message || 'Failed to delete category. It might be assigned to active competitions or items.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -117,7 +126,7 @@ export default function AdminCategoriesPage() {
         </div>
         <button
           onClick={openAddModal}
-          className='bg-primary hover:bg-[#ff4d79] text-[#0D0D0B] px-5 py-2.5 rounded-[8px] font-heading font-bold text-[14px] transition-colors flex items-center gap-2'
+          className='bg-primary hover:bg-[#A0D056] text-[#0D0D0B] px-5 py-2.5 rounded-[8px] font-heading font-bold text-[14px] transition-all duration-200 cursor-pointer shadow-[0_0_15px_rgba(140,179,74,0.15)] hover:shadow-[0_0_20px_rgba(160,208,86,0.3)] flex items-center gap-2'
         >
           <svg
             className='w-4 h-4'
@@ -250,8 +259,11 @@ export default function AdminCategoriesPage() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleDelete(category.id)}
-                        className='text-[#f76b6b] hover:text-[#ef4444] transition-colors'
+                        onClick={() => {
+                          setDeleteTarget(category);
+                          setDeleteError('');
+                        }}
+                        className='text-[#f76b6b] hover:text-[#ef4444] p-1.5 rounded-[6px] hover:bg-[#7F1D1D]/20 transition-all cursor-pointer'
                         title='Delete'
                       >
                         <svg
@@ -471,19 +483,91 @@ export default function AdminCategoriesPage() {
             <div className='p-6 border-t border-[#2D3C13] bg-[#111210] flex justify-end gap-3 sticky bottom-0 z-10'>
               <button
                 onClick={closeModal}
-                className='px-5 py-2.5 rounded-[8px] bg-transparent border border-[#2D3C13] hover:border-[#5A752A] text-[#E8EDD4] font-heading font-bold text-[14px] transition-colors'
+                className='px-5 py-2.5 rounded-[8px] bg-transparent border border-[#2D3C13] hover:border-[#5A752A] text-[#E8EDD4] font-heading font-bold text-[14px] transition-colors cursor-pointer'
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                className='px-5 py-2.5 bg-primary hover:bg-[#ff4d79] text-[#0D0D0B] rounded-[8px] font-heading font-bold text-[14px] transition-colors'
+                className='px-5 py-2.5 bg-primary hover:bg-[#A0D056] text-[#0D0D0B] rounded-[8px] font-heading font-bold text-[14px] transition-all duration-200 cursor-pointer shadow-[0_0_15px_rgba(140,179,74,0.15)] hover:shadow-[0_0_20px_rgba(160,208,86,0.3)]'
               >
                 Save Category
               </button>
             </div>
           </div>
         </>
+      )}
+
+      {/* Custom Tactical Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div 
+          onClick={() => {
+            if (!isDeleting) {
+              setDeleteTarget(null);
+              setDeleteError('');
+            }
+          }}
+          className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0D0D0B]/85 backdrop-blur-sm animate-fadeIn'
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className='w-full max-w-[440px] bg-[#161810] border border-[#2D3C13] hover:border-[#EF4444]/40 transition-colors rounded-[16px] shadow-2xl p-6 flex flex-col items-center text-center'
+          >
+            {/* Warning Icon Badge */}
+            <div className='w-14 h-14 rounded-full bg-[#EF4444]/10 border border-[#EF4444]/30 flex items-center justify-center text-[#EF4444] mb-4 shadow-[0_0_25px_rgba(239,68,68,0.2)]'>
+              <svg className='w-7 h-7' fill='none' viewBox='0 0 24 24' strokeWidth={1.75} stroke='currentColor'>
+                <path strokeLinecap='round' strokeLinejoin='round' d='M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z' />
+              </svg>
+            </div>
+
+            <h3 className='font-heading font-bold text-[20px] text-[#E8EDD4] mb-2 tracking-tight'>
+              Delete Category?
+            </h3>
+            
+            <p className='font-sans text-[13px] text-[#72943A] leading-relaxed mb-6'>
+              Are you sure you want to permanently delete <span className='text-[#E8EDD4] font-semibold'>"{deleteTarget.name}"</span>? This action cannot be undone.
+            </p>
+
+            {deleteError && (
+              <div className='w-full mb-5 p-3 rounded-[8px] bg-[#7F1D1D]/30 border border-[#EF4444]/40 text-[#f76b6b] font-sans text-[12px] text-left'>
+                {deleteError}
+              </div>
+            )}
+
+            <div className='flex items-center gap-3 w-full'>
+              <button
+                type='button'
+                disabled={isDeleting}
+                onClick={() => {
+                  setDeleteTarget(null);
+                  setDeleteError('');
+                }}
+                className='flex-1 h-[42px] rounded-[8px] bg-transparent border border-[#2D3C13] hover:border-[#5A752A] text-[#E8EDD4] font-heading font-medium text-[13px] transition-colors cursor-pointer disabled:opacity-50'
+              >
+                Cancel
+              </button>
+              <button
+                type='button'
+                disabled={isDeleting}
+                onClick={confirmDelete}
+                className='flex-1 h-[42px] rounded-[8px] bg-[#EF4444] hover:bg-[#DC2626] text-white font-heading font-bold text-[13px] transition-all cursor-pointer shadow-[0_0_15px_rgba(239,68,68,0.25)] hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] flex items-center justify-center gap-2 disabled:opacity-60'
+              >
+                {isDeleting ? (
+                  <>
+                    <svg className='animate-spin h-4 w-4 text-white' fill='none' viewBox='0 0 24 24'>
+                      <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                      <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                    </svg>
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  'Yes, Delete'
+                )}
+              </button>
+            </div>
+
+          </div>
+        </div>
       )}
     </div>
   );

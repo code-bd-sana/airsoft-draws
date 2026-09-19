@@ -89,18 +89,6 @@ export default function DashboardTopbar({
       </div>
 
       <div className="flex items-center gap-[16px]">
-        {/* Search Input (Hidden on mobile for now to save space) */}
-        <div className="hidden md:flex items-center h-[40px] w-[280px] bg-[#161810] border border-[#2D3C13] rounded-[8px] px-[13px]">
-          <svg className="w-4 h-4 text-[#B3B8AA] shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search competitions, orders..."
-            className="bg-transparent border-none outline-none text-[#E8EDD4] text-[13px] placeholder:text-[#E8EDD4]/50 w-full ml-2 font-sans"
-          />
-        </div>
-
         {/* Notifications */}
         <div className="relative">
           <button

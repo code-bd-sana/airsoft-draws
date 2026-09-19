@@ -135,6 +135,15 @@ export interface RevenueStatsResponse {
   revenueData: { name: string; value: number }[];
 }
 
+export interface ReportsAnalyticsResponse {
+  revenueTrend: { name: string; value: number }[];
+  salesByCategory: { name: string; value: number; count: number; color: string }[];
+  popularCompetitions: { name: string; value: number; totalTickets?: number; maxValue: number }[];
+  userGrowth: { name: string; users: number }[];
+  hostPerformance: { name: string; percent: number; rafflesCount: number }[];
+  geographicData: { name: string; value: number; count: number }[];
+}
+
 export interface AdminDashboardOverview {
   topHosts?: { rank: number; name: string; revenue: string; initials: string }[];
   periodRevenue?: number;
@@ -212,6 +221,11 @@ export const adminService = {
 
   async getRevenueStats(period: string = '1Y'): Promise<RevenueStatsResponse> {
     const { data } = await api.get('/admin/dashboard/revenue', { params: { period } });
+    return data;
+  },
+
+  async getReportsAnalytics(timeFilter: string = '3M'): Promise<ReportsAnalyticsResponse> {
+    const { data } = await api.get('/admin/dashboard/reports', { params: { timeFilter } });
     return data;
   },
 

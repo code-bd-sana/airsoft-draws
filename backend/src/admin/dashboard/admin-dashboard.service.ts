@@ -501,4 +501,198 @@ export class AdminDashboardService {
       },
     };
   }
+  async getReportsAnalytics(timeFilter: string = '3M') {
+    const now = new Date();
+    let startDate = new Date();
+    if (timeFilter === '7D') startDate.setDate(now.getDate() - 7);
+    else if (timeFilter === '1M') startDate.setMonth(now.getMonth() - 1);
+    else if (timeFilter === '1Y') startDate.setFullYear(now.getFullYear() - 1);
+    else startDate.setMonth(now.getMonth() - 3); // default 3M
+
+    // 1. Revenue Trend
+    const transactions = await this.prisma.transaction.findMany({
+      where: {
+        status: 'COMPLETED',
+        type: 'TICKET_PURCHASE',
+        createdAt: { gte: startDate },
+      },
+      select: { createdAt: true, amount: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const isDayGroup = timeFilter === '7D' || timeFilter === '1M';
+    const revenueMap = new Map<string, number>();
+
+    const getKey = (d: Date) => {
+      if (isDayGroup) return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      return d.toLocaleDateString('en-GB', { month: 'short' });
+    };
+
+    const cur = new Date(startDate);
+    while (cur <= now) {
+      const k = getKey(cur);
+      if (!revenueMap.has(k)) revenueMap.set(k, 0);
+      if (isDayGroup) cur.setDate(cur.getDate() + 1);
+      else {
+        cur.setMonth(cur.getMonth() + 1);
+        cur.setDate(1);
+      }
+    }
+
+    transactions.forEach((t) => {
+      const k = getKey(t.createdAt);
+      if (revenueMap.has(k)) {
+        revenueMap.set(k, revenueMap.get(k)! + (Number(t.amount) || 0));
+      } else {
+        revenueMap.set(k, Number(t.amount) || 0);
+      }
+    });
+
+    const revenueTrend = Array.from(revenueMap.entries()).map(([name, value]) => ({ name, value }));
+
+    // 2. Sales by Category
+    const categoryColors = ['#A0D056', '#72943A', '#8CB34A', '#C0E868', '#43581E', '#2D3C13'];
+    const raffles = await this.prisma.raffle.findMany({
+      select: { category: true, ticketsSold: true },
+    });
+
+    const categoryCounts = new Map<string, number>();
+    let totalCatCount = 0;
+    raffles.forEach((r) => {
+      const cat = r.category?.trim() || 'General';
+      const weight = (r.ticketsSold && r.ticketsSold > 0) ? r.ticketsSold : 1;
+      categoryCounts.set(cat, (categoryCounts.get(cat) || 0) + weight);
+      totalCatCount += weight;
+    });
+
+    const salesByCategory = Array.from(categoryCounts.entries())
+      .map(([name, count], idx) => ({
+        name,
+        value: totalCatCount > 0 ? Math.round((count / totalCatCount) * 100) : 0,
+        count,
+        color: categoryColors[idx % categoryColors.length],
+      }))
+      .sort((a, b) => b.value - a.value);
+
+    // 3. Most Popular Competitions
+    const popularRaffles = await this.prisma.raffle.findMany({
+      take: 5,
+      orderBy: [{ ticketsSold: 'desc' }, { createdAt: 'desc' }],
+      select: { title: true, ticketsSold: true, totalTickets: true },
+    });
+
+    const maxPopularVal = Math.max(1, ...popularRaffles.map((r) => r.ticketsSold || 0), 10);
+    const popularCompetitions = popularRaffles.map((r) => ({
+      name: r.title,
+      value: r.ticketsSold || 0,
+      totalTickets: r.totalTickets,
+      maxValue: maxPopularVal,
+    }));
+
+    // 4. User Growth Over Time
+    const users = await this.prisma.user.findMany({
+      where: { createdAt: { gte: startDate } },
+      select: { createdAt: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const userMap = new Map<string, number>();
+    const userCur = new Date(startDate);
+    while (userCur <= now) {
+      const k = getKey(userCur);
+      if (!userMap.has(k)) userMap.set(k, 0);
+      if (isDayGroup) userCur.setDate(userCur.getDate() + 1);
+      else {
+        userCur.setMonth(userCur.getMonth() + 1);
+        userCur.setDate(1);
+      }
+    }
+
+    users.forEach((u) => {
+      const k = getKey(u.createdAt);
+      if (userMap.has(k)) userMap.set(k, userMap.get(k)! + 1);
+      else userMap.set(k, 1);
+    });
+
+    const userGrowth = Array.from(userMap.entries()).map(([name, users]) => ({ name, users }));
+
+    // 5. Host Performance
+    const hosts = await this.prisma.hostProfile.findMany({
+      where: { isVerified: true },
+      take: 5,
+      include: { raffles: { select: { status: true, ticketsSold: true, totalTickets: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const hostPerformance = hosts.map((h) => {
+      const totalRaffles = h.raffles.length;
+      const activeRaffles = h.raffles.filter((r) => r.status === 'ACTIVE').length;
+      let totalSold = 0;
+      let totalCapacity = 0;
+      h.raffles.forEach((r) => {
+        totalSold += r.ticketsSold || 0;
+        totalCapacity += r.totalTickets || 0;
+      });
+
+      let percent = 0;
+      if (totalCapacity > 0 && totalSold > 0) {
+        percent = Math.min(100, Math.round((totalSold / totalCapacity) * 100));
+      } else if (totalRaffles > 0) {
+        percent = Math.min(100, Math.round((activeRaffles / totalRaffles) * 100)) || 50;
+      }
+
+      return {
+        name: h.businessName || 'Host',
+        percent,
+        rafflesCount: totalRaffles,
+      };
+    });
+
+    // 6. Geographic Entry Distribution
+    const allUsers = await this.prisma.user.findMany({
+      select: { location: true },
+    });
+
+    const geoMap = new Map<string, number>();
+    allUsers.forEach((u) => {
+      const loc = u.location?.toLowerCase().trim() || '';
+      let region = 'Other';
+      if (loc.includes('england') || loc.includes('london') || loc.includes('suffolk') || loc.includes('wolverhampton') || loc.includes('southampton') || loc.includes('amesbury') || loc.includes('manston') || loc.includes('tamworth') || loc.includes('marlow') || loc.includes('newcastle')) {
+        region = 'England';
+      } else if (loc.includes('scotland')) {
+        region = 'Scotland';
+      } else if (loc.includes('wales')) {
+        region = 'Wales';
+      } else if (loc.includes('ireland')) {
+        region = 'Ireland';
+      } else if (loc.includes('united kingdom') || loc.includes('uk')) {
+        region = 'United Kingdom';
+      } else if (loc.includes('united states') || loc.includes('us')) {
+        region = 'United States';
+      } else if (loc.includes('germany')) {
+        region = 'Germany';
+      }
+
+      geoMap.set(region, (geoMap.get(region) || 0) + 1);
+    });
+
+    const totalGeo = allUsers.length || 1;
+    const geographicData = Array.from(geoMap.entries())
+      .map(([name, count]) => ({
+        name,
+        value: Math.round((count / totalGeo) * 100),
+        count,
+      }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+
+    return {
+      revenueTrend,
+      salesByCategory,
+      popularCompetitions,
+      userGrowth,
+      hostPerformance,
+      geographicData,
+    };
+  }
 }

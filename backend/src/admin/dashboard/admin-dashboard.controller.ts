@@ -44,6 +44,17 @@ export class AdminDashboardController {
     return this.adminDashboardService.getRevenueStats(period || '1Y');
   }
 
+  @Get('reports')
+  @ApiOperation({
+    summary: 'Get admin reports & analytics data (Admin only)',
+    description: 'Returns real revenue trends, category breakdown, popular competitions, user growth, host performance, and geographic distribution.',
+  })
+  @ApiResponse({ status: 200, description: 'Reports analytics dataset' })
+  @ApiQuery({ name: 'timeFilter', required: false, type: String, example: '3M' })
+  async getReportsAnalytics(@Query('timeFilter') timeFilter?: string) {
+    return this.adminDashboardService.getReportsAnalytics(timeFilter || '3M');
+  }
+
   @Get('logs')
   @ApiOperation({
     summary: 'Get administrative system logs (Admin only)',
