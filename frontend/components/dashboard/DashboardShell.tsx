@@ -85,7 +85,7 @@ export default function DashboardShell({ account, children }: DashboardShellProp
         />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col items-center w-full p-4 lg:p-6">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col items-center w-full p-3 sm:p-4 pb-28 lg:p-6 lg:pb-8">
           <div className="w-full flex-1 max-w-[1660px] mx-auto min-w-0">
             {children}
           </div>

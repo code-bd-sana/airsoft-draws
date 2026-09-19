@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function AdminApprovalsPage() {
   return (
-    <div className="flex flex-col gap-8 p-8 max-w-[1660px] mx-auto w-full animate-fadeIn">
+    <div className="flex flex-col gap-6 max-w-[1660px] mx-auto w-full animate-fadeIn">
       <CompetitionApprovalQueue />
     </div>
   );

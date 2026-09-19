@@ -52,7 +52,7 @@ export default function ReviewHostModal({
       />
 
       {/* Modal Dialog Container */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[720px] max-h-[92vh] bg-[#161810] border border-[#2D3C13] rounded-[20px] shadow-2xl z-50 animate-fadeIn flex flex-col overflow-hidden">
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] sm:w-full max-w-[720px] max-h-[88vh] sm:max-h-[92vh] bg-[#161810] border border-[#2D3C13] rounded-[16px] sm:rounded-[20px] shadow-2xl z-50 animate-fadeIn flex flex-col overflow-hidden">
         
         {/* Banner Area */}
         <div className="relative w-full h-[150px] sm:h-[180px] bg-[#111210] border-b border-[#2D3C13] shrink-0 overflow-hidden select-none">
