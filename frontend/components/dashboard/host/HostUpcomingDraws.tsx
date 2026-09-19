@@ -3,6 +3,7 @@
 import React from "react";
 import { useHostRaffles } from "../../../hooks/useRaffleHooks";
 import Link from "next/link";
+import { formatUkSchedule, formatUkDate } from "../../../lib/date-utils";
 
 interface HostUpcomingDrawsProps {
   draws?: any[];
@@ -51,8 +52,7 @@ export default function HostUpcomingDraws({ draws, isLoading: propIsLoading }: H
         )}
 
         {!isLoading && upcomingDraws.map((draw: any) => {
-          const dateObj = new Date(draw.endDate);
-          const dayNumber = dateObj.getDate();
+          const dayNumber = formatUkDate(draw.endDate, "dayMonth").split(" ")[0] || "—";
           
           return (
             <Link 
@@ -73,7 +73,7 @@ export default function HostUpcomingDraws({ draws, isLoading: propIsLoading }: H
                   {draw.title}
                 </p>
                 <p className="font-sans font-normal text-[11px] text-[#5a752a] truncate">
-                  {draw.ticketsSold} / {draw.totalTickets} tickets sold • Ends {dateObj.toLocaleDateString()}
+                  {draw.ticketsSold} / {draw.totalTickets} tickets sold • Ends {formatUkSchedule(draw.endDate, { includeZone: true })}
                 </p>
               </div>
             </Link>

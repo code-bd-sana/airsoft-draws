@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useHostRaffles, useDeleteRaffle, useDrawWinner } from "../../../hooks/useRaffleHooks";
 import { useMySubscription } from "../../../hooks/useSubscriptionHooks";
-import { cn } from "../../../lib/utils";
+import { cn, formatUkSchedule } from "../../../lib/utils";
 import { Pagination } from "../../ui/Pagination";
 import { toast } from "sonner";
 import ConfirmDeleteRaffleModal, { RaffleDeleteTarget } from "../shared/ConfirmDeleteRaffleModal";
@@ -234,7 +234,7 @@ export default function HostRafflesTable() {
                   
                   <div className="hidden md:flex justify-end min-w-0">
                     <span className="font-sans font-normal text-[13px] text-[#b3b8aa] truncate">
-                      {new Date(raffle.endDate).toLocaleDateString()}
+                      {formatUkSchedule(raffle.endDate, { includeYear: true, includeZone: true })}
                     </span>
                   </div>
                 </div>

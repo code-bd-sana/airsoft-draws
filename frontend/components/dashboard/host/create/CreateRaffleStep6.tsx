@@ -1,7 +1,7 @@
 import React from "react";
 import { RaffleFormData } from "./CreateRaffleWizard";
 import { useMySubscription } from "../../../../hooks/useSubscriptionHooks";
-import { cn } from "../../../../lib/utils";
+import { cn, formatUkFull, ukDateTimeLocalToIso } from "../../../../lib/utils";
 
 interface Props {
   formData: RaffleFormData;
@@ -103,15 +103,15 @@ export default function CreateRaffleStep6({ formData, onPrev, onPublish, isSubmi
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
             <div className="flex flex-col gap-[4px]">
-              <span className="font-sans font-medium text-[11px] uppercase text-[#5a752a]">Start Date</span>
+              <span className="font-sans font-medium text-[11px] uppercase text-[#5a752a]">Start Date (UK Time)</span>
               <span className="font-sans font-medium text-[14px] text-[#e8edd4]">
-                {formData.startDate ? new Date(formData.startDate).toLocaleString() : "—"}
+                {formData.startDate ? formatUkFull(ukDateTimeLocalToIso(formData.startDate)) : "—"}
               </span>
             </div>
             <div className="flex flex-col gap-[4px]">
-              <span className="font-sans font-medium text-[11px] uppercase text-[#5a752a]">Draw Date</span>
+              <span className="font-sans font-medium text-[11px] uppercase text-[#5a752a]">Draw Date (UK Time)</span>
               <span className="font-sans font-medium text-[14px] text-[#e8edd4]">
-                {formData.endDate ? new Date(formData.endDate).toLocaleString() : "—"}
+                {formData.endDate ? formatUkFull(ukDateTimeLocalToIso(formData.endDate)) : "—"}
               </span>
             </div>
             <div className="flex flex-col gap-[4px]">

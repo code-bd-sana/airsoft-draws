@@ -22,11 +22,21 @@ export default function CreateRaffleStep5({ formData, updateForm, onNext, onPrev
       </div>
 
       <div className="flex flex-col gap-[24px]">
+        {/* UK Timezone Notice */}
+        <div className="flex items-center gap-2.5 p-3 rounded-[8px] bg-[#161810] border border-[#2d3c13] text-[#8cb34a] text-xs font-sans">
+          <svg className="w-4 h-4 text-[#8cb34a] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <span>
+            <strong>UK Time (BST / GMT):</strong> All competition schedules operate on UK Time.
+          </span>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
           {/* Start Date */}
           <div className="flex flex-col gap-[8px]">
             <label className="font-sans font-medium text-[13px] text-[#e8edd4]">
-              Start Date & Time
+              Start Date & Time (UK Time)
             </label>
             <input
               type="datetime-local"
@@ -39,7 +49,7 @@ export default function CreateRaffleStep5({ formData, updateForm, onNext, onPrev
           {/* End Date */}
           <div className="flex flex-col gap-[8px]">
             <label className="font-sans font-medium text-[13px] text-[#e8edd4]">
-              Draw Date & Time
+              Draw Date & Time (UK Time)
             </label>
             <input
               type="datetime-local"

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { format } from 'date-fns';
+import { formatUkSchedule } from '../../../../lib/date-utils';
 import { Raffle } from '../../../../services/raffle.service';
 import ManualWinnerSelectModal from '../../shared/ManualWinnerSelectModal';
 
@@ -132,7 +132,7 @@ export default function DrawsTable({
                 </td>
                 <td className='py-4 px-6 text-center'>
                   <span className={`font-sans font-medium text-[12px] text-[#72943A]`}>
-                    {draw.endDate ? format(new Date(draw.endDate), 'dd MMM yyyy HH:mm') : 'N/A'}
+                    {draw.endDate ? formatUkSchedule(draw.endDate, { includeYear: true, includeZone: true }) : 'N/A'}
                   </span>
                 </td>
                 <td className='py-4 px-6 text-center'>

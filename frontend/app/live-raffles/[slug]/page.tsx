@@ -12,7 +12,7 @@ import FreePostalEntryButton from "../../../components/website/legal/FreePostalE
 import { raffleDetailsData } from "../../../data/raffles/raffle-details.data";
 import { liveRafflesData } from "../../../data/live-raffles.data";
 import { RaffleDetail } from "../../../types/raffle-details.types";
-import { cn } from "../../../lib/utils";
+import { cn, formatUkDate } from "../../../lib/utils";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -47,7 +47,7 @@ async function getRaffle(slug: string): Promise<RaffleDetail | undefined> {
       totalTickets: draw.totalTickets,
       soldTickets: draw.ticketsSold || 0,
       remainingTickets: Math.max(draw.totalTickets - (draw.ticketsSold || 0), 0),
-      drawEndDate: new Date(draw.endDate).toLocaleDateString(),
+      drawEndDate: formatUkDate(draw.endDate),
       endDate: draw.endDate,
       description: draw.description || `Enter this premium draw for a chance to win the ${draw.title}! Premium gear, fast shipping, and live draw.`,
       highlights: [

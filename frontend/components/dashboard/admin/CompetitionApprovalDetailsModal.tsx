@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { format, differenceInDays, differenceInHours } from "date-fns";
+import { differenceInDays, differenceInHours } from "date-fns";
+import { formatUkDate, formatUkTime } from "../../../lib/date-utils";
 import { Raffle } from "../../../services/raffle.service";
 import Link from "next/link";
 
@@ -157,18 +158,14 @@ export default function CompetitionApprovalDetailsModal({
                       <span>Starts On (Live Date & Time)</span>
                     </div>
                     <div className="font-heading font-bold text-[14px] sm:text-[16px] text-[#E8EDD4] mt-0.5 sm:mt-1">
-                      {startDate && !isNaN(startDate.getTime())
-                        ? format(startDate, "EEEE, dd MMM yyyy")
-                        : "TBD"}
+                      {formatUkDate(startDate, "full")}
                     </div>
                     <div className="flex items-center gap-1.5 font-mono text-[13px] text-[#A0D056]">
                       <svg className="w-3.5 h-3.5 text-[#8CB34A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                       </svg>
                       <span>
-                        {startDate && !isNaN(startDate.getTime())
-                          ? format(startDate, "HH:mm (zzz)")
-                          : "Time unspecified"}
+                        {formatUkTime(startDate, true)} (UK Time)
                       </span>
                     </div>
                   </div>
@@ -180,18 +177,14 @@ export default function CompetitionApprovalDetailsModal({
                       <span>Draw Ends On (Draw Date & Time)</span>
                     </div>
                     <div className="font-heading font-bold text-[16px] text-[#E8EDD4] mt-1">
-                      {endDate && !isNaN(endDate.getTime())
-                        ? format(endDate, "EEEE, dd MMM yyyy")
-                        : "TBD"}
+                      {formatUkDate(endDate, "full")}
                     </div>
                     <div className="flex items-center gap-1.5 font-mono text-[13px] text-[#F59E0B]">
                       <svg className="w-3.5 h-3.5 text-[#F59E0B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                       </svg>
                       <span>
-                        {endDate && !isNaN(endDate.getTime())
-                          ? format(endDate, "HH:mm (zzz)")
-                          : "Time unspecified"}
+                        {formatUkTime(endDate, true)} (UK Time)
                       </span>
                     </div>
                   </div>
@@ -472,7 +465,7 @@ export default function CompetitionApprovalDetailsModal({
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[11px] text-[#5A752A]">Member Since</span>
                     <span className="text-[#E8EDD4] font-sans text-xs">
-                      {host?.createdAt ? format(new Date(host.createdAt), "dd MMM yyyy") : "N/A"}
+                      {host?.createdAt ? formatUkDate(host.createdAt) : "N/A"}
                     </span>
                   </div>
                 </div>

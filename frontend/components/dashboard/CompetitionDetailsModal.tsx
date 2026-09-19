@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Ticket } from "./TicketsTable";
+import { formatUkSchedule } from "../../lib/utils";
 
 interface CompetitionDetailsModalProps {
   isOpen: boolean;
@@ -153,7 +154,7 @@ export default function CompetitionDetailsModal({
             <div className="bg-[#161810] border border-[#2D3C13] rounded-[12px] p-5">
               <div className="flex justify-between items-center mb-4">
                 <span className="font-heading font-medium text-[14px] text-[#E8EDD4]">Draw Countdown</span>
-                <span className="font-sans text-[12px] text-[#72943A]">Drawn {new Date(raffle.endDate).toLocaleDateString()}</span>
+                <span className="font-sans text-[12px] text-[#72943A]">Drawn {formatUkSchedule(raffle.endDate, { includeZone: true })}</span>
               </div>
               <div className="grid grid-cols-4 gap-3">
                 {[

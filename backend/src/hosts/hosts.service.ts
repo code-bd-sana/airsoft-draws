@@ -129,6 +129,7 @@ export class HostsService {
         // Format endDate as "Ends in Xd Yh" or a clean date string
         const end = new Date(raffle.endDate);
         const formattedEndDate = end.toLocaleDateString('en-GB', {
+          timeZone: 'Europe/London',
           day: 'numeric',
           month: 'short',
           year: 'numeric',
@@ -405,6 +406,7 @@ export class HostsService {
       return {
         id: w.id,
         date: new Date(w.createdAt).toLocaleDateString('en-GB', {
+          timeZone: 'Europe/London',
           day: 'numeric',
           month: 'short',
           year: 'numeric',

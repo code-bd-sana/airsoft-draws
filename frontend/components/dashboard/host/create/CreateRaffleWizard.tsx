@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useMySubscription } from "../../../../hooks/useSubscriptionHooks";
 import { useCreateRaffle, useUploadRaffleImage } from "../../../../hooks/useRaffleHooks";
-import { extractApiError } from "../../../../lib/utils";
+import { extractApiError, ukDateTimeLocalToIso } from "../../../../lib/utils";
 
 export interface RaffleFormData {
   // Step 1
@@ -122,8 +122,8 @@ export default function CreateRaffleWizard() {
         totalTickets: Number(formData.totalTickets) || 0,
         minTickets: formData.minTickets ? Number(formData.minTickets) : 1,
         maxTickets: formData.maxTickets ? Number(formData.maxTickets) : undefined,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
+        startDate: ukDateTimeLocalToIso(formData.startDate),
+        endDate: ukDateTimeLocalToIso(formData.endDate),
         isAutoDraw: formData.isAutoDraw,
         autoDrawDate: formData.autoDrawDate,
         autoDrawSoldOut: formData.autoDrawSoldOut,

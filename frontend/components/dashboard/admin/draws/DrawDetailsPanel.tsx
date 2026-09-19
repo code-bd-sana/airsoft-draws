@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import DrawOverviewTab from "./DrawOverviewTab";
 import DrawEntriesTab from "./DrawEntriesTab";
 import DrawAuditLogTab from "./DrawAuditLogTab";
-import { format } from "date-fns";
+import { formatUkSchedule } from "../../../../lib/date-utils";
 import { Raffle } from "../../../../services/raffle.service";
 
 import ManualWinnerSelectModal from "../../shared/ManualWinnerSelectModal";
@@ -38,7 +38,7 @@ export default function DrawDetailsPanel({ draw, onClose }: DrawDetailsPanelProp
   const hostName = draw.host?.businessName || "Unknown Host";
   const statusString = getStatusString(draw.status);
   const drawType = getDrawType(draw);
-  const scheduledTime = draw.endDate ? format(new Date(draw.endDate), "dd MMM yyyy HH:mm") : "N/A";
+  const scheduledTime = draw.endDate ? formatUkSchedule(draw.endDate, { includeYear: true, includeZone: true }) : "N/A";
 
   return (
     <div className="w-full bg-[#161810] border border-[#2D3C13] rounded-[16px] flex flex-col mt-6 animate-fadeIn overflow-hidden">

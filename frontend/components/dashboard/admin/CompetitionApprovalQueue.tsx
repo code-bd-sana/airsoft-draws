@@ -1,6 +1,7 @@
 "use client";
 
 import { format, formatDistanceToNow, differenceInDays, differenceInHours } from "date-fns";
+import { formatUkSchedule } from "../../../lib/date-utils";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { useAdminPendingRaffles, useApproveRaffle } from "../../../hooks/useRaffleHooks";
@@ -324,9 +325,7 @@ export default function CompetitionApprovalQueue() {
                           Starts
                         </span>
                         <span className="font-mono text-[11px] sm:text-[12px] text-[#E8EDD4] font-medium truncate">
-                          {startDate && !isNaN(startDate.getTime())
-                            ? format(startDate, "dd MMM · HH:mm")
-                            : "TBD"}
+                          {formatUkSchedule(startDate, { includeZone: true })}
                         </span>
                       </div>
                     </div>
@@ -343,9 +342,7 @@ export default function CompetitionApprovalQueue() {
                           Draw Ends
                         </span>
                         <span className="font-mono text-[11px] sm:text-[12px] text-[#E8EDD4] font-medium truncate">
-                          {endDate && !isNaN(endDate.getTime())
-                            ? format(endDate, "dd MMM · HH:mm")
-                            : "TBD"}
+                          {formatUkSchedule(endDate, { includeZone: true })}
                         </span>
                       </div>
                     </div>

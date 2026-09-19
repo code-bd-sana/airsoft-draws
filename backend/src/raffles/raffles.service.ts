@@ -428,6 +428,7 @@ export class RafflesService {
         : 'AU',
       prizeTitle: w.prizeName || w.raffle?.prizeName || 'Unknown Prize',
       drawDate: w.createdAt.toLocaleDateString('en-GB', {
+        timeZone: 'Europe/London',
         day: 'numeric',
         month: 'short',
         year: 'numeric',

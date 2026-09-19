@@ -5,7 +5,7 @@ import { liveDrawsData } from "../../../data/homepage/featured-draws.data";
 import SectionHeader from "../shared/SectionHeader";
 import DrawCard from "../shared/DrawCard";
 import SecondaryButton from "../shared/SecondaryButton";
-import { cn } from "../../../lib/utils";
+import { cn, formatUkDate } from "../../../lib/utils";
 import { raffleService } from "../../../services/raffle.service";
 import type { Draw } from "../../../types/draw.types";
 
@@ -31,7 +31,7 @@ export default function FeaturedCompetitionsSection() {
             ticketPrice: Number(r.pricePerTicket),
             totalTickets: r.totalTickets,
             soldTickets: r.ticketsSold,
-            endDate: new Date(r.endDate).toLocaleDateString(),
+            endDate: formatUkDate(r.endDate),
             status: (r.status === 'ACTIVE' ? 'live' : 'ended') as "live" | "ended",
             category: r.category || 'general',
             slug: r.slug,

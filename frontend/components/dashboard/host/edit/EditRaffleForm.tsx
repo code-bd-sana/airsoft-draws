@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useGetRaffleById, useUpdateRaffle } from "../../../../hooks/useRaffleHooks";
 import { usePublicCategories } from "../../../../hooks/useCategoryHooks";
-import { cn } from "../../../../lib/utils";
+import { cn, toUkDateTimeLocalString, ukDateTimeLocalToIso } from "../../../../lib/utils";
 import { toast } from "sonner";
 
 interface Props {
@@ -28,8 +28,8 @@ export default function EditRaffleForm({ raffleId }: Props) {
         prizeName: raffle.prizeName,
         totalTickets: raffle.totalTickets,
         pricePerTicket: raffle.pricePerTicket,
-        startDate: raffle.startDate ? new Date(raffle.startDate).toISOString().slice(0, 16) : "",
-        endDate: raffle.endDate ? new Date(raffle.endDate).toISOString().slice(0, 16) : "",
+        startDate: raffle.startDate ? toUkDateTimeLocalString(raffle.startDate) : "",
+        endDate: raffle.endDate ? toUkDateTimeLocalString(raffle.endDate) : "",
         isAutoDraw: raffle.isAutoDraw,
         autoDrawDate: raffle.autoDrawDate,
         autoDrawSoldOut: raffle.autoDrawSoldOut,
@@ -50,9 +50,9 @@ export default function EditRaffleForm({ raffleId }: Props) {
     try {
       const payload = { ...formData };
       
-      // Convert dates back to ISO string
-      if (payload.startDate) payload.startDate = new Date(payload.startDate).toISOString();
-      if (payload.endDate) payload.endDate = new Date(payload.endDate).toISOString();
+      // Convert dates to UK ISO string
+      if (payload.startDate) payload.startDate = ukDateTimeLocalToIso(payload.startDate);
+      if (payload.endDate) payload.endDate = ukDateTimeLocalToIso(payload.endDate);
       
       // Convert numbers
       if (payload.totalTickets) payload.totalTickets = Number(payload.totalTickets);
@@ -220,7 +220,7 @@ export default function EditRaffleForm({ raffleId }: Props) {
         {/* Schedule */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
           <div className="flex flex-col gap-[8px]">
-            <label className="font-sans font-medium text-[13px] text-[#e8edd4]">Start Date</label>
+            <label className="font-sans font-medium text-[13px] text-[#e8edd4]">Start Date & Time (UK Time)</label>
             <input
               type="datetime-local"
               value={formData.startDate || ""}
@@ -230,7 +230,7 @@ export default function EditRaffleForm({ raffleId }: Props) {
           </div>
 
           <div className="flex flex-col gap-[8px]">
-            <label className="font-sans font-medium text-[13px] text-[#e8edd4]">End/Draw Date</label>
+            <label className="font-sans font-medium text-[13px] text-[#e8edd4]">Draw Date & Time (UK Time)</label>
             <input
               type="datetime-local"
               value={formData.endDate || ""}

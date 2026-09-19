@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { Draw } from "../../../types/draw.types";
-import { formatCurrency } from "../../../lib/utils";
+import { formatCurrency, formatUkDate } from "../../../lib/utils";
 import PrimaryButton from "./PrimaryButton";
 
 interface DrawCardProps {
@@ -27,6 +27,7 @@ export default function DrawCard({ draw, variant = "grid" }: DrawCardProps) {
   } = draw;
 
   const soldPercent = Math.min(Math.round((soldTickets / totalTickets) * 100), 100);
+  const displayEndDate = endDate ? formatUkDate(endDate, "medium", endDate) : "";
 
   // Render a clock SVG icon
   const clockIcon = (
@@ -183,7 +184,7 @@ export default function DrawCard({ draw, variant = "grid" }: DrawCardProps) {
           {/* Countdown timer */}
           <div className="flex items-center gap-1.5 text-xs text-text-muted mb-5 bg-bg/50 px-2.5 py-1.5 rounded-button border border-divider w-fit">
             {clockIcon}
-            <span>{endDate}</span>
+            <span>{displayEndDate}</span>
           </div>
 
           {/* Pricing & CTA Row */}
@@ -259,7 +260,7 @@ export default function DrawCard({ draw, variant = "grid" }: DrawCardProps) {
         {/* Countdown timer */}
         <div className="flex items-center gap-1.5 text-xs text-text-muted mb-5 bg-bg/50 px-2.5 py-1.5 rounded-button border border-divider w-fit">
           {clockIcon}
-          <span>{endDate}</span>
+          <span>{displayEndDate}</span>
         </div>
 
         {/* Pricing & CTA Row */}

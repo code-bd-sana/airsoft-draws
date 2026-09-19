@@ -4,8 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Draw } from "../../../types/draw.types";
-import { formatCurrency } from "../../../lib/utils";
-import { cn } from "../../../lib/utils";
+import { formatCurrency, cn, formatUkDate } from "../../../lib/utils";
 
 interface LiveRaffleCardProps {
   raffle: Draw;
@@ -44,7 +43,7 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
   const rawEndDate = r.endDate;
   const isValidDate = rawEndDate && !isNaN(new Date(rawEndDate).getTime());
   const formattedEndDate = isValidDate
-    ? new Date(rawEndDate).toLocaleDateString()
+    ? formatUkDate(rawEndDate)
     : (typeof rawEndDate === "string" ? rawEndDate : "Closing Soon");
 
   const [timeLeft, setTimeLeft] = useState<string>(() => {
