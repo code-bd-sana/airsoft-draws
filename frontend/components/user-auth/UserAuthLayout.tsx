@@ -20,7 +20,7 @@ export default function UserAuthLayout({
       </div>
 
       {/* Right panel - form content card */}
-      <main className="w-full flex items-center justify-center p-4 sm:p-6 md:p-10 lg:p-16 xl:p-24 overflow-y-auto">
+      <main className="w-full flex items-center justify-center p-4 pb-28 sm:p-6 md:p-10 lg:p-16 xl:p-24 overflow-y-auto">
         <div className="w-full max-w-3xl flex flex-col justify-center">
           {children}
         </div>

@@ -453,14 +453,14 @@ export default function HostRegistrationForm({
               </div>
 
               {/* Bottom Nav Actions */}
-              <div className="flex items-center justify-between mt-4">
-                <span className="text-xs text-text-muted">
+              <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3.5 mt-4 pt-2">
+                <span className="text-xs text-text-muted text-center sm:text-left">
                   Already have a Host account?{" "}
                   <Link href="/login" className="font-semibold text-primary hover:underline">
                     Log in
                   </Link>
                 </span>
-                <PrimaryButton type="submit" className="font-heading font-semibold text-xs px-6 py-2.5">
+                <PrimaryButton type="submit" className="w-full sm:w-auto font-heading font-semibold text-xs px-6 py-2.5">
                   Continue &rarr;
                 </PrimaryButton>
               </div>
@@ -656,7 +656,7 @@ export default function HostRegistrationForm({
               </div>
 
               {/* Bottom Actions Row */}
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-divider/40">
+              <div className="flex items-center justify-between gap-3 mt-4 pt-4 border-t border-divider/40">
                 <button
                   type="button"
                   onClick={handleBack}
@@ -835,7 +835,7 @@ export default function HostRegistrationForm({
               </div>
 
               {/* Bottom Actions Row */}
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-divider/40">
+              <div className="flex items-center justify-between gap-3 mt-4 pt-4 border-t border-divider/40">
                 <button
                   type="button"
                   onClick={handleBack}
@@ -983,7 +983,7 @@ export default function HostRegistrationForm({
               </div>
 
               {/* Bottom Actions Row */}
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-divider/40">
+              <div className="flex items-center justify-between gap-3 mt-4 pt-4 border-t border-divider/40">
                 <button
                   type="button"
                   onClick={handleBack}
@@ -1124,7 +1124,7 @@ export default function HostRegistrationForm({
               </div>
 
               {/* Bottom Actions Row */}
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-divider/40">
+              <div className="flex items-center justify-between gap-3 mt-4 pt-4 border-t border-divider/40">
                 <button
                   type="button"
                   onClick={handleBack}
