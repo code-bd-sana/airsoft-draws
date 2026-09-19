@@ -22,6 +22,7 @@ export interface Raffle {
   description: string;
   mainImage: string | null;
   prizeName: string | null;
+  mainPrizeValue?: number | string | null;
   pricePerTicket: string | number;
   totalTickets: number;
   ticketsSold: number;
@@ -32,10 +33,21 @@ export interface Raffle {
   autoDrawDate?: boolean;
   autoDrawSoldOut?: boolean;
   category?: string;
+  prizeClassification?: string;
+  minTickets?: number;
+  maxTickets?: number | null;
   guaranteedDraw?: boolean;
   _count?: { instantWins: number; [key: string]: number };
+  instantWins?: Array<{
+    id: string;
+    ticketNumber: number;
+    prizeName: string;
+    rrpValue?: number | string | null;
+    image?: string | null;
+    isClaimed?: boolean;
+  }>;
   createdAt: string;
-  host?: HostProfile;
+  host?: any;
 }
 
 export interface RecentWinner {

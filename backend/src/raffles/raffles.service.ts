@@ -993,7 +993,22 @@ export class RafflesService {
   async getPendingApprovals() {
     return this.prisma.raffle.findMany({
       where: { status: 'PENDING_APPROVAL' },
-      include: { host: { include: { user: true } } },
+      include: {
+        host: {
+          include: {
+            user: true,
+            subscriptions: {
+              where: { status: 'ACTIVE' },
+              include: { plan: true },
+              take: 1,
+            },
+            _count: {
+              select: { raffles: true },
+            },
+          },
+        },
+        instantWins: true,
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
