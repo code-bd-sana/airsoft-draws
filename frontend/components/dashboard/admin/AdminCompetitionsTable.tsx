@@ -66,7 +66,7 @@ export default function AdminCompetitionsTable() {
     setExportingRaffleId(comp.id);
     try {
       const tickets = await raffleService.getSoldTickets(comp.id);
-      
+
       if (!tickets || tickets.length === 0) {
         toast.info(`No ticket records found for "${comp.title}".`);
         return;
@@ -177,10 +177,10 @@ export default function AdminCompetitionsTable() {
 
   return (
     <div className="flex flex-col gap-6">
-      
+
       {/* Controls Row */}
       <div className="flex flex-col lg:flex-row lg:items-center gap-4 bg-[#111210] p-4 rounded-[16px] border border-[#2D3C13]">
-        
+
         {/* Filter Pills */}
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar border-r border-[#2D3C13] pr-4 mr-2">
           {["All", "Live", "Pending", "Ended", "Rejected", "Draft"].map((filter) => (
@@ -188,8 +188,8 @@ export default function AdminCompetitionsTable() {
               key={filter}
               onClick={() => handleFilterChange(filter)}
               className={`px-4 py-1.5 rounded-full text-[12px] font-sans font-medium transition-colors whitespace-nowrap ${
-                activeFilter === filter 
-                  ? 'border border-[#8CB34A] text-[#8CB34A] bg-[#1A230A]' 
+                activeFilter === filter
+                  ? 'border border-[#8CB34A] text-[#8CB34A] bg-[#1A230A]'
                   : 'border border-[#2D3C13] text-[#72943A] hover:border-[#43581E] hover:text-[#E8EDD4]'
               }`}
             >
@@ -203,9 +203,9 @@ export default function AdminCompetitionsTable() {
           <svg className="w-4 h-4 text-[#72943A] shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
           </svg>
-          <input 
-            type="text" 
-            placeholder="Search by title, host name, or email..." 
+          <input
+            type="text"
+            placeholder="Search by title, host name, or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="bg-transparent border-none outline-none text-[#E8EDD4] text-[13px] placeholder:text-[#5A752A] w-full ml-2 font-sans"
@@ -251,7 +251,7 @@ export default function AdminCompetitionsTable() {
                 </tr>
               ))
             )}
-            
+
             {!isLoading && raffles.length === 0 && (
               <tr>
                 <td colSpan={7} className="py-12 px-6 text-center text-[#5A752A] font-sans text-sm">
@@ -294,8 +294,8 @@ export default function AdminCompetitionsTable() {
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-full h-1 bg-[#0D0D0B] rounded-full overflow-hidden border border-[#2D3C13]">
-                          <div 
-                            className="h-full bg-[#8CB34A] rounded-full" 
+                          <div
+                            className="h-full bg-[#8CB34A] rounded-full"
                             style={{ width: `${progress}%` }}
                           />
                         </div>
@@ -348,9 +348,9 @@ export default function AdminCompetitionsTable() {
                         );
                       })()}
                       {/* View Tickets Modal Action */}
-                      <button 
+                      <button
                         onClick={() => setSelectedCompForTickets(comp)}
-                        className="text-[#5A752A] hover:text-[#8CB34A] transition-colors cursor-pointer p-1 rounded hover:bg-[#1A230A]" 
+                        className="text-[#5A752A] hover:text-[#8CB34A] transition-colors cursor-pointer p-1 rounded hover:bg-[#1A230A]"
                         title="View Ticket Numbers & Buyer Details"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -359,10 +359,10 @@ export default function AdminCompetitionsTable() {
                       </button>
 
                       {/* Export Tickets CSV Action */}
-                      <button 
+                      <button
                         onClick={() => handleExportRaffleTicketsCSV(comp)}
                         disabled={exportingRaffleId === comp.id}
-                        className="text-[#5A752A] hover:text-[#8CB34A] transition-colors disabled:opacity-50 cursor-pointer p-1 rounded hover:bg-[#1A230A]" 
+                        className="text-[#5A752A] hover:text-[#8CB34A] transition-colors disabled:opacity-50 cursor-pointer p-1 rounded hover:bg-[#1A230A]"
                         title={comp.ticketsSold > 0 ? "Export Competition Ticket Sales CSV" : "No tickets sold yet"}
                       >
                         {exportingRaffleId === comp.id ? (
@@ -375,10 +375,10 @@ export default function AdminCompetitionsTable() {
                       </button>
 
                       {/* Delete Action */}
-                      <button 
+                      <button
                         onClick={() => setSelectedCompForDelete(comp)}
                         disabled={deleteMutation.isPending || isDeleting}
-                        className="text-[#5A752A] hover:text-[#EF4444] transition-colors disabled:opacity-50 cursor-pointer p-1 rounded hover:bg-[#1A230A]" 
+                        className="text-[#5A752A] hover:text-[#EF4444] transition-colors disabled:opacity-50 cursor-pointer p-1 rounded hover:bg-[#1A230A]"
                         title="Delete Competition"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -446,3 +446,5 @@ export default function AdminCompetitionsTable() {
     </div>
   );
 }
+
+// test
