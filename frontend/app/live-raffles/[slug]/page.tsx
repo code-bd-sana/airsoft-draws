@@ -74,10 +74,13 @@ async function getRaffle(slug: string): Promise<RaffleDetail | undefined> {
         isClaimed: iw.isClaimed
       })) || [],
       isFeatured: false,
-      hostName: draw.host?.user ? `${draw.host.user.firstName} ${draw.host.user.lastName}` : "Airsoft Draws Host",
-      hostLogo: draw.host?.user?.firstName?.[0] || "AD",
+      hostId: draw.hostId || draw.host?.id,
+      hostUserId: draw.host?.userId || draw.host?.user?.id,
+      hostName: draw.host?.businessName?.trim() || (draw.host?.user ? `${draw.host.user.firstName || ''} ${draw.host.user.lastName || ''}`.trim() : "Airsoft Draws Host"),
+      hostLogo: draw.host?.user?.avatarUrl || draw.host?.businessName?.[0] || draw.host?.user?.firstName?.[0] || "AD",
+      hostSlug: draw.host?.slug || draw.host?.id,
       hostDrawsCount: 1,
-      hostVerified: true,
+      hostVerified: draw.host?.isVerified ?? true,
       isAutoDraw: draw.isAutoDraw,
     };
   } catch (e) {

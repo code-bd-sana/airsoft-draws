@@ -36,6 +36,9 @@ export interface RaffleDetail {
   isFeatured: boolean;
   hostName?: string;
   hostLogo?: string;
+  hostSlug?: string;
+  hostId?: string;
+  hostUserId?: string;
   hostDrawsCount?: number;
   hostVerified?: boolean;
   isAutoDraw?: boolean;

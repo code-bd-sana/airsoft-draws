@@ -163,30 +163,55 @@ export default function RaffleDetailsTabs({ raffle }: RaffleDetailsTabsProps) {
       )}
 
       {/* Host Profile Banner */}
-      {raffle.hostName && (
-        <div className="mt-8 bg-[#111210] border border-[#2D3C13] rounded-[12px] p-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#1A230A] border border-[#43581E] flex items-center justify-center shrink-0">
-              <span className="font-heading font-semibold text-[#8CB34A] text-[14px]">{raffle.hostLogo || raffle.hostName.charAt(0)}</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-sans text-[10px] text-[#72943A] uppercase tracking-wide">Hosted by</span>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="font-heading font-semibold text-[14px] text-[#E8EDD4]">{raffle.hostName}</span>
-                {raffle.hostVerified && (
-                  <span className="bg-[#8CB34A] text-[#0D0D0B] px-1.5 py-0.5 rounded-[4px] text-[9px] font-bold uppercase tracking-wide">Verified</span>
+      {raffle.hostName && (() => {
+        const isImage = Boolean(
+          raffle.hostLogo &&
+          (raffle.hostLogo.startsWith('http://') ||
+           raffle.hostLogo.startsWith('https://') ||
+           raffle.hostLogo.startsWith('/') ||
+           raffle.hostLogo.startsWith('data:image/'))
+        );
+        const initials = raffle.hostName
+          ? raffle.hostName.split(' ').filter(Boolean).map((w: string) => w[0]).join('').substring(0, 2).toUpperCase()
+          : 'AD';
+        const hostSlug = raffle.hostSlug || raffle.hostName.toLowerCase().replace(/\s+/g, '-');
+
+        return (
+          <div className="mt-8 bg-[#111210] border border-[#2D3C13] rounded-[12px] p-5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#1A230A] border border-[#43581E] flex items-center justify-center shrink-0 overflow-hidden">
+                {isImage ? (
+                  <img
+                    src={raffle.hostLogo}
+                    alt={raffle.hostName}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <span className="font-heading font-semibold text-[#8CB34A] text-[14px]">{initials}</span>
                 )}
               </div>
+              <div className="flex flex-col">
+                <span className="font-sans text-[10px] text-[#72943A] uppercase tracking-wide">Hosted by</span>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="font-heading font-semibold text-[14px] text-[#E8EDD4]">{raffle.hostName}</span>
+                  {raffle.hostVerified && (
+                    <span className="bg-[#8CB34A] text-[#0D0D0B] px-1.5 py-0.5 rounded-[4px] text-[9px] font-bold uppercase tracking-wide">Verified</span>
+                  )}
+                </div>
+              </div>
             </div>
+            <Link 
+              href={`/hosts/${hostSlug}`}
+              className="text-[12px] font-sans font-medium text-[#8CB34A] hover:text-[#A0D056] transition-colors"
+            >
+              View Host Profile
+            </Link>
           </div>
-          <Link 
-            href={`/hosts/${raffle.hostName.toLowerCase().replace(/\s+/g, '-')}`}
-            className="text-[12px] font-sans font-medium text-[#8CB34A] hover:text-[#A0D056] transition-colors"
-          >
-            View Host Profile
-          </Link>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
