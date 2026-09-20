@@ -36,8 +36,9 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
   const badgeText = r.badgeText || (soldPercent >= 90 ? "ALMOST GONE" : "HOT");
 
   const category = r.category || "rifles";
+  const description = r.description;
 
-  const hostName = host?.businessName || (host?.user?.firstName ? `${host.user.firstName} ${host.user.lastName || ''}`.trim() : "");
+  const hostName = host?.businessName || r.hostBusinessName || (host?.user?.firstName ? `${host.user.firstName} ${host.user.lastName || ''}`.trim() : "");
   const hostLocation = host?.user?.location || host?.address || "";
 
   const rawEndDate = r.endDate;
@@ -170,7 +171,7 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
           <div className="absolute inset-x-3 top-3 flex items-start justify-between pointer-events-none">
             {(hostName || hostLocation) ? (
               <div className="bg-[#1a230a]/90 backdrop-blur-sm border border-[#2d3c13] px-2.5 py-1 rounded-badge text-[10px] font-semibold text-[#a0d056] shadow-md truncate max-w-[160px]">
-                {hostName ? `By ${hostName}` : `📍 ${hostLocation}`}
+                {hostName ? `Hosted by ${hostName}` : `📍 ${hostLocation}`}
               </div>
             ) : <div />}
 
@@ -212,6 +213,11 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
                 {worthPrice > 0 && (
                   <p className="font-sans text-[11px] text-[#72943a] mt-1.5">
                     Worth {formatCurrency(worthPrice, 0)}
+                  </p>
+                )}
+                {description && (
+                  <p className="font-sans text-xs text-[#a0a595] leading-relaxed line-clamp-2 mt-2">
+                    {description}
                   </p>
                 )}
               </div>
@@ -283,7 +289,7 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
         <div className="absolute inset-x-3 top-3 flex items-start justify-between pointer-events-none">
           {(hostName || hostLocation) ? (
             <div className="bg-[#1a230a]/90 backdrop-blur-sm border border-[#2d3c13] px-2.5 py-1 rounded-badge text-[10px] font-semibold text-[#a0d056] shadow-md truncate max-w-[160px]">
-              {hostName ? `By ${hostName}` : `📍 ${hostLocation}`}
+              {hostName ? `Hosted by ${hostName}` : `📍 ${hostLocation}`}
             </div>
           ) : <div />}
 
@@ -329,8 +335,14 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
 
           {/* Worth Subheading */}
           {worthPrice > 0 && (
-            <p className="font-sans text-[11px] text-[#5a752a] font-normal mb-3">
+            <p className="font-sans text-[11px] text-[#5a752a] font-normal mb-2">
               Worth {formatCurrency(worthPrice, 0)}
+            </p>
+          )}
+
+          {description && (
+            <p className="font-sans text-[11px] text-[#a0a595] leading-relaxed line-clamp-2 mt-1 mb-3">
+              {description}
             </p>
           )}
 

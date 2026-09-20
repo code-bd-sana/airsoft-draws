@@ -53,11 +53,11 @@ export default function RaffleDetailsTabs({ raffle }: RaffleDetailsTabsProps) {
       <div className="min-h-[160px]">
         {activeTab === "details" && (
           <div className="flex flex-col gap-4 animate-in fade-in duration-200">
-            <p className="text-[13px] text-[#72943A] leading-relaxed">
+            <div className="text-[14px] text-[#E8EDD4] leading-relaxed whitespace-pre-line font-sans">
               {raffle.description}
-            </p>
+            </div>
             {raffle.highlights.length > 0 && (
-              <ul className="flex flex-col gap-2 mt-2">
+              <ul className="flex flex-col gap-2 mt-3 pt-3 border-t border-[#2D3C13]/40">
                 {raffle.highlights.map((highlight, idx) => (
                   <li key={idx} className="flex items-start gap-2.5 text-[13px] text-[#E8EDD4]">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#8CB34A] mt-1.5 shrink-0" />
@@ -128,13 +128,32 @@ export default function RaffleDetailsTabs({ raffle }: RaffleDetailsTabsProps) {
       {/* Instant Win Prizes */}
       {raffle.instantWinPrizes.length > 0 && (
         <div className="mt-8 bg-[#111210] border border-[#2D3C13] rounded-[16px] p-6 flex flex-col gap-4">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-[16px]">🎁</span>
-            <h3 className="font-heading font-semibold text-[14px] text-[#E8EDD4]">Instant Win Prizes</h3>
+          <div className="flex items-center justify-between gap-2 mb-2 pb-3 border-b border-[#2D3C13]/50">
+            <div className="flex items-center gap-2">
+              <span className="text-[16px]">🎁</span>
+              <h3 className="font-heading font-semibold text-[15px] text-[#E8EDD4]">Instant Win Prizes</h3>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-[#8CB34A] font-semibold">
+                {raffle.instantWinPrizes.filter((p) => !p.isClaimed).length} Available
+              </span>
+              <span className="text-[#72943A]">•</span>
+              <span className="text-[#a0a595]">
+                {raffle.instantWinPrizes.filter((p) => p.isClaimed).length} Won
+              </span>
+            </div>
           </div>
           <div className="flex flex-col gap-3">
             {raffle.instantWinPrizes.map((prize) => (
-              <div key={prize.id} className="flex items-center justify-between p-4 bg-[#161810] border border-[#2D3C13] rounded-[12px]">
+              <div
+                key={prize.id}
+                className={cn(
+                  "flex items-center justify-between p-4 rounded-[12px] border transition-all duration-150",
+                  prize.isClaimed
+                    ? "bg-[#141512] border-[#222718] opacity-80"
+                    : "bg-[#161810] border-[#2D3C13]"
+                )}
+              >
                 <div className="flex items-center gap-3">
                   {prize.image ? (
                     <div className="w-10 h-10 rounded overflow-hidden shrink-0 bg-[#0d0d0b]">
@@ -144,16 +163,25 @@ export default function RaffleDetailsTabs({ raffle }: RaffleDetailsTabsProps) {
                   ) : (
                     checkIcon
                   )}
-                  <div className="flex flex-col">
+                  <div className="flex flex-col gap-1">
                     <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">{prize.title}</span>
-                    <span className="font-sans text-[11px] text-[#72943A]">
-                      {user?.role === 'ADMIN' || user?.role === 'HOST' ? `Ticket #${prize.ticketNumber}` : "Ticket #???"}
-                    </span>
+                    <div>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-[#1a230a] border border-[#374918] font-mono text-[11px] font-semibold text-[#8CB34A]">
+                        Ticket #{prize.ticketNumber}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4 text-right">
-                  <span className={cn("font-heading font-semibold text-[13px] px-2 py-1 rounded", prize.isClaimed ? "bg-[#2d3c13] text-[#72943a]" : "bg-[#1a230a] text-[#8CB34A]")}>
-                    {prize.isClaimed ? "Claimed" : "Available"}
+                  <span
+                    className={cn(
+                      "font-heading font-bold text-[11px] uppercase tracking-wider px-2.5 py-1 rounded-[6px] border",
+                      prize.isClaimed
+                        ? "bg-[#231b1b] border-red-900/40 text-red-400"
+                        : "bg-[#1a230a] border-[#8CB34A]/40 text-[#8CB34A]"
+                    )}
+                  >
+                    {prize.isClaimed ? "Won" : "Available"}
                   </span>
                 </div>
               </div>

@@ -1,18 +1,15 @@
-import React, { Suspense } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
-import WebsiteNavbar from "../../../components/website/layout/WebsiteNavbar";
+import { Suspense } from "react";
 import WebsiteFooter from "../../../components/website/layout/WebsiteFooter";
-import RaffleImageGallery from "../../../components/website/raffle-details/RaffleImageGallery";
-import RaffleEntryCard from "../../../components/website/raffle-details/RaffleEntryCard";
-import RaffleDetailsTabs from "../../../components/website/raffle-details/RaffleDetailsTabs";
-import RelatedRafflesSection from "../../../components/website/raffle-details/RelatedRafflesSection";
-import RaffleDetailsEmptyState from "../../../components/website/raffle-details/RaffleDetailsEmptyState";
+import WebsiteNavbar from "../../../components/website/layout/WebsiteNavbar";
 import FreePostalEntryButton from "../../../components/website/legal/FreePostalEntryButton";
-import { raffleDetailsData } from "../../../data/raffles/raffle-details.data";
-import { liveRafflesData } from "../../../data/live-raffles.data";
-import { RaffleDetail } from "../../../types/raffle-details.types";
+import RaffleDetailsEmptyState from "../../../components/website/raffle-details/RaffleDetailsEmptyState";
+import RaffleDetailsTabs from "../../../components/website/raffle-details/RaffleDetailsTabs";
+import RaffleEntryCard from "../../../components/website/raffle-details/RaffleEntryCard";
+import RaffleImageGallery from "../../../components/website/raffle-details/RaffleImageGallery";
+import RelatedRafflesSection from "../../../components/website/raffle-details/RelatedRafflesSection";
 import { cn, formatUkDate } from "../../../lib/utils";
+import { RaffleDetail } from "../../../types/raffle-details.types";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -53,7 +50,7 @@ async function getRaffle(slug: string): Promise<RaffleDetail | undefined> {
       highlights: [
         `Main Prize: ${draw.title}`,
         `Ticket Price: £${Number(draw.pricePerTicket).toFixed(2)}`,
-        draw.mainPrizeValue ? `Main Prize Value: £${Number(draw.mainPrizeValue).toLocaleString()}` : `Estimated Valuation: £${worth.toLocaleString()}`,
+        draw.mainPrizeValue ? `Main Prize Value: £${Number(draw.mainPrizeValue).toLocaleString()}` : `Prize Valuation: £${worth.toLocaleString()}`,
         `Total Tickets: ${draw.totalTickets.toLocaleString()}`,
         `Fast Track Delivery: Fully tracked and insured shipping included.`,
       ],
@@ -66,17 +63,20 @@ async function getRaffle(slug: string): Promise<RaffleDetail | undefined> {
         "By entering you agree to be bound by these terms and conditions.",
         "Free postal entry: send your name and address on a postcard to: Airsoft Draws, PO Box 99, Manchester, M1 1AA."
       ],
-      instantWinPrizes: draw.instantWins?.map((iw: any) => ({
-        id: iw.id,
-        title: iw.prizeName,
-        image: iw.image,
-        ticketNumber: iw.ticketNumber,
-        isClaimed: iw.isClaimed
-      })) || [],
+      instantWinPrizes: (draw.instantWins || [])
+        .slice()
+        .sort((a: any, b: any) => (Number(a.ticketNumber) || 0) - (Number(b.ticketNumber) || 0))
+        .map((iw: any) => ({
+          id: iw.id,
+          title: iw.prizeName,
+          image: iw.image,
+          ticketNumber: iw.ticketNumber,
+          isClaimed: iw.isClaimed
+        })),
       isFeatured: false,
       hostId: draw.hostId || draw.host?.id,
       hostUserId: draw.host?.userId || draw.host?.user?.id,
-      hostName: draw.host?.businessName?.trim() || (draw.host?.user ? `${draw.host.user.firstName || ''} ${draw.host.user.lastName || ''}`.trim() : "Airsoft Draws Host"),
+      hostName: draw.host?.businessName?.trim() || draw.hostBusinessName?.trim() || (draw.host?.user ? `${draw.host.user.firstName || ''} ${draw.host.user.lastName || ''}`.trim() : "Airsoft Draws Host"),
       hostLogo: draw.host?.logoUrl || draw.host?.user?.avatarUrl || draw.host?.businessName?.[0] || draw.host?.user?.firstName?.[0] || "AD",
       hostSlug: draw.host?.slug || draw.host?.id,
       hostDrawsCount: 1,
@@ -217,17 +217,19 @@ export default async function LiveRaffleDetailPage({ params }: PageProps) {
                       </span>
                     )}
 
+                    {raffle.hostName && (
+                      <span className="text-[12px] font-medium text-[#a0a595] select-none font-sans">
+                        Hosted by <strong className="text-[#e8edd4] font-semibold">{raffle.hostName}</strong>
+                      </span>
+                    )}
+
                     {/* Highly visible UK-compliant Free Postal Entry button */}
                     <FreePostalEntryButton raffleTitle={raffle.title} variant="badge" />
                   </div>
                 </div>
 
                 {/* Interactive Details, How-to, and T&Cs Tabs */}
-                {/* <RaffleDetailsTabs raffle={raffle} /> */}
-
-                {/* New Host Profile Banner */}
-                {/* Host banner goes here later */}
-                <div id="host-banner-placeholder" className="mt-6" />
+                <RaffleDetailsTabs raffle={raffle} />
 
               </div>
 

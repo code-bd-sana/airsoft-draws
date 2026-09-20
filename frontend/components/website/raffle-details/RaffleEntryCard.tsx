@@ -253,7 +253,7 @@ export default function RaffleEntryCard({ raffle }: RaffleEntryCardProps) {
         <span className="font-sans text-[10px] text-[#5A752A] uppercase tracking-wide">Combined Prize Pool</span>
         <span className="font-heading font-bold text-[32px] text-[#8CB34A] leading-tight">£{totalPoolValue.toLocaleString()}</span>
         <span className="font-sans text-[11px] text-[#72943A]">
-          Worth: £{(worthPrice || totalPoolValue).toLocaleString()}. Est. Valuation: £{((worthPrice || totalPoolValue) * 0.9).toLocaleString()}
+          Worth: £{(worthPrice || totalPoolValue).toLocaleString()}
         </span>
       </div>
 

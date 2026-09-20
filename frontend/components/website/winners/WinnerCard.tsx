@@ -10,8 +10,9 @@ interface WinnerCardProps {
  * Renders a completed raffle winner record card with ticket and avatar details.
  */
 export default function WinnerCard({ winner }: WinnerCardProps) {
-  const { name, location, avatar, competitionImage, initials, prizeTitle, drawDate, ticketNumber } = winner;
+  const { name, location, avatar, competitionImage, initials, prizeTitle, drawDate, ticketNumber, winnerType } = winner;
   const displayImage = competitionImage || avatar;
+  const isInstant = winnerType === "instant";
 
   return (
     <div className="relative bg-[#161810] border border-border rounded-[14px] p-5 hover:border-border-medium hover:shadow-glow transition-all duration-300 w-full min-h-[185px]">
@@ -51,7 +52,7 @@ export default function WinnerCard({ winner }: WinnerCardProps) {
         </div>
       </div>
 
-      {/* Bottom Row: Delivered status pill & ticket ref */}
+      {/* Bottom Row: Delivered / Claimed status pill & ticket ref */}
       <div className="flex items-center justify-between mt-4 pr-24 sm:pr-0">
         {/* Verification Status Badge */}
         <div className="bg-[#0d2010] border border-[#16a34a] rounded-full px-3 py-1 flex items-center gap-1.5 w-fit">
@@ -59,7 +60,7 @@ export default function WinnerCard({ winner }: WinnerCardProps) {
             ✓
           </span>
           <span className="text-[10px] font-semibold text-[#4ade80] leading-none uppercase tracking-wider">
-            Delivered
+            {isInstant ? "Claimed" : "Delivered"}
           </span>
         </div>
 

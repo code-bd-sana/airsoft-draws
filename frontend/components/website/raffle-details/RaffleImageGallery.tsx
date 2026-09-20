@@ -140,7 +140,7 @@ export default function RaffleImageGallery({
         {/* Floating Host Name Badge (Top Left) */}
         {hostName && (
           <div className="absolute left-4 top-4 bg-[#1a230a]/90 backdrop-blur-sm border border-[#2d3c13] px-3 py-1.5 rounded-[6px] text-[11px] font-bold text-[#a0d056] shadow-md truncate max-w-[200px] pointer-events-none z-20">
-            By {hostName}
+            Hosted by {hostName}
           </div>
         )}
       </div>

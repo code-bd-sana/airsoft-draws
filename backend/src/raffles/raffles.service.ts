@@ -458,7 +458,9 @@ export class RafflesService {
       },
       include: {
         host: { include: { user: true } },
-        instantWins: true,
+        instantWins: {
+          orderBy: { ticketNumber: 'asc' },
+        },
       },
     });
     if (!raffle) throw new NotFoundException('Raffle not found');
