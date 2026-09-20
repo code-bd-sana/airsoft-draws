@@ -10,6 +10,7 @@ export interface RaffleDeleteTarget {
   ticketsSold?: number;
   totalTickets?: number;
   host?: {
+    businessName?: string;
     user?: {
       firstName?: string;
       lastName?: string;
@@ -59,9 +60,9 @@ export default function ConfirmDeleteRaffleModal({
 
   if (typeof window === "undefined" || !isOpen || !raffle) return null;
 
-  const hostName = raffle.host?.user?.firstName
+  const hostName = raffle.host?.businessName || (raffle.host?.user?.firstName
     ? `${raffle.host.user.firstName} ${raffle.host.user.lastName || ""}`.trim()
-    : null;
+    : null);
   const hostEmail = raffle.host?.user?.email || null;
 
   const modalContent = (

@@ -170,7 +170,7 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
           <div className="absolute inset-x-3 top-3 flex items-start justify-between pointer-events-none">
             {(hostName || hostLocation) ? (
               <div className="bg-[#1a230a]/90 backdrop-blur-sm border border-[#2d3c13] px-2.5 py-1 rounded-badge text-[10px] font-semibold text-[#a0d056] shadow-md truncate max-w-[160px]">
-                {hostLocation ? `📍 ${hostLocation}` : `By ${hostName}`}
+                {hostName ? `By ${hostName}` : `📍 ${hostLocation}`}
               </div>
             ) : <div />}
 
@@ -283,7 +283,7 @@ export default function LiveRaffleCard({ raffle, viewMode = "grid" }: LiveRaffle
         <div className="absolute inset-x-3 top-3 flex items-start justify-between pointer-events-none">
           {(hostName || hostLocation) ? (
             <div className="bg-[#1a230a]/90 backdrop-blur-sm border border-[#2d3c13] px-2.5 py-1 rounded-badge text-[10px] font-semibold text-[#a0d056] shadow-md truncate max-w-[160px]">
-              {hostLocation ? `📍 ${hostLocation}` : `By ${hostName}`}
+              {hostName ? `By ${hostName}` : `📍 ${hostLocation}`}
             </div>
           ) : <div />}
 

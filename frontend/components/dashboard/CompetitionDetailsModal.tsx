@@ -76,7 +76,7 @@ export default function CompetitionDetailsModal({
   const remainingTickets = Math.max(raffle.totalTickets - raffle.ticketsSold, 0);
   const winChance = raffle.totalTickets > 0 ? ((ticketsEntered / raffle.totalTickets) * 100).toFixed(1) : "0";
 
-  const hostName = raffle.host?.user ? `${raffle.host.user.firstName} ${raffle.host.user.lastName}` : "Host";
+  const hostName = raffle.host?.businessName || (raffle.host?.user ? `${raffle.host.user.firstName || ''} ${raffle.host.user.lastName || ''}`.trim() : "Host");
 
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn">

@@ -262,7 +262,7 @@ export default function AdminCompetitionsTable() {
 
             {!isLoading && raffles.map((comp: any, i: number) => {
               const progress = comp.totalTickets > 0 ? Math.min(Math.round((comp.ticketsSold / comp.totalTickets) * 100), 100) : 0;
-              const hostName = comp.host?.user?.firstName ? `${comp.host.user.firstName} ${comp.host.user.lastName || ''}` : 'Unknown Host';
+              const hostName = comp.host?.businessName || (comp.host?.user?.firstName ? `${comp.host.user.firstName} ${comp.host.user.lastName || ''}`.trim() : 'Unknown Host');
               const hostEmail = comp.host?.user?.email || '';
 
               return (
