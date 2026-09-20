@@ -28,7 +28,7 @@ async function getRaffle(slug: string): Promise<RaffleDetail | undefined> {
     const json = await res.json();
     const draw = json.data || json; // Handle wrapped response
 
-    const worth = Number(draw.pricePerTicket) * draw.totalTickets;
+    const worth = Number(draw.mainPrizeValue) || (Number(draw.pricePerTicket) * draw.totalTickets) || 0;
 
     return {
       id: draw.id,

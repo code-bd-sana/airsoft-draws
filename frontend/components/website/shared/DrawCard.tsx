@@ -26,6 +26,7 @@ export default function DrawCard({ draw, variant = "grid" }: DrawCardProps) {
     isInstantWin,
   } = draw;
 
+  const computedWorth = Number(worthPrice) || (Number(ticketPrice) * Number(totalTickets)) || 0;
   const soldPercent = Math.min(Math.round((soldTickets / totalTickets) * 100), 100);
   const displayEndDate = endDate ? formatUkDate(endDate, "medium", endDate) : "";
 
@@ -78,9 +79,9 @@ export default function DrawCard({ draw, variant = "grid" }: DrawCardProps) {
             className="object-cover opacity-80"
             unoptimized
           />
-          {worthPrice && (
+          {computedWorth > 0 && (
             <div className="absolute top-4 left-4 bg-bg/80 backdrop-blur-sm border border-border-medium px-3.5 py-1.5 rounded-badge text-[11px] font-semibold text-text-brand tracking-wide">
-              WORTH {formatCurrency(worthPrice, 0)}
+              WORTH {formatCurrency(computedWorth, 0)}
             </div>
           )}
         </div>
@@ -91,9 +92,9 @@ export default function DrawCard({ draw, variant = "grid" }: DrawCardProps) {
             <h3 className="font-heading font-bold text-xl md:text-2xl text-text-primary">
               {title}
             </h3>
-            {worthPrice && (
+            {computedWorth > 0 && (
               <span className="text-sm font-semibold text-text-secondary whitespace-nowrap hidden sm:inline">
-                Worth {formatCurrency(worthPrice, 0)}
+                Worth {formatCurrency(computedWorth, 0)}
               </span>
             )}
           </div>
@@ -163,9 +164,11 @@ export default function DrawCard({ draw, variant = "grid" }: DrawCardProps) {
             {title}
           </h3>
 
-          <div className="text-xl font-bold text-text-brand font-heading mb-4">
-            Worth {formatCurrency(worthPrice || 0, 0)}
-          </div>
+          {computedWorth > 0 && (
+            <div className="text-xl font-bold text-text-brand font-heading mb-4">
+              Worth {formatCurrency(computedWorth, 0)}
+            </div>
+          )}
 
           {/* Ticket Progress Bar */}
           <div className="mb-4">
@@ -224,9 +227,9 @@ export default function DrawCard({ draw, variant = "grid" }: DrawCardProps) {
           className="object-cover opacity-75"
           unoptimized
         />
-        {worthPrice && (
+        {computedWorth > 0 && (
           <div className="absolute top-4 left-4 bg-bg/80 backdrop-blur-sm border border-border px-2.5 py-1 rounded-badge text-[10px] font-semibold text-text-brand tracking-wide">
-            WORTH {formatCurrency(worthPrice, 0)}
+            WORTH {formatCurrency(computedWorth, 0)}
           </div>
         )}
       </div>

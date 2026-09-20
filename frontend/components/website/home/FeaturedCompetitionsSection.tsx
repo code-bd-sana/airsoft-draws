@@ -23,21 +23,27 @@ export default function FeaturedCompetitionsSection() {
       try {
         const res = await raffleService.getPublicRaffles({ limit: 10, statusFilter: 'Live' });
         if (res.data && res.data.length > 0) {
-          const mappedDraws: Draw[] = res.data.map(r => ({
-            id: r.id,
-            title: r.title,
-            description: r.description,
-            image: r.mainImage || '',
-            ticketPrice: Number(r.pricePerTicket),
-            totalTickets: r.totalTickets,
-            soldTickets: r.ticketsSold,
-            endDate: formatUkDate(r.endDate),
-            status: (r.status === 'ACTIVE' ? 'live' : 'ended') as "live" | "ended",
-            category: r.category || 'general',
-            slug: r.slug,
-            instantWinsCount: r._count?.instantWins || 0,
-            isInstantWin: (r._count?.instantWins || 0) > 0,
-          }));
+          const mappedDraws: Draw[] = res.data.map(r => {
+            const ticketPrice = Number(r.pricePerTicket) || 0;
+            const totalTickets = Number(r.totalTickets) || 0;
+            const worthPrice = Number(r.mainPrizeValue) || (ticketPrice * totalTickets) || 0;
+            return {
+              id: r.id,
+              title: r.title,
+              description: r.description,
+              image: r.mainImage || '',
+              ticketPrice,
+              totalTickets,
+              soldTickets: r.ticketsSold,
+              endDate: formatUkDate(r.endDate),
+              status: (r.status === 'ACTIVE' ? 'live' : 'ended') as "live" | "ended",
+              category: r.category || 'general',
+              slug: r.slug,
+              worthPrice,
+              instantWinsCount: r._count?.instantWins || 0,
+              isInstantWin: (r._count?.instantWins || 0) > 0,
+            };
+          });
           setDraws(mappedDraws);
         }
       } catch (err) {
