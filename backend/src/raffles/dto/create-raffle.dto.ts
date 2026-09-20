@@ -63,6 +63,30 @@ export class CreateRaffleDto {
   description?: string;
 
   @ApiPropertyOptional({
+    example: 'Tokyo Marui MWS GBB',
+    description: 'Specific prize name for the main draw',
+  })
+  @IsString()
+  @IsOptional()
+  prizeName?: string;
+
+  @ApiPropertyOptional({
+    example: 'https://example.com/cover.jpg',
+    description: 'Cover image URL for the competition',
+  })
+  @IsString()
+  @IsOptional()
+  mainImage?: string;
+
+  @ApiPropertyOptional({
+    example: 5.99,
+    description: 'Price per ticket (alias for ticketPrice)',
+  })
+  @IsNumber()
+  @IsOptional()
+  pricePerTicket?: number;
+
+  @ApiPropertyOptional({
     example: 'RIF',
     description: 'Prize Classification: RIF (Realistic Imitation Firearm), TWO_TONE_IF (Imitation Firearm), or ACCESSORY (Optics, Apparel, Non-RIF)',
     enum: ['RIF', 'TWO_TONE_IF', 'ACCESSORY'],

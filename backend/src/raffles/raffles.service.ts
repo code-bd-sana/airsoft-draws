@@ -549,9 +549,77 @@ export class RafflesService {
 
     if (!raffle) throw new NotFoundException('Raffle not found');
 
+    const updateData: Prisma.RaffleUpdateInput = {};
+
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.category !== undefined) updateData.category = data.category || null;
+    if (data.description !== undefined) updateData.description = data.description || '';
+    if (data.prizeName !== undefined) updateData.prizeName = data.prizeName || null;
+    if (data.prizeClassification !== undefined) updateData.prizeClassification = data.prizeClassification;
+    if (data.mainImage !== undefined) updateData.mainImage = data.mainImage || null;
+
+    if (data.mainPrizeValue !== undefined) {
+      updateData.mainPrizeValue =
+        data.mainPrizeValue !== null && data.mainPrizeValue !== ''
+          ? Number(data.mainPrizeValue)
+          : null;
+    }
+
+    const price = data.pricePerTicket !== undefined ? data.pricePerTicket : data.ticketPrice;
+    if (price !== undefined && price !== null && price !== '') {
+      const numPrice = Number(price);
+      if (raffle.ticketsSold > 0) {
+        if (numPrice !== Number(raffle.pricePerTicket)) {
+          throw new BadRequestException('Ticket price cannot be modified once tickets have been sold');
+        }
+      } else {
+        updateData.pricePerTicket = numPrice;
+      }
+    }
+
+    if (data.totalTickets !== undefined && data.totalTickets !== null && data.totalTickets !== '') {
+      const total = Number(data.totalTickets);
+      if (raffle.ticketsSold > 0 && total < raffle.ticketsSold) {
+        throw new BadRequestException(
+          `Total tickets cannot be less than tickets already sold (${raffle.ticketsSold})`,
+        );
+      }
+      updateData.totalTickets = total;
+    }
+
+    if (data.minTickets !== undefined && data.minTickets !== null && data.minTickets !== '') {
+      updateData.minTickets = Math.max(1, Number(data.minTickets) || 1);
+    }
+
+    if (data.maxTickets !== undefined) {
+      if (data.maxTickets === null || data.maxTickets === '' || Number(data.maxTickets) <= 0) {
+        updateData.maxTickets = null;
+      } else {
+        const parsedMax = Number(data.maxTickets);
+        const min = typeof updateData.minTickets === 'number' ? updateData.minTickets : raffle.minTickets;
+        if (parsedMax < min) {
+          throw new BadRequestException(
+            'Maximum tickets per entrant must be greater than or equal to minimum tickets',
+          );
+        }
+        updateData.maxTickets = parsedMax;
+      }
+    }
+
+    if (data.startDate !== undefined && data.startDate) {
+      updateData.startDate = new Date(data.startDate);
+    }
+    if (data.endDate !== undefined && data.endDate) {
+      updateData.endDate = new Date(data.endDate);
+    }
+
+    if (data.isAutoDraw !== undefined) updateData.isAutoDraw = Boolean(data.isAutoDraw);
+    if (data.autoDrawDate !== undefined) updateData.autoDrawDate = Boolean(data.autoDrawDate);
+    if (data.autoDrawSoldOut !== undefined) updateData.autoDrawSoldOut = Boolean(data.autoDrawSoldOut);
+
     return this.prisma.raffle.update({
       where: { id },
-      data,
+      data: updateData,
     });
   }
 
