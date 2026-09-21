@@ -3,6 +3,7 @@
 import React, { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import WebsiteNavbar from "../../../components/website/layout/WebsiteNavbar";
 import WebsiteFooter from "../../../components/website/layout/WebsiteFooter";
 import { useBasket } from "../../../features/basket/BasketContext";
@@ -11,6 +12,7 @@ import { api } from "../../../services/api";
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const { clearBasket, removeFromBasket } = useBasket();
   const { data: user } = useAuthUser();
 
@@ -46,6 +48,12 @@ function PaymentSuccessContent() {
         if (isMounted) {
           setConfirmResult(res.data);
           if (res.data?.success) {
+            // Trigger instant win check & celebration
+            queryClient.invalidateQueries({ queryKey: ["unclaimed-instant-wins"] });
+            if (res.data?.instantWins && res.data.instantWins.length > 0) {
+              queryClient.setQueryData(["unclaimed-instant-wins"], res.data.instantWins);
+            }
+
             const isDirectPending =
               typeof window !== "undefined" &&
               localStorage.getItem("direct_checkout_pending") === "true";

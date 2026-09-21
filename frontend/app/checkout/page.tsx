@@ -8,6 +8,7 @@ import WebsiteNavbar from "../../components/website/layout/WebsiteNavbar";
 import WebsiteFooter from "../../components/website/layout/WebsiteFooter";
 import { useBasket, BasketItem } from "../../features/basket/BasketContext";
 import { useAuthUser } from "../../hooks/useAuthHooks";
+import { useQueryClient } from "@tanstack/react-query";
 import { api } from "../../services/api";
 
 export function calculateAgeFromDob(dobStr: string): number | null {
@@ -143,6 +144,7 @@ interface PurchaseResult {
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const isDirectParam = searchParams.get("direct") === "true";
   const { data: user, isLoading: isUserLoading } = useAuthUser();
   const {
@@ -456,6 +458,11 @@ function CheckoutContent() {
         instantWins: data.instantWins || [],
         totalAmount: data.totalAmount || totalAmount,
       });
+
+      if (data.instantWins && data.instantWins.length > 0) {
+        queryClient.invalidateQueries({ queryKey: ["unclaimed-instant-wins"] });
+        queryClient.setQueryData(["unclaimed-instant-wins"], data.instantWins);
+      }
 
       if (isDirectCheckout) {
         try {

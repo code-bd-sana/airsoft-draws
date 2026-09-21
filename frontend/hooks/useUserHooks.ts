@@ -9,6 +9,28 @@ export const useMyWinnersQuery = () => {
   });
 };
 
+export const useUnclaimedInstantWinsQuery = (enabled: boolean = true) => {
+  return useQuery({
+    queryKey: ['unclaimed-instant-wins'],
+    queryFn: () => userService.getUnclaimedInstantWins(),
+    enabled,
+    staleTime: 1000 * 60 * 5, // 5 mins cache
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+};
+
+export const useClaimInstantWinsMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (winnerIds?: string[]) => userService.claimInstantWins(winnerIds),
+    onSuccess: () => {
+      queryClient.setQueryData(['unclaimed-instant-wins'], []);
+      queryClient.invalidateQueries({ queryKey: ['my-winners'] });
+    },
+  });
+};
+
 export const useChangePasswordMutation = () => {
   return useMutation({
     mutationFn: userService.changePassword,

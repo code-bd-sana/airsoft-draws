@@ -234,4 +234,57 @@ describe('UsersService', () => {
       expect(winners[1].instantWinDetails?.prizeName).toBe('Sidearm');
     });
   });
+
+  describe('getUnclaimedInstantWins', () => {
+    it('should return unclaimed instant wins formatted properly', async () => {
+      mockPrisma.winner.findMany.mockResolvedValue([
+        {
+          id: 'w-unclaimed',
+          userId: 'u-1',
+          raffleId: 'r-1',
+          ticketId: 't-1',
+          winType: 'INSTANT_WIN',
+          prizeName: 'Pistol',
+          isClaimed: false,
+          createdAt: new Date(),
+          ticket: { ticketNumber: 77 },
+          raffle: {
+            id: 'r-1',
+            title: 'Cool Draw',
+            slug: 'cool-draw',
+            mainImage: 'main.jpg',
+            instantWins: [
+              { ticketNumber: 77, prizeName: 'Pistol', image: 'pistol.png', rrpValue: '200' },
+            ],
+          },
+        },
+      ]);
+
+      const result = await service.getUnclaimedInstantWins('u-1');
+      expect(result).toHaveLength(1);
+      expect(result[0].ticketNumber).toBe(77);
+      expect(result[0].prizeName).toBe('Pistol');
+      expect(result[0].prizeImage).toBe('pistol.png');
+      expect(result[0].isClaimed).toBe(false);
+    });
+  });
+
+  describe('claimInstantWins', () => {
+    it('should update unclaimed winners to isClaimed: true', async () => {
+      mockPrisma.winner.updateMany.mockResolvedValue({ count: 2 });
+
+      const result = await service.claimInstantWins('u-1', ['w-1', 'w-2']);
+      expect(mockPrisma.winner.updateMany).toHaveBeenCalledWith({
+        where: {
+          userId: 'u-1',
+          winType: 'INSTANT_WIN',
+          isClaimed: false,
+          id: { in: ['w-1', 'w-2'] },
+        },
+        data: { isClaimed: true },
+      });
+      expect(result.success).toBe(true);
+      expect(result.claimedCount).toBe(2);
+    });
+  });
 });

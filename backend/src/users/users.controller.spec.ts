@@ -9,6 +9,8 @@ describe('UsersController', () => {
   let controller: UsersController;
   let mockUsersService: {
     getMyWinners: jest.Mock;
+    getUnclaimedInstantWins: jest.Mock;
+    claimInstantWins: jest.Mock;
     changePassword: jest.Mock;
     updateProfile: jest.Mock;
     updateAvatar: jest.Mock;
@@ -18,6 +20,8 @@ describe('UsersController', () => {
   beforeEach(async () => {
     mockUsersService = {
       getMyWinners: jest.fn(),
+      getUnclaimedInstantWins: jest.fn(),
+      claimInstantWins: jest.fn(),
       changePassword: jest.fn(),
       updateProfile: jest.fn(),
       updateAvatar: jest.fn(),
@@ -118,6 +122,41 @@ describe('UsersController', () => {
         expect.stringContaining('/uploads/avatars/avatar123.png'),
       );
       expect(result.message).toBe('Avatar uploaded successfully');
+    });
+  });
+
+  describe('getUnclaimedInstantWins', () => {
+    it('should return empty array if no token provided', async () => {
+      const req = createMockRequest();
+      const result = await controller.getUnclaimedInstantWins(req);
+      expect(result).toEqual([]);
+    });
+
+    it('should return unclaimed instant wins for authenticated user', async () => {
+      const req = createMockRequest('valid-token');
+      mockJwtService.verify.mockReturnValue({ sub: 'u-1' });
+      mockUsersService.getUnclaimedInstantWins.mockResolvedValue([{ id: 'w-1', prizeName: 'Pistol' }]);
+
+      const result = await controller.getUnclaimedInstantWins(req);
+      expect(mockUsersService.getUnclaimedInstantWins).toHaveBeenCalledWith('u-1');
+      expect(result).toEqual([{ id: 'w-1', prizeName: 'Pistol' }]);
+    });
+  });
+
+  describe('claimInstantWins', () => {
+    it('should throw UnauthorizedException if unauthenticated', async () => {
+      const req = createMockRequest();
+      await expect(controller.claimInstantWins(req, {})).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should mark instant wins claimed for authenticated user', async () => {
+      const req = createMockRequest('valid-token');
+      mockJwtService.verify.mockReturnValue({ sub: 'u-1' });
+      mockUsersService.claimInstantWins.mockResolvedValue({ success: true, claimedCount: 1 });
+
+      const result = await controller.claimInstantWins(req, { winnerIds: ['w-1'] });
+      expect(mockUsersService.claimInstantWins).toHaveBeenCalledWith('u-1', ['w-1']);
+      expect(result.success).toBe(true);
     });
   });
 });

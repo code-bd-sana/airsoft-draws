@@ -202,6 +202,7 @@ model Winner {
   ticketId           String   @map("ticket_id") @db.VarChar(255)
   winType            String   @map("win_type") @db.VarChar(50) // MAIN_DRAW, INSTANT_WIN
   prizeName          String   @map("prize_name") @db.VarChar(255)
+  isClaimed          Boolean  @default(false) @map("is_claimed")
   
   // Fulfillment & Verification
   deliveryStatus     String   @default("PENDING") @map("delivery_status") @db.VarChar(50) // PENDING, SHIPPED, DELIVERED, COLLECTED

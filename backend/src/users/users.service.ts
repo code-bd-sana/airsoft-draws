@@ -199,6 +199,7 @@ export class UsersService {
         deliveryStatus: w.deliveryStatus,
         verificationStatus: w.verificationStatus,
         trackingNumber: w.trackingNumber,
+        isClaimed: w.isClaimed,
         createdAt: w.createdAt,
         raffle: {
           id: w.raffle.id,
@@ -220,6 +221,75 @@ export class UsersService {
           : null,
       };
     });
+  }
+
+  async getUnclaimedInstantWins(userId: string) {
+    const unclaimedWins = await this.prisma.winner.findMany({
+      where: {
+        userId,
+        winType: 'INSTANT_WIN',
+        isClaimed: false,
+      },
+      include: {
+        ticket: {
+          select: {
+            ticketNumber: true,
+          },
+        },
+        raffle: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            mainImage: true,
+            instantWins: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return unclaimedWins.map((w) => {
+      const matchedIw = w.raffle.instantWins.find(
+        (iw) => iw.ticketNumber === w.ticket.ticketNumber,
+      );
+      return {
+        id: w.id,
+        raffleId: w.raffleId,
+        raffleTitle: w.raffle.title,
+        ticketId: w.ticketId,
+        ticketNumber: w.ticket.ticketNumber,
+        prizeName: w.prizeName || matchedIw?.prizeName || 'Instant Win Prize',
+        prizeImage: matchedIw?.image || w.raffle.mainImage || null,
+        rrpValue: matchedIw?.rrpValue ? Number(matchedIw.rrpValue) : null,
+        isClaimed: w.isClaimed,
+        createdAt: w.createdAt,
+      };
+    });
+  }
+
+  async claimInstantWins(userId: string, winnerIds?: string[]) {
+    const whereClause: any = {
+      userId,
+      winType: 'INSTANT_WIN',
+      isClaimed: false,
+    };
+    if (winnerIds && Array.isArray(winnerIds) && winnerIds.length > 0) {
+      whereClause.id = { in: winnerIds };
+    }
+
+    const result = await this.prisma.winner.updateMany({
+      where: whereClause,
+      data: {
+        isClaimed: true,
+      },
+    });
+
+    return {
+      success: true,
+      claimedCount: result.count,
+      message: `${result.count} instant win prize(s) marked as claimed`,
+    };
   }
 }
 

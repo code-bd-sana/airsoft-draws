@@ -856,6 +856,7 @@ export class PaymentService {
             },
           });
 
+          const allBasketInstantWins: any[] = [];
           if (
             pendingTx.relatedEntityId &&
             pendingTx.relatedEntityId.startsWith('BSK_ITEMS:')
@@ -868,12 +869,19 @@ export class PaymentService {
               const qty = parseInt(qtyStr || '1', 10);
               if (rId && qty > 0) {
                 try {
-                  await this.ticketsService.allocateTicketsInDatabase(
-                    pendingTx.userId,
-                    rId,
-                    qty,
-                    pendingTx.id,
-                  );
+                  const allocResult: any =
+                    await this.ticketsService.allocateTicketsInDatabase(
+                      pendingTx.userId,
+                      rId,
+                      qty,
+                      pendingTx.id,
+                    );
+                  if (
+                    allocResult?.instantWins &&
+                    allocResult.instantWins.length > 0
+                  ) {
+                    allBasketInstantWins.push(...allocResult.instantWins);
+                  }
                   this.logger.log(
                     `Confirmed & allocated ${qty} tickets for raffle ${rId} (user ${pendingTx.userId})`,
                   );
@@ -890,6 +898,7 @@ export class PaymentService {
             success: true,
             type: 'BASKET_PURCHASE',
             transactionId: pendingTx.id,
+            instantWins: allBasketInstantWins,
             message: 'Basket order confirmed and tickets allocated successfully',
           };
         }

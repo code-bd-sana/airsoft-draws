@@ -4,11 +4,13 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { format } from "date-fns";
-import { useMyWinnersQuery } from "@/hooks/useUserHooks";
+import { useMyWinnersQuery, useClaimInstantWinsMutation } from "@/hooks/useUserHooks";
 import { UserWinner } from "@/services/user.service";
+import { toast } from "sonner";
 
 export default function UserWinnersPage() {
   const { data: winners, isLoading, isError } = useMyWinnersQuery();
+  const claimMutation = useClaimInstantWinsMutation();
   const [filter, setFilter] = useState<"ALL" | "INSTANT_WIN" | "MAIN_DRAW">("ALL");
   const [search, setSearch] = useState("");
 
@@ -28,6 +30,17 @@ export default function UserWinnersPage() {
           w.raffle.title.toLowerCase().includes(search.toLowerCase());
     return matchesFilter && matchesSearch;
   });
+
+  const handleClaimSingle = async (winnerId: string) => {
+    try {
+      await claimMutation.mutateAsync([winnerId]);
+      toast.success("Instant win prize claimed successfully!");
+    } catch (err: any) {
+      toast.error("Failed to claim prize", {
+        description: err?.message || "Please try again.",
+      });
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6 p-8 max-w-[1660px] mx-auto w-full animate-fadeIn">
@@ -240,10 +253,14 @@ export default function UserWinnersPage() {
                   {/* Badge Top Left */}
                   <div className="absolute top-3 left-3">
                     {isInstant ? (
-                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EAB308]/90 text-[#0D0D0B] backdrop-blur-md shadow-lg">
+                      <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full backdrop-blur-md shadow-lg ${
+                        win.isClaimed === false
+                          ? "bg-[#D97706]/95 text-white animate-pulse"
+                          : "bg-[#EAB308]/90 text-[#0D0D0B]"
+                      }`}>
                         <span className="text-xs">⚡</span>
                         <span className="font-sans font-bold text-[11px] uppercase tracking-wider">
-                          Instant Win Prize
+                          Instant Win {win.isClaimed === false ? "(Unclaimed)" : "(Claimed)"}
                         </span>
                       </div>
                     ) : (
@@ -322,23 +339,37 @@ export default function UserWinnersPage() {
                   </div>
 
                   {/* Delivery / Claim Status Footer */}
-                  <div className="flex items-center justify-between pt-2 border-t border-[#1A230A] mt-2">
-                    <span className="font-sans text-[12px] text-[#5A752A]">Fulfillment:</span>
-                    <div
-                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-sans font-medium uppercase tracking-wide border ${
-                        win.deliveryStatus === "DELIVERED"
-                          ? "bg-[#083b18] text-[#4ADE80] border-[#4ADE80]/30"
+                  <div className="flex flex-col gap-2 pt-2 border-t border-[#1A230A] mt-2">
+                    {isInstant && win.isClaimed === false && (
+                      <div className="flex items-center justify-between bg-[#1A230A] border border-[#D97706]/40 p-2 rounded-lg">
+                        <span className="text-[11px] text-[#F59E0B] font-medium">Prize Unclaimed</span>
+                        <button
+                          onClick={() => handleClaimSingle(win.id)}
+                          disabled={claimMutation.isPending}
+                          className="px-3 py-1 bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] rounded-md text-[11px] font-heading font-bold uppercase transition-colors"
+                        >
+                          Claim Now
+                        </button>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <span className="font-sans text-[12px] text-[#5A752A]">Fulfillment:</span>
+                      <div
+                        className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-sans font-medium uppercase tracking-wide border ${
+                          win.deliveryStatus === "DELIVERED"
+                            ? "bg-[#083b18] text-[#4ADE80] border-[#4ADE80]/30"
+                            : win.deliveryStatus === "SHIPPED"
+                            ? "bg-blue-950/60 text-blue-400 border-blue-500/30"
+                            : "bg-[#1A230A] text-[#EAB308] border-[#EAB308]/30"
+                        }`}
+                      >
+                        <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
+                        {win.deliveryStatus === "DELIVERED"
+                          ? "Delivered"
                           : win.deliveryStatus === "SHIPPED"
-                          ? "bg-blue-950/60 text-blue-400 border-blue-500/30"
-                          : "bg-[#1A230A] text-[#EAB308] border-[#EAB308]/30"
-                      }`}
-                    >
-                      <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
-                      {win.deliveryStatus === "DELIVERED"
-                        ? "Delivered"
-                        : win.deliveryStatus === "SHIPPED"
-                        ? "Dispatched"
-                        : "Claim Processing"}
+                          ? "Dispatched"
+                          : "Claim Processing"}
+                      </div>
                     </div>
                   </div>
                 </div>

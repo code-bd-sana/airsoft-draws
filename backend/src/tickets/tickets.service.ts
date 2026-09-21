@@ -266,10 +266,16 @@ export class TicketsService {
                 deliveryStatus: 'PENDING',
                 verificationStatus: 'WINNER_SELECTED',
                 ukaraStatus: isRifCompetition ? 'PENDING_VERIFICATION' : 'NOT_REQUIRED',
+                isClaimed: false,
               },
             });
 
-            userInstantWins.push(winner);
+            userInstantWins.push({
+              ...winner,
+              ticketNumber: ticket.ticketNumber,
+              raffleTitle: raffle.title,
+              prizeImage: matchedInstantWin.image || null,
+            });
           }
         }
 
@@ -855,6 +861,7 @@ export class TicketsService {
                   deliveryStatus: 'PENDING',
                   verificationStatus: 'WINNER_SELECTED',
                   ukaraStatus: isRif ? 'PENDING_VERIFICATION' : 'NOT_REQUIRED',
+                  isClaimed: false,
                 },
               });
 
@@ -862,6 +869,7 @@ export class TicketsService {
                 ...winner,
                 ticketNumber: ticket.ticketNumber,
                 raffleTitle: raffle.title,
+                prizeImage: matchedInstantWin.image || null,
               });
             }
           }

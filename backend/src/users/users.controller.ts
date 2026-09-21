@@ -67,6 +67,38 @@ export class UsersController {
     return this.usersService.getMyWinners(userId);
   }
 
+  @Get('unclaimed-instant-wins')
+  @ApiOperation({ summary: 'Get all unclaimed instant wins for current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of unclaimed instant win prizes for current user',
+  })
+  async getUnclaimedInstantWins(@Req() req: Request) {
+    let userId: string | null = null;
+    try {
+      userId = this.extractUserId(req);
+    } catch {
+      return [];
+    }
+    if (!userId) return [];
+    return this.usersService.getUnclaimedInstantWins(userId);
+  }
+
+  @Post('claim-instant-wins')
+  @ApiOperation({ summary: 'Mark instant wins as claimed for the user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully marked instant win(s) as claimed',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async claimInstantWins(
+    @Req() req: Request,
+    @Body() body: { winnerIds?: string[] },
+  ) {
+    const userId = this.extractUserId(req);
+    return this.usersService.claimInstantWins(userId, body?.winnerIds);
+  }
+
   @Patch('change-password')
   @ApiOperation({ summary: 'Change user password' })
   @ApiResponse({ status: 200, description: 'Password changed successfully' })
