@@ -8,6 +8,7 @@ import {
   Res,
   Req,
   UnauthorizedException,
+  HttpException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -18,6 +19,7 @@ import {
 } from '@nestjs/swagger';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
+import { AuthRateLimiterService } from './auth-rate-limiter.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
@@ -29,7 +31,10 @@ import { extractTokenFromRequest } from '../common/utils/extract-token';
 @ApiTags('Authentication')
 @Controller('api/v1/auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly rateLimiterService: AuthRateLimiterService,
+  ) {}
 
   @Post('register')
   @ApiOperation({
@@ -54,21 +59,52 @@ export class AuthController {
     status: 401,
     description: 'Invalid credentials or unverified email address',
   })
+  @ApiResponse({
+    status: 429,
+    description: 'Too many login attempts - blocked for 25 minutes',
+  })
   async login(
     @Body() loginDto: LoginDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.authService.login(loginDto);
+    // 1. Identify client by IP and email
+    const clientIp =
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+      req.ip ||
+      'unknown-ip';
+    const rateLimitKey = `${clientIp}_${loginDto.email.toLowerCase().trim()}`;
 
-    res.cookie('accessToken', result.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    // 2. Check rate limit (max 5 attempts per min, >5 blocks for 25 mins)
+    const rateLimitCheck = this.rateLimiterService.checkLoginAttempt(rateLimitKey);
+    if (!rateLimitCheck.allowed) {
+      throw new HttpException(
+        {
+          message: rateLimitCheck.message,
+          retryAfterMinutes: rateLimitCheck.retryAfterMinutes,
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
 
-    return { user: result.user, accessToken: result.accessToken };
+    try {
+      const result = await this.authService.login(loginDto);
+
+      // On successful authentication, reset login attempt counter
+      this.rateLimiterService.resetLoginAttempt(rateLimitKey);
+
+      res.cookie('accessToken', result.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      return { user: result.user, accessToken: result.accessToken };
+    } catch (error) {
+      throw error;
+    }
   }
 
   @Post('logout')
@@ -139,7 +175,32 @@ export class AuthController {
   })
   @ApiResponse({ status: 200, description: 'Password reset email sent if account exists' })
   @ApiResponse({ status: 400, description: 'Invalid email format' })
-  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+  @ApiResponse({
+    status: 429,
+    description: 'Too many password reset requests (maximum 3 per minute)',
+  })
+  async forgotPassword(
+    @Body() forgotPasswordDto: ForgotPasswordDto,
+    @Req() req: Request,
+  ) {
+    const clientIp =
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+      req.ip ||
+      'unknown-ip';
+    const rateLimitKey = `${clientIp}_${forgotPasswordDto.email.toLowerCase().trim()}`;
+
+    const rateLimitCheck =
+      this.rateLimiterService.checkForgotPasswordAttempt(rateLimitKey);
+    if (!rateLimitCheck.allowed) {
+      throw new HttpException(
+        {
+          message: rateLimitCheck.message,
+          retryAfterSeconds: rateLimitCheck.retryAfterSeconds,
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
     return this.authService.forgotPassword(forgotPasswordDto);
   }
 

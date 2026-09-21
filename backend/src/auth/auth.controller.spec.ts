@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { AuthRateLimiterService } from './auth-rate-limiter.service';
 import { UnauthorizedException } from '@nestjs/common';
 import type { Response, Request } from 'express';
 
@@ -15,6 +16,11 @@ describe('AuthController', () => {
     forgotPassword: jest.Mock;
     resetPassword: jest.Mock;
   };
+  let mockRateLimiterService: {
+    checkLoginAttempt: jest.Mock;
+    resetLoginAttempt: jest.Mock;
+    checkForgotPasswordAttempt: jest.Mock;
+  };
 
   beforeEach(async () => {
     mockAuthService = {
@@ -27,9 +33,18 @@ describe('AuthController', () => {
       resetPassword: jest.fn(),
     };
 
+    mockRateLimiterService = {
+      checkLoginAttempt: jest.fn().mockReturnValue({ allowed: true }),
+      resetLoginAttempt: jest.fn(),
+      checkForgotPasswordAttempt: jest.fn().mockReturnValue({ allowed: true }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
-      providers: [{ provide: AuthService, useValue: mockAuthService }],
+      providers: [
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: AuthRateLimiterService, useValue: mockRateLimiterService },
+      ],
     }).compile();
 
     controller = module.get<AuthController>(AuthController);
@@ -62,8 +77,14 @@ describe('AuthController', () => {
       const res = {
         cookie: jest.fn(),
       } as unknown as Response;
+      const req = {
+        headers: {},
+        ip: '127.0.0.1',
+      } as unknown as Request;
 
-      const result = await controller.login(dto, res);
+      const result = await controller.login(dto, req, res);
+      expect(mockRateLimiterService.checkLoginAttempt).toHaveBeenCalled();
+      expect(mockRateLimiterService.resetLoginAttempt).toHaveBeenCalled();
       expect(res.cookie).toHaveBeenCalledWith(
         'accessToken',
         'mock-token',
@@ -134,9 +155,15 @@ describe('AuthController', () => {
   });
 
   describe('forgotPassword', () => {
-    it('should delegate to authService.forgotPassword', async () => {
+    it('should delegate to authService.forgotPassword when within rate limit', async () => {
       mockAuthService.forgotPassword.mockResolvedValue({ message: 'Reset sent' });
-      const result = await controller.forgotPassword({ email: 'a@b.com' });
+      const req = {
+        headers: {},
+        ip: '127.0.0.1',
+      } as unknown as Request;
+
+      const result = await controller.forgotPassword({ email: 'a@b.com' }, req);
+      expect(mockRateLimiterService.checkForgotPasswordAttempt).toHaveBeenCalled();
       expect(mockAuthService.forgotPassword).toHaveBeenCalledWith({ email: 'a@b.com' });
       expect(result.message).toBe('Reset sent');
     });
