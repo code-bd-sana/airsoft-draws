@@ -30,12 +30,13 @@ export default function HostLoginForm() {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [showPassword, setShowPassword] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const showToast = (message: string) => {
+  const showToast = (message: string, duration = 6000) => {
     setToastMessage(message);
     setTimeout(() => {
       setToastMessage(null);
-    }, 3000);
+    }, duration);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,6 +45,7 @@ export default function HostLoginForm() {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+    if (errorMessage) setErrorMessage(null);
   };
 
   const loginMutation = useLoginMutation();
@@ -59,6 +61,8 @@ export default function HostLoginForm() {
       return;
     }
 
+    setErrorMessage(null);
+
     try {
       await loginMutation.mutateAsync({
         email: formData.email,
@@ -66,13 +70,20 @@ export default function HostLoginForm() {
       });
       // The mutation handles redirect to host overview on success
     } catch (error: any) {
+      const status = error.response?.status;
+      const apiMessage = extractApiError(error, "Login failed. Please check your credentials.");
+
       if (error.response?.data?.message === 'Please verify your email address before logging in') {
-        showToast("Please verify your email address before logging in. Redirecting...");
+        showToast("Please verify your email address before logging in. Redirecting...", 4000);
         setTimeout(() => {
           router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
         }, 1500);
+      } else if (status === 429 || apiMessage.toLowerCase().includes("blocked") || apiMessage.toLowerCase().includes("too many")) {
+        setErrorMessage(apiMessage);
+        showToast(apiMessage, 12000);
       } else {
-        showToast(extractApiError(error, "Login failed. Please check your credentials."));
+        setErrorMessage(apiMessage);
+        showToast(apiMessage, 6000);
       }
     }
   };
@@ -135,6 +146,42 @@ export default function HostLoginForm() {
             </Link>
           </div>
         </div>
+
+        {/* Prominent Error / Rate Limit Alert Box */}
+        {errorMessage && (
+          <div className="mb-6 p-4 rounded-[8px] bg-red-500/10 border border-red-500/30 flex items-start justify-between gap-3 text-red-400 animate-fadeIn">
+            <div className="flex items-start gap-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-5 h-5 shrink-0 mt-0.5 text-red-400"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <div className="flex flex-col gap-0.5">
+                <span className="font-semibold text-xs md:text-sm text-red-300">
+                  {errorMessage.toLowerCase().includes('blocked') ? 'Access Temporarily Blocked' : 'Login Error'}
+                </span>
+                <p className="font-sans text-xs text-red-400/90 leading-relaxed">
+                  {errorMessage}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setErrorMessage(null)}
+              className="text-red-400 hover:text-red-200 text-sm p-1 leading-none transition-colors"
+              aria-label="Dismiss error"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Semantic Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-[20px]">
