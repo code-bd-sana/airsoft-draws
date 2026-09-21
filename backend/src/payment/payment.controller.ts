@@ -23,6 +23,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import type { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { CheckoutSubscriptionDto } from './dto/checkout-subscription.dto';
+import { extractTokenFromRequest } from '../common/utils/extract-token';
 
 @ApiTags('Payment')
 @Controller('api/v1/payment')
@@ -33,7 +34,7 @@ export class PaymentController {
   ) {}
 
   private extractUserId(req: Request): string {
-    const token = req.cookies?.accessToken;
+    const token = extractTokenFromRequest(req);
     if (!token)
       throw new UnauthorizedException('No authentication token found');
     try {

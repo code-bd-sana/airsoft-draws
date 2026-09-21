@@ -69,7 +69,7 @@ describe('AuthController', () => {
         'mock-token',
         expect.objectContaining({ httpOnly: true, path: '/' }),
       );
-      expect(result).toEqual({ user });
+      expect(result).toEqual({ user, accessToken: 'mock-token' });
     });
   });
 
@@ -89,18 +89,28 @@ describe('AuthController', () => {
   });
 
   describe('getMe', () => {
-    it('should throw UnauthorizedException if cookie is missing', async () => {
-      const req = { cookies: {} } as unknown as Request;
+    it('should throw UnauthorizedException if token is missing from cookie and headers', async () => {
+      const req = { cookies: {}, headers: {} } as unknown as Request;
       await expect(controller.getMe(req)).rejects.toThrow(UnauthorizedException);
     });
 
     it('should return user from verifyToken when cookie is present', async () => {
-      const req = { cookies: { accessToken: 'valid-token' } } as unknown as Request;
+      const req = { cookies: { accessToken: 'valid-token' }, headers: {} } as unknown as Request;
       const expectedUser = { user: { id: 'u-1', email: 'test@example.com' } };
       mockAuthService.verifyToken.mockResolvedValue(expectedUser);
 
       const result = await controller.getMe(req);
       expect(mockAuthService.verifyToken).toHaveBeenCalledWith('valid-token');
+      expect(result).toEqual(expectedUser);
+    });
+
+    it('should return user from verifyToken when Authorization Bearer header is present', async () => {
+      const req = { cookies: {}, headers: { authorization: 'Bearer header-token' } } as unknown as Request;
+      const expectedUser = { user: { id: 'u-1', email: 'test@example.com' } };
+      mockAuthService.verifyToken.mockResolvedValue(expectedUser);
+
+      const result = await controller.getMe(req);
+      expect(mockAuthService.verifyToken).toHaveBeenCalledWith('header-token');
       expect(result).toEqual(expectedUser);
     });
   });

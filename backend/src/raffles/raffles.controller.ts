@@ -44,6 +44,7 @@ import {
   FindAllAdminRafflesQueryDto,
 } from './dto/query-raffles.dto';
 import { FileUploadDto } from '../common/dto/file-upload.dto';
+import { extractTokenFromRequest } from '../common/utils/extract-token';
 
 @ApiTags('Raffles')
 @Controller('api/v1/raffles')
@@ -54,7 +55,7 @@ export class RafflesController {
   ) {}
 
   private extractUserId(req: Request): string {
-    const token = req.cookies?.accessToken;
+    const token = extractTokenFromRequest(req);
     if (!token)
       throw new UnauthorizedException('No authentication token found');
     try {

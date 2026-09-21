@@ -25,6 +25,7 @@ import type { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { PurchaseTicketsDto } from './dto/purchase-tickets.dto';
 import { BasketCheckoutDto } from './dto/checkout.dto';
+import { extractTokenFromRequest } from '../common/utils/extract-token';
 
 @ApiTags('Tickets')
 @Controller('api/v1/tickets')
@@ -35,7 +36,7 @@ export class TicketsController {
   ) {}
 
   private extractUserId(req: Request): string {
-    const token = req.cookies?.accessToken;
+    const token = extractTokenFromRequest(req);
     if (!token)
       throw new UnauthorizedException('No authentication token found');
     try {

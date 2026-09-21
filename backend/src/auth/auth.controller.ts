@@ -24,6 +24,7 @@ import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ResendVerificationDto } from './dto/resend-verification.dto';
+import { extractTokenFromRequest } from '../common/utils/extract-token';
 
 @ApiTags('Authentication')
 @Controller('api/v1/auth')
@@ -67,7 +68,7 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    return { user: result.user };
+    return { user: result.user, accessToken: result.accessToken };
   }
 
   @Post('logout')
@@ -97,7 +98,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Active user profile details' })
   @ApiResponse({ status: 401, description: 'Missing or expired authentication token' })
   async getMe(@Req() req: Request) {
-    const token = req.cookies?.accessToken;
+    const token = extractTokenFromRequest(req);
     if (!token) {
       throw new UnauthorizedException('No authentication token found');
     }

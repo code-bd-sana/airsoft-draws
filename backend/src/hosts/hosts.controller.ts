@@ -24,6 +24,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RequestWithdrawalDto } from './dto/request-withdrawal.dto';
+import { extractTokenFromRequest } from '../common/utils/extract-token';
 
 @ApiTags('Hosts')
 @ApiBearerAuth()
@@ -36,7 +37,7 @@ export class HostsController {
   ) {}
 
   private extractUserId(req: Request): string {
-    const token = req.cookies?.accessToken;
+    const token = extractTokenFromRequest(req);
     if (!token)
       throw new UnauthorizedException('No authentication token found');
     try {

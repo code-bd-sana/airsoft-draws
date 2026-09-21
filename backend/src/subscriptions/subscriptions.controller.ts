@@ -26,6 +26,7 @@ import { CreateSubscriptionRequestDto } from './dto/create-subscription-request.
 import { ApproveSubscriptionRequestDto } from './dto/approve-subscription-request.dto';
 import { RejectSubscriptionRequestDto } from './dto/reject-subscription-request.dto';
 import { AssignSubscriptionManuallyDto } from './dto/assign-subscription-manually.dto';
+import { extractTokenFromRequest } from '../common/utils/extract-token';
 
 @ApiTags('Subscriptions')
 @Controller('api/v1/subscriptions')
@@ -36,7 +37,7 @@ export class SubscriptionsController {
   ) {}
 
   private extractUserId(req: Request): string {
-    const token = req.cookies?.accessToken;
+    const token = extractTokenFromRequest(req);
     if (!token)
       throw new UnauthorizedException('No authentication token found');
     try {

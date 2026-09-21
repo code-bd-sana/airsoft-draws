@@ -24,6 +24,7 @@ export interface User {
 
 export interface AuthResponse {
   user: User;
+  accessToken?: string;
 }
 
 export const authService = {
@@ -34,10 +35,22 @@ export const authService = {
 
   async login(data: any): Promise<AuthResponse> {
     const response = await api.post('/auth/login', data);
+    if (response.data?.accessToken && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('accessToken', response.data.accessToken);
+      } catch {}
+    }
     return response.data;
   },
 
   async logout() {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('user_email');
+        localStorage.removeItem('user_data');
+      } catch {}
+    }
     const response = await api.post('/auth/logout');
     return response.data;
   },
