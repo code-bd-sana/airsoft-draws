@@ -61,7 +61,7 @@ async function getRaffle(slug: string): Promise<RaffleDetail | undefined> {
         "All winners will be contacted by email within 48 hours of the draw.",
         "Prizes are non-transferable and no cash alternative is offered.",
         "By entering you agree to be bound by these terms and conditions.",
-        "Free postal entry: send your name and address on a postcard to: Airsoft Draws, PO Box 99, Manchester, M1 1AA."
+        "Free postal entry: send your name and address on a postcard to: Airsoft Draws LTD, Synergy House, Lawson Street, NE29 6TG"
       ],
       instantWinPrizes: (draw.instantWins || [])
         .slice()
