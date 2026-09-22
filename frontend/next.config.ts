@@ -23,6 +23,20 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/competitions',
+        destination: '/live-raffles',
+        permanent: true,
+      },
+      {
+        source: '/competitions/:slug*',
+        destination: '/live-raffles/:slug*',
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     // We proxy /api/v1 to the backend to avoid cross-origin cookie & CORS issues.
     // If BACKEND_API_URL is set, we use it; otherwise fallback to localhost:5000/api/v1.
