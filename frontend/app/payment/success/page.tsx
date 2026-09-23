@@ -8,6 +8,14 @@ import WebsiteNavbar from "../../../components/website/layout/WebsiteNavbar";
 import WebsiteFooter from "../../../components/website/layout/WebsiteFooter";
 import { useBasket } from "../../../features/basket/BasketContext";
 import { useAuthUser } from "../../../hooks/useAuthHooks";
+import {
+  useUnclaimedInstantWinsQuery,
+  useClaimInstantWinsMutation,
+} from "../../../hooks/useUserHooks";
+import WinAnimationModal, {
+  WinPrizeItem,
+} from "../../../components/ui/WinAnimationModal";
+import { toast } from "sonner";
 import { api } from "../../../services/api";
 
 function PaymentSuccessContent() {
@@ -15,6 +23,8 @@ function PaymentSuccessContent() {
   const queryClient = useQueryClient();
   const { clearBasket, removeFromBasket } = useBasket();
   const { data: user } = useAuthUser();
+
+  const isHost = user?.role?.toUpperCase() === "HOST";
 
   const orderNumber =
     searchParams.get("ordernumber") ||
@@ -30,8 +40,70 @@ function PaymentSuccessContent() {
   const paymentType = searchParams.get("type") || "";
   const raffleParam = searchParams.get("raffle") || "";
 
+  const isSubscription =
+    paymentType === "subscription" || orderNumber.startsWith("SUB_");
+
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmResult, setConfirmResult] = useState<any>(null);
+
+  const [showWinModal, setShowWinModal] = useState(false);
+  const [hasTriggeredModal, setHasTriggeredModal] = useState(false);
+
+  // Fetch unclaimed instant wins from DB for normal users
+  const { data: dbUnclaimedWins = [] } = useUnclaimedInstantWinsQuery(
+    Boolean(user?.id && !isHost)
+  );
+  const claimMutation = useClaimInstantWinsMutation();
+
+  // Combine order instant wins with DB unclaimed wins
+  const orderInstantWins = confirmResult?.instantWins;
+  const rawWins =
+    orderInstantWins !== undefined && orderInstantWins !== null
+      ? orderInstantWins
+      : dbUnclaimedWins;
+
+  const modalPrizes: WinPrizeItem[] = (rawWins || []).map((w: any) => ({
+    id: w.id,
+    title: w.prizeName || w.title || "Instant Win Prize",
+    ticketNumber: w.ticketNumber,
+    image: w.prizeImage || w.image || null,
+    rrpValue: w.rrpValue ? Number(w.rrpValue) : null,
+    raffleTitle: w.raffleTitle,
+  }));
+
+
+  const handleClaimPrizes = async () => {
+    if (modalPrizes.length === 0) {
+      setShowWinModal(false);
+      return;
+    }
+    try {
+      const winnerIds = modalPrizes
+        .map((p) => p.id)
+        .filter(Boolean) as string[];
+      await claimMutation.mutateAsync(
+        winnerIds.length > 0 ? winnerIds : undefined
+      );
+      setShowWinModal(false);
+      toast.success(
+        modalPrizes.length > 1
+          ? `🎉 ${modalPrizes.length} Instant Win prizes claimed!`
+          : "🎉 Instant Win prize claimed!",
+        {
+          description:
+            "Your prize has been recorded. Check your Dashboard > Winnings for delivery and verification status.",
+          duration: 6000,
+        }
+      );
+      queryClient.invalidateQueries({ queryKey: ["unclaimed-instant-wins"] });
+      queryClient.invalidateQueries({ queryKey: ["my-winners"] });
+      queryClient.invalidateQueries({ queryKey: ["my-tickets"] });
+    } catch (err: any) {
+      toast.error("Could not claim instant win", {
+        description: err?.message || "Please try again or contact support.",
+      });
+    }
+  };
 
   // Proactively confirm return with backend if order reference exists
   useEffect(() => {
@@ -91,13 +163,11 @@ function PaymentSuccessContent() {
     return () => {
       isMounted = false;
     };
-  }, [orderNumber, paymentJobRef, clearBasket]);
+  }, [orderNumber, paymentJobRef, clearBasket, queryClient, removeFromBasket]);
 
-  const isSubscription =
-    paymentType === "subscription" || orderNumber.startsWith("SUB_");
   const dashboardUrl = isSubscription
     ? "/dashboard/host/billing"
-    : user?.role === "HOST"
+    : isHost
     ? "/dashboard/host"
     : "/dashboard/user/tickets";
 
@@ -107,6 +177,26 @@ function PaymentSuccessContent() {
   const isPending = isConfirming || confirmResult?.pending;
   const isSuccess =
     confirmResult?.success || (!confirmResult && !isConfirming);
+
+  // Auto-open win animation modal when page is loaded for regular users with successful payment
+  useEffect(() => {
+    // If actively confirming with payment gateway, wait until confirmation completes
+    if (isConfirming) return;
+    // If payment was cancelled or pending gateway clearance, do not open
+    if (isCancelled || isPending) return;
+    // Do not show for host accounts or subscription payments
+    if (isHost || isSubscription) return;
+    // Only auto-trigger once per page visit
+    if (hasTriggeredModal) return;
+
+    // Auto-open modal smoothly after brief mount delay
+    const timer = setTimeout(() => {
+      setShowWinModal(true);
+      setHasTriggeredModal(true);
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [isConfirming, isCancelled, isPending, isHost, isSubscription, hasTriggeredModal]);
 
   return (
     <div className="w-full max-w-2xl mx-auto px-4 py-16 sm:py-24 text-center flex flex-col items-center">
@@ -277,6 +367,53 @@ function PaymentSuccessContent() {
         </div>
       </div>
 
+      {/* Instant Win Banner (User Role Only) */}
+      {!isCancelled && !isPending && !isHost && !isSubscription && (
+        modalPrizes.length > 0 ? (
+          <div className="w-full bg-gradient-to-r from-[#1A230A] via-[#263510] to-[#1A230A] border-2 border-[#8CB34A] rounded-2xl p-5 sm:p-6 text-left mb-8 shadow-[0_0_30px_rgba(140,179,74,0.25)] flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in duration-500">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-[#2D3C13] border border-[#8CB34A] flex items-center justify-center text-2xl flex-shrink-0 animate-bounce">
+                🎉
+              </div>
+              <div>
+                <h3 className="font-heading font-bold text-lg text-[#E8EDD4]">
+                  You Won {modalPrizes.length} Instant Win Prize{modalPrizes.length > 1 ? "s" : ""}!
+                </h3>
+                <p className="font-sans text-xs text-[#B3B8AA]">
+                  Click below to view details and claim your prize{modalPrizes.length > 1 ? "s" : ""}.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowWinModal(true)}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#72943A] to-[#8CB34A] hover:from-[#8CB34A] hover:to-[#A0D056] text-[#0D0D0B] font-heading font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer whitespace-nowrap text-center"
+            >
+              View &amp; Claim Prizes
+            </button>
+          </div>
+        ) : (
+          <div className="w-full bg-[#161810] border border-[#2D3C13] rounded-2xl p-4 text-left mb-8 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-xl">🎯</span>
+              <div>
+                <span className="font-heading font-semibold text-xs text-[#E8EDD4] block">
+                  Instant Win Result
+                </span>
+                <span className="font-sans text-[11px] text-[#72943A]">
+                  All tickets are active and entered in the Grand Prize draw.
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowWinModal(true)}
+              className="px-3.5 py-1.5 rounded-lg bg-[#1A230A] hover:bg-[#2D3C13] border border-[#43581E] text-[#A0D056] font-heading font-semibold text-xs transition-colors cursor-pointer"
+            >
+              Check Draw Result
+            </button>
+          </div>
+        )
+      )}
+
       {/* Action Buttons */}
       <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-4">
         {!isCancelled && (
@@ -311,6 +448,17 @@ function PaymentSuccessContent() {
           Home Page
         </Link>
       </div>
+
+      {/* Instant Win Modal (User role only) */}
+      {!isHost && !isSubscription && (
+        <WinAnimationModal
+          isOpen={showWinModal}
+          onClose={() => setShowWinModal(false)}
+          prizes={modalPrizes}
+          onClaim={handleClaimPrizes}
+          isClaiming={claimMutation.isPending}
+        />
+      )}
     </div>
   );
 }

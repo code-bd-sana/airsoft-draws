@@ -275,6 +275,9 @@ export class TicketsService {
               ticketNumber: ticket.ticketNumber,
               raffleTitle: raffle.title,
               prizeImage: matchedInstantWin.image || null,
+              rrpValue: matchedInstantWin.rrpValue
+                ? Number(matchedInstantWin.rrpValue)
+                : null,
             });
           }
         }
@@ -870,6 +873,9 @@ export class TicketsService {
                 ticketNumber: ticket.ticketNumber,
                 raffleTitle: raffle.title,
                 prizeImage: matchedInstantWin.image || null,
+                rrpValue: matchedInstantWin.rrpValue
+                  ? Number(matchedInstantWin.rrpValue)
+                  : null,
               });
             }
           }

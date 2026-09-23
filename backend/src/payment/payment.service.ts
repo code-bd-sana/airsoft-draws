@@ -804,10 +804,48 @@ export class PaymentService {
 
         if (pendingTx) {
           if (pendingTx.status === 'COMPLETED') {
+            const txInstantWins = await this.prisma.winner.findMany({
+              where: {
+                ticket: { transactionId: pendingTx.id },
+                winType: 'INSTANT_WIN',
+              },
+              include: {
+                ticket: { select: { ticketNumber: true } },
+                raffle: {
+                  select: {
+                    title: true,
+                    mainImage: true,
+                    instantWins: true,
+                  },
+                },
+              },
+            });
+
+            const formattedWins = txInstantWins.map((w) => {
+              const matchedIw = w.raffle.instantWins.find(
+                (iw) => iw.ticketNumber === w.ticket.ticketNumber,
+              );
+              return {
+                id: w.id,
+                raffleId: w.raffleId,
+                raffleTitle: w.raffle.title,
+                ticketId: w.ticketId,
+                ticketNumber: w.ticket.ticketNumber,
+                prizeName:
+                  w.prizeName || matchedIw?.prizeName || 'Instant Win Prize',
+                prizeImage: matchedIw?.image || w.raffle.mainImage || null,
+                rrpValue: matchedIw?.rrpValue
+                  ? Number(matchedIw.rrpValue)
+                  : null,
+                isClaimed: w.isClaimed,
+              };
+            });
+
             return {
               success: true,
               type: 'BASKET_PURCHASE',
               transactionId: pendingTx.id,
+              instantWins: formattedWins,
               message:
                 'Basket order already confirmed and tickets allocated successfully',
             };

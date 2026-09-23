@@ -6,7 +6,6 @@ import { useState } from 'react';
 import { AuthProvider } from '../features/auth/AuthContext';
 import { BasketProvider } from '../features/basket/BasketContext';
 import MobileBottomDock from '../components/website/layout/MobileBottomDock';
-import InstantWinCelebrationManager from '../components/shared/InstantWinCelebrationManager';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -23,7 +22,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <AuthProvider>
         <BasketProvider>
           {children}
-          <InstantWinCelebrationManager />
           <MobileBottomDock />
         </BasketProvider>
       </AuthProvider>

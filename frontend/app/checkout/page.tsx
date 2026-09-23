@@ -9,6 +9,9 @@ import WebsiteFooter from "../../components/website/layout/WebsiteFooter";
 import { useBasket, BasketItem } from "../../features/basket/BasketContext";
 import { useAuthUser } from "../../hooks/useAuthHooks";
 import { useQueryClient } from "@tanstack/react-query";
+import { useClaimInstantWinsMutation } from "../../hooks/useUserHooks";
+import WinAnimationModal, { WinPrizeItem } from "../../components/ui/WinAnimationModal";
+import { toast } from "sonner";
 import { api } from "../../services/api";
 
 export function calculateAgeFromDob(dobStr: string): number | null {
@@ -157,6 +160,10 @@ function CheckoutContent() {
     clearBasket,
     removeFromBasket,
   } = useBasket();
+
+  const isHost = user?.role?.toUpperCase() === "HOST";
+  const [showWinModal, setShowWinModal] = useState(false);
+  const claimMutation = useClaimInstantWinsMutation();
 
   const [directItem, setDirectItem] = useState<BasketItem | null>(null);
   const [isDirectHydrated, setIsDirectHydrated] = useState(false);
@@ -459,6 +466,10 @@ function CheckoutContent() {
         totalAmount: data.totalAmount || totalAmount,
       });
 
+      if (!isHost) {
+        setShowWinModal(true);
+      }
+
       if (data.instantWins && data.instantWins.length > 0) {
         queryClient.invalidateQueries({ queryKey: ["unclaimed-instant-wins"] });
         queryClient.setQueryData(["unclaimed-instant-wins"], data.instantWins);
@@ -483,6 +494,46 @@ function CheckoutContent() {
       setErrorMessage(msg);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const modalPrizes: WinPrizeItem[] = (purchaseResult?.instantWins || []).map(
+    (w: any) => ({
+      id: w.id,
+      title: w.prizeName || w.title || "Instant Win Prize",
+      ticketNumber: w.ticketNumber,
+      image: w.prizeImage || w.image || null,
+      rrpValue: w.rrpValue ? Number(w.rrpValue) : null,
+      raffleTitle: w.raffleTitle,
+    })
+  );
+
+  const handleClaimPrizes = async () => {
+    if (modalPrizes.length === 0) {
+      setShowWinModal(false);
+      return;
+    }
+    try {
+      const winnerIds = modalPrizes.map((p) => p.id).filter(Boolean) as string[];
+      await claimMutation.mutateAsync(winnerIds.length > 0 ? winnerIds : undefined);
+      setShowWinModal(false);
+      toast.success(
+        modalPrizes.length > 1
+          ? `🎉 ${modalPrizes.length} Instant Win prizes claimed!`
+          : "🎉 Instant Win prize claimed!",
+        {
+          description:
+            "Your prize has been recorded. Check your Dashboard > Winnings for delivery status.",
+          duration: 6000,
+        }
+      );
+      queryClient.invalidateQueries({ queryKey: ["unclaimed-instant-wins"] });
+      queryClient.invalidateQueries({ queryKey: ["my-winners"] });
+      queryClient.invalidateQueries({ queryKey: ["my-tickets"] });
+    } catch (err: any) {
+      toast.error("Could not claim instant win", {
+        description: err?.message || "Please try again or contact support.",
+      });
     }
   };
 
@@ -655,6 +706,16 @@ function CheckoutContent() {
                   Browse More Competitions
                 </Link>
               </div>
+
+              {!isHost && (
+                <WinAnimationModal
+                  isOpen={showWinModal}
+                  onClose={() => setShowWinModal(false)}
+                  prizes={modalPrizes}
+                  onClaim={handleClaimPrizes}
+                  isClaiming={claimMutation.isPending}
+                />
+              )}
             </div>
           ) : isHydrated && items.length === 0 ? (
             /* Empty Basket on Checkout */
