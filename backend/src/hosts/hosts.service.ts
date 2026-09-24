@@ -494,13 +494,16 @@ export class HostsService {
         slug: r.slug || r.id,
         title: r.title,
         image: r.mainImage || '/images/default-raffle.png',
+        images: (r as any).images?.length ? (r as any).images : (r.mainImage ? [r.mainImage] : []),
         ticketPrice: Number(r.pricePerTicket),
+        pricePerTicket: Number(r.pricePerTicket),
         totalTickets: r.totalTickets,
         ticketsSold: r.ticketsSold,
         percentageSold,
         endDate: r.endDate,
         status: r.status,
         revenue: Number(r.pricePerTicket) * r.ticketsSold,
+        totalAmount: Number(r.pricePerTicket) * r.ticketsSold,
       };
     });
 

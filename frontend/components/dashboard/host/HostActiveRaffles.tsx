@@ -45,9 +45,19 @@ export default function HostActiveRaffles({ raffles, isLoading: propIsLoading }:
         )}
 
         {!isLoading && activeRaffles.map((comp: any) => {
-          const progress = Math.min(Math.round((comp.ticketsSold / comp.totalTickets) * 100), 100);
+          const ticketsSold = Number(comp.ticketsSold ?? comp.soldTickets ?? 0);
+          const totalTickets = Number(comp.totalTickets ?? 1);
+          const progress = Math.min(Math.round((ticketsSold / totalTickets) * 100), 100);
           const isEndingSoon = false; // Add logic if needed, e.g., less than 24h left
-          const imageUrl = comp.images && comp.images.length > 0 ? comp.images[0] : "https://placehold.co/100x100/1a230a/8cb34a?text=Raffle";
+
+          const imageUrl = comp.image || (comp.images && comp.images.length > 0 ? comp.images[0] : "https://placehold.co/100x100/1a230a/8cb34a?text=Raffle");
+
+          const price = Number(comp.pricePerTicket ?? comp.ticketPrice ?? 0);
+          const totalPerRaffle = comp.revenue !== undefined 
+            ? Number(comp.revenue) 
+            : comp.totalAmount !== undefined 
+            ? Number(comp.totalAmount) 
+            : ticketsSold * price;
 
           return (
             <Link 
@@ -76,10 +86,10 @@ export default function HostActiveRaffles({ raffles, isLoading: propIsLoading }:
                 />
               </div>
 
-              {/* Price */}
-              <div className="w-[50px] shrink-0 text-right">
+              {/* Total Revenue Per Raffle */}
+              <div className="w-[70px] shrink-0 text-right">
                 <p className="font-sans font-normal text-[13px] text-[#a0d056]">
-                  £{Number(comp.pricePerTicket || 0).toFixed(2)}
+                  £{totalPerRaffle.toFixed(2)}
                 </p>
               </div>
 
