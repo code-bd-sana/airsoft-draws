@@ -58,8 +58,8 @@ const initialData: RaffleFormData = {
   instantWins: [],
   startDate: "",
   endDate: "",
-  isAutoDraw: true,
-  autoDrawDate: true,
+  isAutoDraw: false,
+  autoDrawDate: false,
   autoDrawSoldOut: false,
 };
 

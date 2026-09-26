@@ -298,7 +298,6 @@ export class PaymentService {
 
   async handleWebhook(signature: string, payload: any) {
     this.logger.log(`Received Cashflow webhook signature: ${signature}`);
-    
     let parsedPayload = payload;
     let payloadString = '';
 

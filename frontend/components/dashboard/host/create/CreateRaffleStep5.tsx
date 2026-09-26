@@ -85,9 +85,14 @@ export default function CreateRaffleStep5({ formData, updateForm, onNext, onPrev
                   className="mt-1 w-[16px] h-[16px] rounded-full border-[#2d3c13] bg-[#161810] text-[#8cb34a] focus:ring-[#8cb34a]"
                 />
                 <div className="flex flex-col gap-1">
-                  <span className="font-sans font-medium text-[14px] text-[#e8edd4]">
-                    Live Draw
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-sans font-medium text-[14px] text-[#e8edd4]">
+                      Live Draw
+                    </span>
+                    <span className="px-2 py-0.5 text-[11px] font-sans font-semibold bg-[#8cb34a]/20 text-[#8cb34a] border border-[#8cb34a]/30 rounded-full">
+                      Recommended
+                    </span>
+                  </div>
                   <span className="font-sans font-normal text-[12px] text-[#b3b8aa]">
                     You will manually run the draw from your dashboard (e.g., live on Instagram).
                   </span>
