@@ -311,7 +311,8 @@ export default function EditRaffleForm({ raffleId }: Props) {
           />
         </div>
 
-        {/* Tickets & Pricing */}
+        {/* Tickets & Pricing - Disabled from editing per client request */}
+        {/*
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
           <div className="flex flex-col gap-[8px]">
             <label className="font-sans font-medium text-[13px] text-[#e8edd4]">
@@ -340,8 +341,10 @@ export default function EditRaffleForm({ raffleId }: Props) {
             />
           </div>
         </div>
+        */}
 
-        {/* Entrant Limits: Minimum & Maximum Tickets */}
+        {/* Entrant Limits: Minimum & Maximum Tickets - Disabled from editing per client request */}
+        {/*
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
           <div className="flex flex-col gap-[8px]">
             <label className="font-sans font-medium text-[13px] text-[#e8edd4]">
@@ -371,8 +374,10 @@ export default function EditRaffleForm({ raffleId }: Props) {
             />
           </div>
         </div>
+        */}
 
-        {/* Schedule */}
+        {/* Schedule - Disabled from editing per client request */}
+        {/*
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
           <div className="flex flex-col gap-[8px]">
             <label className="font-sans font-medium text-[13px] text-[#e8edd4]">Start Date & Time (UK Time)</label>
@@ -394,6 +399,7 @@ export default function EditRaffleForm({ raffleId }: Props) {
             />
           </div>
         </div>
+        */}
 
         {/* Draw Strategy */}
         <div className="flex flex-col gap-[16px] mt-[16px]">
