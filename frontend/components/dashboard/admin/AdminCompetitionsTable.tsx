@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { useAdminAllRaffles, useAdminDeleteRaffle } from "../../../hooks/useRaffleHooks";
-import { raffleService } from "../../../services/raffle.service";
+import { raffleService, Raffle } from "../../../services/raffle.service";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import ManualWinnerSelectModal from "../shared/ManualWinnerSelectModal";
 import ConfirmDeleteRaffleModal, { RaffleDeleteTarget } from "../shared/ConfirmDeleteRaffleModal";
 import ViewSoldTicketsModal from "../shared/ViewSoldTicketsModal";
+import AdminRaffleDetailsModal from "./AdminRaffleDetailsModal";
 import { Pagination } from "../../ui/Pagination";
 
 export default function AdminCompetitionsTable() {
@@ -15,6 +16,7 @@ export default function AdminCompetitionsTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [selectedCompForDetails, setSelectedCompForDetails] = useState<Raffle | null>(null);
   const [selectedCompForWinner, setSelectedCompForWinner] = useState<any | null>(null);
   const [selectedCompForDelete, setSelectedCompForDelete] = useState<RaffleDeleteTarget | null>(null);
   const [selectedCompForTickets, setSelectedCompForTickets] = useState<any | null>(null);
@@ -269,7 +271,13 @@ export default function AdminCompetitionsTable() {
                 <tr key={comp.id} className={`${i !== raffles.length - 1 ? 'border-b border-[#2D3C13]' : ''} hover:bg-[#1A230A] transition-colors`}>
                   <td className="py-4 px-6">
                     <div className="flex flex-col gap-1">
-                      <span className="font-sans font-medium text-[13px] text-[#E8EDD4] truncate block max-w-[280px]">{comp.title}</span>
+                      <span
+                        onClick={() => setSelectedCompForDetails(comp)}
+                        className="font-sans font-medium text-[13px] text-[#E8EDD4] hover:text-[#8CB34A] truncate block max-w-[280px] cursor-pointer transition-colors"
+                        title="Click to view full competition details"
+                      >
+                        {comp.title}
+                      </span>
                       <span className="font-sans text-[11px] text-[#72943A] truncate block max-w-[280px]">{hostName} ({hostEmail})</span>
                     </div>
                   </td>
@@ -347,6 +355,18 @@ export default function AdminCompetitionsTable() {
                           </span>
                         );
                       })()}
+
+                      {/* View Raffle Details Action (Eye Icon) */}
+                      <button
+                        onClick={() => setSelectedCompForDetails(comp)}
+                        className="text-[#5A752A] hover:text-[#8CB34A] transition-colors cursor-pointer p-1 rounded hover:bg-[#1A230A]"
+                        title="View Full Competition Details (Schedule, Timings, Host, Financials)"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                        </svg>
+                      </button>
                       {/* View Tickets Modal Action */}
                       <button
                         onClick={() => setSelectedCompForTickets(comp)}
@@ -441,6 +461,23 @@ export default function AdminCompetitionsTable() {
           isOpen={Boolean(selectedCompForTickets)}
           onClose={() => setSelectedCompForTickets(null)}
           raffle={selectedCompForTickets}
+        />
+      )}
+
+      {selectedCompForDetails && (
+        <AdminRaffleDetailsModal
+          isOpen={Boolean(selectedCompForDetails)}
+          onClose={() => setSelectedCompForDetails(null)}
+          raffle={selectedCompForDetails}
+          onViewTickets={(r) => {
+            setSelectedCompForDetails(null);
+            setSelectedCompForTickets(r);
+          }}
+          onSelectWinner={(r) => {
+            setSelectedCompForDetails(null);
+            setSelectedCompForWinner(r);
+          }}
+          onExportCSV={handleExportRaffleTicketsCSV}
         />
       )}
     </div>

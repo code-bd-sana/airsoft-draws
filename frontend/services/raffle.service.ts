@@ -47,6 +47,7 @@ export interface Raffle {
     isClaimed?: boolean;
   }>;
   createdAt: string;
+  updatedAt?: string;
   host?: any;
 }
 
@@ -209,6 +210,11 @@ export const raffleService = {
 
   async getAdminAllRaffles(params?: { search?: string; page?: number; limit?: number; status?: string }): Promise<PaginatedResponse<Raffle>> {
     const response = await api.get('/raffles/admin/all', { params });
+    return response.data;
+  },
+
+  async getAdminRaffleById(id: string): Promise<Raffle> {
+    const response = await api.get(`/raffles/admin/${id}`);
     return response.data;
   },
 

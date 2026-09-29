@@ -422,6 +422,20 @@ export class RafflesController {
     return this.rafflesService.findAllAdmin(query);
   }
 
+  @Get('admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get complete raffle details for admin' })
+  @ApiParam({ name: 'id', description: 'Raffle ID to fetch' })
+  @ApiResponse({ status: 200, description: 'Raffle details retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Raffle not found' })
+  findOneAdmin(@Param('id') id: string) {
+    return this.rafflesService.findOneAdmin(id);
+  }
+
   @Delete('admin/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')

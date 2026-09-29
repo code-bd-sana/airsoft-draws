@@ -1121,7 +1121,11 @@ export class RafflesService {
     const [raffles, total] = await Promise.all([
       this.prisma.raffle.findMany({
         where: whereClause,
-        include: { host: { include: { user: true } } },
+        include: {
+          host: { include: { user: true } },
+          winners: { include: { user: true } },
+          instantWins: { orderBy: { ticketNumber: 'asc' } },
+        },
         orderBy: { createdAt: 'desc' },
         skip,
         take: Number(limit),
@@ -1141,6 +1145,40 @@ export class RafflesService {
         totalPages: lastPage,
       },
     };
+  }
+
+  async findOneAdmin(id: string) {
+    const raffle = await this.prisma.raffle.findUnique({
+      where: { id },
+      include: {
+        host: {
+          include: {
+            user: true,
+          },
+        },
+        winners: {
+          include: {
+            user: true,
+          },
+        },
+        instantWins: {
+          orderBy: { ticketNumber: 'asc' },
+        },
+        _count: {
+          select: {
+            tickets: true,
+            winners: true,
+            instantWins: true,
+          },
+        },
+      },
+    });
+
+    if (!raffle) {
+      throw new NotFoundException('Raffle not found');
+    }
+
+    return raffle;
   }
 
   async adminDelete(id: string) {
