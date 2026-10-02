@@ -26,7 +26,11 @@ export default function DrawCard({ draw, variant = "grid" }: DrawCardProps) {
     isInstantWin,
   } = draw;
 
-  const computedWorth = Number(worthPrice) || (Number(ticketPrice) * Number(totalTickets)) || 0;
+  const computedWorth =
+    Number(worthPrice) ||
+    Number((draw as any).mainPrizeValue) ||
+    Number(ticketPrice) * Number(totalTickets) ||
+    0;
   const soldPercent = Math.min(Math.round((soldTickets / totalTickets) * 100), 100);
   const displayEndDate = endDate ? formatUkDate(endDate, "medium", endDate) : "";
 

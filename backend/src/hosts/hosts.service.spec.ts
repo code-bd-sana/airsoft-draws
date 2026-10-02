@@ -84,6 +84,7 @@ describe('HostsService', () => {
             endDate: new Date('2026-12-31'),
             status: 'ACTIVE',
             instantWins: [{ id: 'iw-1' }],
+            mainPrizeValue: '1299.00',
           },
         ],
       });
@@ -93,6 +94,8 @@ describe('HostsService', () => {
       expect(result.drawsHosted).toBe(5);
       expect(result.raffles[0].isInstantWin).toBe(true);
       expect(result.raffles[0].ticketPrice).toBe(5);
+      expect(result.raffles[0].worthPrice).toBe(1299);
+      expect(result.raffles[0].mainPrizeValue).toBe(1299);
     });
   });
 

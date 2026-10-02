@@ -22,8 +22,24 @@ interface HostProfileTabsProps {
 export default function HostProfileTabs({ host, raffles = [] }: HostProfileTabsProps) {
   const [activeTab, setActiveTab] = useState<"active" | "past" | "reviews" | "about">("active");
 
-  const liveDraws = raffles.filter((r) => r.status === "ACTIVE");
-  const pastDraws = raffles.filter((r) => r.status === "ENDED" || r.status === "COMPLETED");
+  const mappedRaffles = raffles.map((r: any) => {
+    const ticketPrice = Number(r.pricePerTicket ?? r.ticketPrice) || 0;
+    const totalTickets = Number(r.totalTickets) || 0;
+    const worthPrice =
+      Number(r.mainPrizeValue) ||
+      Number(r.worthPrice) ||
+      ticketPrice * totalTickets ||
+      0;
+    return {
+      ...r,
+      ticketPrice,
+      totalTickets,
+      worthPrice,
+    };
+  });
+
+  const liveDraws = mappedRaffles.filter((r) => r.status === "ACTIVE" || r.status === "live");
+  const pastDraws = mappedRaffles.filter((r) => r.status === "ENDED" || r.status === "COMPLETED" || r.status === "ended");
 
   return (
     <div className="flex flex-col mt-8">

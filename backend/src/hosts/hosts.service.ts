@@ -135,22 +135,32 @@ export class HostsService {
           year: 'numeric',
         });
 
+        const ticketPrice = raffle.pricePerTicket
+          ? Number(raffle.pricePerTicket.toString())
+          : 0;
+        const totalTickets = raffle.totalTickets || 0;
+        const mainPrizeValue = raffle.mainPrizeValue
+          ? Number(raffle.mainPrizeValue.toString())
+          : null;
+        const worthPrice =
+          mainPrizeValue ?? (ticketPrice * totalTickets);
+
         return {
           id: raffle.id,
           slug: raffle.slug || raffle.id,
           title: raffle.title,
           description: raffle.description,
           image: raffle.mainImage || '/images/default-raffle.png',
-          ticketPrice: raffle.pricePerTicket
-            ? Number(raffle.pricePerTicket.toString())
-            : 0,
-          totalTickets: raffle.totalTickets,
+          ticketPrice,
+          totalTickets,
           soldTickets: raffle.ticketsSold,
           endDate: `Ends ${formattedEndDate}`,
           status: raffle.status, // ACTIVE, ENDED, etc.
           category: raffle.category || 'airsoft',
           isInstantWin: raffle.instantWins?.length > 0,
           instantWinsCount: raffle.instantWins?.length || 0,
+          mainPrizeValue,
+          worthPrice,
         };
       }),
     };
