@@ -158,47 +158,63 @@ export class AdminDashboardService {
     // Default 1Y revenue stats
     const defaultRevenue = await this.getRevenueStats('1Y');
 
-    // Real verified top hosts
+    // Real verified top hosts for current month
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
     const verifiedHosts = await this.prisma.hostProfile.findMany({
       where: { isVerified: true, user: { isBlocked: false } },
-      take: 5,
       include: {
         raffles: {
-          include: {
+          select: {
+            id: true,
+            pricePerTicket: true,
             tickets: {
               where: {
-                transaction: { status: 'COMPLETED' }
+                createdAt: { gte: startOfMonth },
+                transaction: { status: 'COMPLETED' },
               },
-              include: {
-                transaction: true
-              }
-            }
-          }
-        }
-      }
+              select: {
+                id: true,
+                createdAt: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    const topHosts = verifiedHosts.map((h, i) => {
-      let hostRev = 0;
-      h.raffles?.forEach((r) => {
-        r.tickets?.forEach((t) => {
-          if (t.transaction) {
-            hostRev += Number(t.transaction.amount) || 0;
-          }
+    const topHosts = verifiedHosts
+      .map((h) => {
+        let hostMonthRevenue = 0;
+        h.raffles?.forEach((r) => {
+          const ticketPrice = Number(r.pricePerTicket) || 0;
+          const soldCount = r.tickets?.length || 0;
+          hostMonthRevenue += soldCount * ticketPrice;
         });
-      });
-      return {
-        rank: i + 1,
-        name: h.businessName,
-        revenue: `£${hostRev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-        initials: h.businessName.substring(0, 2).toUpperCase(),
-        numericRevenue: hostRev,
-      };
-    }).sort((a, b) => b.numericRevenue - a.numericRevenue)
+
+        const trimmedName = h.businessName?.trim() || 'Host';
+        const initials = trimmedName
+          .split(/\s+/)
+          .map((word) => word.charAt(0))
+          .join('')
+          .substring(0, 2)
+          .toUpperCase() || 'HP';
+
+        return {
+          name: trimmedName,
+          numericRevenue: hostMonthRevenue,
+          initials,
+        };
+      })
+      .sort((a, b) => b.numericRevenue - a.numericRevenue)
+      .slice(0, 5)
       .map((h, idx) => ({
         rank: idx + 1,
         name: h.name,
-        revenue: h.revenue,
+        revenue: `£${h.numericRevenue.toLocaleString('en-GB', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`,
         initials: h.initials,
       }));
 

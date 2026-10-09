@@ -243,9 +243,12 @@ export default function AdminDashboardPage() {
         <div className="bg-[#161810] border border-[#2D3C13] rounded-[16px] p-6 flex flex-col">
           <div className="flex items-center justify-between mb-6">
             <span className="font-sans font-medium text-[13px] text-[#E8EDD4]">Top Hosts This Month</span>
-            <button className="font-sans font-medium text-[11px] text-[#72943A] hover:text-[#E8EDD4] transition-colors">
+            <Link
+              href="/dashboard/admin/hosts"
+              className="font-sans font-medium text-[11px] text-[#72943A] hover:text-[#E8EDD4] transition-colors"
+            >
               View All →
-            </button>
+            </Link>
           </div>
           
           <div className="flex flex-col gap-4">
