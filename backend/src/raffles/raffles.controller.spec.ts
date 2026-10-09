@@ -93,6 +93,18 @@ describe('RafflesController', () => {
       expect(result).toEqual({ totalPrizes: 10 });
     });
 
+    it('should return public winner stats', async () => {
+      const mockWinnerStats = {
+        prizesAwarded: '£5,000',
+        totalWinners: 9,
+        mainDrawWinners: 3,
+        instantWinners: 6,
+      };
+      mockRafflesService.getPublicWinnerStats.mockResolvedValue(mockWinnerStats);
+      const result = await controller.getPublicWinnerStats();
+      expect(result).toEqual(mockWinnerStats);
+    });
+
     it('should return public raffles list', async () => {
       mockRafflesService.findAllPublic.mockResolvedValue({ raffles: [] });
       const result = await controller.findAllPublic({ page: 1 } as any);

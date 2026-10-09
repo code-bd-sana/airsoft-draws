@@ -1319,15 +1319,16 @@ export class RafflesService {
   }
 
   async getPublicWinnerStats() {
-    const totalWinners = await this.prisma.winner.count();
+    const [mainDrawWinners, instantWinners] = await Promise.all([
+      this.prisma.winner.count({
+        where: { winType: 'MAIN_DRAW' },
+      }),
+      this.prisma.winner.count({
+        where: { winType: 'INSTANT_WIN' },
+      }),
+    ]);
 
-    // For "Verified Draws", count raffles with status 'ENDED' and main draw completed
-    const verifiedDraws = await this.prisma.raffle.count({
-      where: {
-        status: 'ENDED',
-        winners: { some: { winType: 'MAIN_DRAW' } },
-      },
-    });
+    const totalWinners = mainDrawWinners + instantWinners;
 
     const completedDraws = await this.prisma.raffle.findMany({
       where: {
@@ -1361,7 +1362,7 @@ export class RafflesService {
       }
     });
 
-    // Formatting currency for UK (£)
+    // Formatting currency for UK (£) without any '+' symbol
     const formattedValue = new Intl.NumberFormat('en-GB', {
       style: 'currency',
       currency: 'GBP',
@@ -1371,7 +1372,8 @@ export class RafflesService {
     return {
       prizesAwarded: formattedValue,
       totalWinners,
-      verifiedDraws: verifiedDraws > 0 ? `${verifiedDraws}+` : '0',
+      mainDrawWinners,
+      instantWinners,
     };
   }
 }

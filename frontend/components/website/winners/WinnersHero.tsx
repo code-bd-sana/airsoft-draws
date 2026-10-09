@@ -10,7 +10,8 @@ export default function WinnersHero() {
   const [stats, setStats] = useState({
     prizesAwarded: "£0",
     totalWinners: 0,
-    verifiedDraws: "0",
+    mainDrawWinners: 0,
+    instantWinners: 0,
   });
 
   useEffect(() => {
@@ -36,11 +37,11 @@ export default function WinnersHero() {
           Real entrants. Real prizes. Every draw is fair and verifiable.
         </p>
 
-        {/* Transparency Stat Rows */}
-        <div className="mt-12 w-full max-w-4xl bg-bg/50 border border-border rounded-card p-6 md:p-8 flex flex-col md:flex-row justify-around items-center gap-8 md:gap-4">
+        {/* Transparency Stat Rows - Exactly 4 boxes in a single row on desktop */}
+        <div className="mt-12 w-full max-w-5xl bg-bg/50 border border-border rounded-card p-6 md:p-8 flex flex-col sm:grid sm:grid-cols-2 lg:flex lg:flex-row justify-around items-center gap-8 lg:gap-4">
 
           {/* Stat 1: Prizes Awarded */}
-          <div className="flex flex-col items-center text-center flex-1">
+          <div className="flex flex-col items-center text-center flex-1 w-full">
             <span className="font-heading font-bold text-3xl md:text-4xl text-text-brand">
               {stats.prizesAwarded}
             </span>
@@ -49,11 +50,11 @@ export default function WinnersHero() {
             </span>
           </div>
 
-          {/* Divider */}
-          <div className="hidden md:block h-12 w-px bg-border" />
+          {/* Divider 1 */}
+          <div className="hidden lg:block h-12 w-px bg-border shrink-0" />
 
           {/* Stat 2: Total Winners */}
-          <div className="flex flex-col items-center text-center flex-1">
+          <div className="flex flex-col items-center text-center flex-1 w-full">
             <span className="font-heading font-bold text-3xl md:text-4xl text-text-brand">
               {stats.totalWinners.toLocaleString()}
             </span>
@@ -62,16 +63,29 @@ export default function WinnersHero() {
             </span>
           </div>
 
-          {/* Divider */}
-          <div className="hidden md:block h-12 w-px bg-border" />
+          {/* Divider 2 */}
+          <div className="hidden lg:block h-12 w-px bg-border shrink-0" />
 
-          {/* Stat 3: Verified Draws */}
-          <div className="flex flex-col items-center text-center flex-1">
+          {/* Stat 3: Main Draw Winners */}
+          <div className="flex flex-col items-center text-center flex-1 w-full">
             <span className="font-heading font-bold text-3xl md:text-4xl text-text-brand">
-              {stats.verifiedDraws}
+              {stats.mainDrawWinners.toLocaleString()}
             </span>
             <span className="font-sans text-xs text-text-muted mt-2 font-medium">
-              Verified Draws
+              Main Draw Winners
+            </span>
+          </div>
+
+          {/* Divider 3 */}
+          <div className="hidden lg:block h-12 w-px bg-border shrink-0" />
+
+          {/* Stat 4: Instant Winners */}
+          <div className="flex flex-col items-center text-center flex-1 w-full">
+            <span className="font-heading font-bold text-3xl md:text-4xl text-text-brand">
+              {stats.instantWinners.toLocaleString()}
+            </span>
+            <span className="font-sans text-xs text-text-muted mt-2 font-medium">
+              Instant Winners
             </span>
           </div>
 
