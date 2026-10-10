@@ -6,6 +6,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { useMyWinnersQuery, useClaimInstantWinsMutation } from "@/hooks/useUserHooks";
 import { UserWinner } from "@/services/user.service";
+import LeaveReviewModal from "@/components/dashboard/user/winners/LeaveReviewModal";
 import { toast } from "sonner";
 
 export default function UserWinnersPage() {
@@ -13,6 +14,7 @@ export default function UserWinnersPage() {
   const claimMutation = useClaimInstantWinsMutation();
   const [filter, setFilter] = useState<"ALL" | "INSTANT_WIN" | "MAIN_DRAW">("ALL");
   const [search, setSearch] = useState("");
+  const [selectedWinnerForReview, setSelectedWinnerForReview] = useState<UserWinner | null>(null);
 
   const allWinners = winners || [];
 
@@ -371,12 +373,46 @@ export default function UserWinnersPage() {
                           : "Claim Processing"}
                       </div>
                     </div>
+
+                    {/* Review Host Section */}
+                    <div className="flex items-center justify-between bg-[#111210] border border-[#2D3C13] p-2.5 rounded-[10px] mt-1">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-[13px] text-[#EAB308]">★</span>
+                        <span className="text-[11px] font-sans text-[#72943A] truncate">
+                          {win.hasReviewed ? "Your Rating:" : "Host Review:"}
+                        </span>
+                        {win.hasReviewed && win.review && (
+                          <span className="text-[11px] font-heading font-bold text-[#EAB308]">
+                            {win.review.rating}/5
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => setSelectedWinnerForReview(win)}
+                        className={`px-3 py-1 rounded-[6px] text-[11px] font-heading font-medium transition-colors cursor-pointer shrink-0 ${
+                          win.hasReviewed
+                            ? "bg-[#1A230A] border border-[#43581E] text-[#8CB34A] hover:bg-[#8CB34A] hover:text-[#0D0D0B]"
+                            : "bg-[#8CB34A] hover:bg-[#A0D056] text-[#0D0D0B] shadow-[0_0_10px_rgba(140,179,74,0.2)]"
+                        }`}
+                      >
+                        {win.hasReviewed ? "Edit Review" : "Review Host"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             );
           })}
         </div>
+      )}
+
+      {/* Leave / Edit Review Modal */}
+      {selectedWinnerForReview && (
+        <LeaveReviewModal
+          winner={selectedWinnerForReview}
+          isOpen={Boolean(selectedWinnerForReview)}
+          onClose={() => setSelectedWinnerForReview(null)}
+        />
       )}
     </div>
   );

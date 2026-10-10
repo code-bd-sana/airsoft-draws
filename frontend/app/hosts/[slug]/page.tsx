@@ -83,6 +83,7 @@ export default async function HostProfilePage({ params }: PageProps) {
                 isVerified={host.isVerified}
                 drawsHosted={host.drawsHosted}
                 rating={host.rating}
+                totalReviews={host.totalReviews}
                 memberSince={host.memberSince}
               />
               

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import DrawCard from "../shared/DrawCard";
+import HostReviewList from "../host-reviews/HostReviewList";
 
 interface HostProfileTabsProps {
   host?: {
@@ -122,13 +123,7 @@ export default function HostProfileTabs({ host, raffles = [] }: HostProfileTabsP
         )}
 
         {activeTab === "reviews" && (
-          <div className="flex flex-col items-center justify-center py-20 text-center gap-3 bg-[#111210] border border-[#2D3C13] rounded-[16px] max-w-[600px] mx-auto animate-in fade-in duration-300">
-            <span className="text-[32px]">⭐</span>
-            <h3 className="font-heading font-medium text-[18px] text-[#E8EDD4]">Host Reviews</h3>
-            <p className="font-sans text-[13px] text-[#72943A] max-w-[340px]">
-              Reviews are left by verified ticket buyers after a competition draw concludes.
-            </p>
-          </div>
+          <HostReviewList hostId={host?.id || host?.slug || ""} />
         )}
 
         {activeTab === "about" && (

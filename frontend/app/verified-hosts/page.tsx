@@ -1,6 +1,5 @@
 import React from "react";
 import { Metadata } from "next";
-import { verifiedHostsData } from "../../data/hosts/hosts.data";
 import VerifiedHostsList from "../../components/website/verified-hosts/VerifiedHostsList";
 import WebsiteNavbar from "../../components/website/layout/WebsiteNavbar";
 import WebsiteFooter from "../../components/website/layout/WebsiteFooter";

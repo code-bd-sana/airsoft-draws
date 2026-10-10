@@ -12,7 +12,8 @@ interface HostProfileHeaderProps {
   vatNumber?: string | null;
   isVerified: boolean;
   drawsHosted: number;
-  rating: number;
+  rating?: number | null;
+  totalReviews?: number;
   memberSince: number;
 }
 
@@ -27,6 +28,7 @@ export default function HostProfileHeader({
   isVerified,
   drawsHosted,
   rating,
+  totalReviews,
   memberSince,
 }: HostProfileHeaderProps) {
   const isImage = (val?: string | null) =>
@@ -141,7 +143,16 @@ export default function HostProfileHeader({
           </span>
           <span className="font-sans text-[12px] text-[#A0D056] font-medium tracking-wide flex items-center gap-1.5 bg-[#141512] border border-[#2D3C13] px-3 py-1.5 rounded-[8px]">
             <span className="text-[#8CB34A]">★</span>
-            {rating ? Number(rating).toFixed(1) : "5.0"} Host Rating
+            {rating !== null && rating !== undefined && totalReviews !== undefined && totalReviews > 0 ? (
+              <span>
+                {Number(rating).toFixed(1)} Host Rating
+                <span className="text-[#72943A] ml-1">
+                  ({totalReviews} {totalReviews === 1 ? "Review" : "Reviews"})
+                </span>
+              </span>
+            ) : (
+              <span>No reviews yet</span>
+            )}
           </span>
           <span className="font-sans text-[12px] text-[#A0D056] font-medium tracking-wide flex items-center gap-1.5 bg-[#141512] border border-[#2D3C13] px-3 py-1.5 rounded-[8px]">
             <span className="w-1.5 h-1.5 bg-[#8CB34A] rounded-full" />

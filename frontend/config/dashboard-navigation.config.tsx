@@ -77,6 +77,11 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
     </svg>
   ),
+  Star: (props: any) => (
+    <svg fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499c.195-.39.771-.39.966 0l2.484 4.969 5.433.791c.42.061.587.576.283.876l-3.93 3.83 1.026 5.405c.08.423-.365.747-.738.547L12 18.254l-4.864 2.563c-.372.2-.818-.124-.738-.547l1.026-5.405-3.93-3.83c-.304-.3-.138-.815.283-.876l5.433-.791 2.484-4.969Z" />
+    </svg>
+  ),
 };
 
 export const dashboardNavigation: DashboardNavItem[] = [
@@ -235,6 +240,12 @@ export const dashboardNavigation: DashboardNavItem[] = [
     label: "Winners & Draws",
     href: "/dashboard/host/winners",
     icon: Icons.Trophy,
+    roles: ["host"],
+  },
+  {
+    label: "Customer Reviews",
+    href: "/dashboard/host/reviews",
+    icon: Icons.Star,
     roles: ["host"],
   },
   {
