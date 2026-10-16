@@ -17,29 +17,31 @@ export default function UserTicketsPage() {
 
   const backendTickets = ticketsData || [];
 
-  const formattedTickets: Ticket[] = backendTickets.map((t: any) => {
-    let status: Ticket["status"] = "live";
-    if (t.raffle.status === "ENDED") {
-      // Check if user won
-      const hasWon = t.winners && t.winners.length > 0;
-      status = hasWon ? "drawn-won" : "drawn-lost";
-    } else {
-      // If still active but they won an instant win
-      const hasInstantWin = t.winners?.some((w: any) => w.winType === 'INSTANT_WIN');
-      if (hasInstantWin) {
-        status = "instant-win";
+  const formattedTickets: Ticket[] = backendTickets
+    .filter((t: any) => t && t.raffle)
+    .map((t: any) => {
+      let status: Ticket["status"] = "live";
+      if (t.raffle?.status === "ENDED") {
+        // Check if user won
+        const hasWon = t.winners && t.winners.length > 0;
+        status = hasWon ? "drawn-won" : "drawn-lost";
+      } else {
+        // If still active but they won an instant win
+        const hasInstantWin = t.winners?.some((w: any) => w.winType === 'INSTANT_WIN');
+        if (hasInstantWin) {
+          status = "instant-win";
+        }
       }
-    }
-    return {
-      id: t.id,
-      ticketId: `#TKT-${t.ticketNumber}`,
-      competitionName: t.raffle.title,
-      purchaseDate: format(new Date(t.createdAt), "dd MMM yyyy"),
-      pricePaid: t.transaction?.paymentGateway === "ADMIN_MANUAL" ? "Admin Assigned" : "Paid",
-      status,
-      raw: t,
-    };
-  });
+      return {
+        id: t.id,
+        ticketId: `#TKT-${t.ticketNumber}`,
+        competitionName: t.raffle?.title || "Competition",
+        purchaseDate: t.createdAt ? format(new Date(t.createdAt), "dd MMM yyyy") : "N/A",
+        pricePaid: t.transaction?.paymentGateway === "ADMIN_MANUAL" ? "Admin Assigned" : "Paid",
+        status,
+        raw: t,
+      };
+    });
 
   const totalOwned = formattedTickets.length;
   const activeTickets = formattedTickets.filter((t) => t.status === "live" || t.status === "instant-win").length;

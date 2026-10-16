@@ -418,7 +418,7 @@ export class TicketsService {
   }
 
   async getUserTickets(userId: string) {
-    return this.prisma.ticket.findMany({
+    const tickets = await this.prisma.ticket.findMany({
       where: { userId },
       include: {
         raffle: {
@@ -452,6 +452,7 @@ export class TicketsService {
       },
       orderBy: { createdAt: 'desc' },
     });
+    return tickets.filter((t) => t.raffle !== null);
   }
 
   async createCashflowsTicketCheckout(
