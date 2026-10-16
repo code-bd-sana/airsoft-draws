@@ -441,6 +441,14 @@ export class TicketsService {
           },
         },
         winners: true,
+        transaction: {
+          select: {
+            id: true,
+            paymentGateway: true,
+            amount: true,
+            createdAt: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });

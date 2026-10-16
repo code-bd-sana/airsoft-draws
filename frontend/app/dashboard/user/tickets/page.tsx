@@ -35,7 +35,7 @@ export default function UserTicketsPage() {
       ticketId: `#TKT-${t.ticketNumber}`,
       competitionName: t.raffle.title,
       purchaseDate: format(new Date(t.createdAt), "dd MMM yyyy"),
-      pricePaid: "Paid", // Backend currently doesn't return exact price per ticket easily without transaction join
+      pricePaid: t.transaction?.paymentGateway === "ADMIN_MANUAL" ? "Admin Assigned" : "Paid",
       status,
       raw: t,
     };

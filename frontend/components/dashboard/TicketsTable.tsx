@@ -20,6 +20,30 @@ interface TicketsTableProps {
 export default function TicketsTable({ tickets }: TicketsTableProps) {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
 
+  const handleExport = () => {
+    if (!tickets || tickets.length === 0) return;
+    const headers = ["Ticket ID", "Competition Name", "Purchase Date", "Price Paid", "Status"];
+    const rows = tickets.map((t) => [
+      t.ticketId,
+      `"${(t.competitionName || "").replace(/"/g, '""')}"`,
+      t.purchaseDate,
+      t.pricePaid,
+      t.status,
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `my-tickets-${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <>
       <div className="w-full bg-[#161810] border border-[#2D3C13] rounded-[16px] p-6 flex flex-col">
@@ -28,11 +52,14 @@ export default function TicketsTable({ tickets }: TicketsTableProps) {
           <h3 className="font-heading font-medium text-[18px] text-[#E8EDD4]">
             All Tickets
           </h3>
-          <button className="flex items-center gap-2 px-4 py-1.5 rounded-[8px] bg-transparent border border-[#2D3C13] hover:bg-[#1A230A] text-[#72943A] hover:text-[#E8EDD4] font-sans font-medium text-[12px] transition-colors">
+          <button 
+            onClick={handleExport}
+            className="flex items-center gap-2 px-4 py-1.5 rounded-[8px] bg-transparent border border-[#2D3C13] hover:bg-[#1A230A] text-[#72943A] hover:text-[#E8EDD4] font-sans font-medium text-[12px] transition-colors"
+          >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
-            Export
+            Export CSV
           </button>
         </div>
 
@@ -85,7 +112,13 @@ export default function TicketsTable({ tickets }: TicketsTableProps) {
 
                   {/* Price Paid */}
                   <div className="col-span-1 font-medium text-[13px] text-[#E8EDD4]">
-                    {ticket.pricePaid}
+                    {ticket.pricePaid === "Admin Assigned" ? (
+                      <span className="text-[10px] font-bold text-[#60A5FA] bg-[#1E3A8A]/30 border border-[#3B82F6]/40 px-2 py-0.5 rounded-full whitespace-nowrap">
+                        Admin Assigned
+                      </span>
+                    ) : (
+                      ticket.pricePaid
+                    )}
                   </div>
 
                   {/* Status */}

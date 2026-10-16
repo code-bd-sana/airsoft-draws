@@ -12,8 +12,12 @@ import { AdminDashboardService } from './dashboard/admin-dashboard.service';
 
 import { AdminWithdrawalsController } from './withdrawals/admin-withdrawals.controller';
 import { AdminWithdrawalsService } from './withdrawals/admin-withdrawals.service';
+import { AdminTicketAssignmentController } from './ticket-assignment/admin-ticket-assignment.controller';
+import { AdminTicketAssignmentService } from './ticket-assignment/admin-ticket-assignment.service';
+import { RafflesModule } from '../raffles/raffles.module';
 
 @Module({
+  imports: [RafflesModule],
   controllers: [
     AdminUsersController,
     AdminHostsController,
@@ -21,6 +25,7 @@ import { AdminWithdrawalsService } from './withdrawals/admin-withdrawals.service
     AdminWinnersController,
     AdminDashboardController,
     AdminWithdrawalsController,
+    AdminTicketAssignmentController,
   ],
   providers: [
     AdminUsersService,
@@ -29,6 +34,7 @@ import { AdminWithdrawalsService } from './withdrawals/admin-withdrawals.service
     AdminWinnersService,
     AdminDashboardService,
     AdminWithdrawalsService,
+    AdminTicketAssignmentService,
   ],
 })
 export class AdminModule {}

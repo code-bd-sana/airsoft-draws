@@ -164,7 +164,8 @@ export default function DashboardSidebar({ account, isCollapsed = false, onToggl
 
       {/* Profile Section (Bottom) */}
       <div className="border-t border-[#2D3C13] w-full shrink-0">
-        <div 
+        <Link 
+          href={account.role === "host" ? "/dashboard/host/profile" : account.role === "admin" ? "/dashboard/admin/settings" : "/dashboard/user/profile"}
           title={isCollapsed ? `${account.name} (${account.role})` : undefined}
           className={cn(
             "flex items-center pb-[17px] pt-[16px] w-full cursor-pointer hover:bg-[#161810] transition-colors",
@@ -193,7 +194,7 @@ export default function DashboardSidebar({ account, isCollapsed = false, onToggl
               </svg>
             </>
           )}
-        </div>
+        </Link>
       </div>
     </aside>
   );

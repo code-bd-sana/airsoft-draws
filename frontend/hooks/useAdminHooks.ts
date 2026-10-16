@@ -124,3 +124,54 @@ export const useUpdateWithdrawalStatusMutation = () => {
     },
   });
 };
+
+// Manual Ticket Assignment Hooks
+export const useAdminAssignmentCompetitions = (params?: { search?: string; status?: string; hostId?: string }) => {
+  return useQuery({
+    queryKey: ['admin', 'assignmentCompetitions', params],
+    queryFn: () => adminService.getAssignmentCompetitions(params),
+    staleTime: 30 * 1000,
+  });
+};
+
+export const useAdminCompetitionTicketDetails = (raffleId: string) => {
+  return useQuery({
+    queryKey: ['admin', 'competitionTicketDetails', raffleId],
+    queryFn: () => adminService.getCompetitionTicketDetails(raffleId),
+    enabled: Boolean(raffleId),
+    staleTime: 10 * 1000,
+  });
+};
+
+export const useAdminSearchUsers = (query: string) => {
+  return useQuery({
+    queryKey: ['admin', 'searchUsersForAssignment', query],
+    queryFn: () => adminService.searchUsersForAssignment(query),
+    staleTime: 60 * 1000,
+  });
+};
+
+export const useAdminAssignTicketsMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { raffleId: string; userId: string; ticketNumbers?: number[]; quantity?: number; adminNotes?: string }) =>
+      adminService.assignTickets(payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'assignmentCompetitions'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'competitionTicketDetails', variables.raffleId] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'assignmentHistory'] });
+      queryClient.invalidateQueries({ queryKey: ['adminOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['adminOrdersStats'] });
+      queryClient.invalidateQueries({ queryKey: ['my-tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['user-orders'] });
+    },
+  });
+};
+
+export const useAdminAssignmentHistory = (params?: { page?: number; limit?: number }) => {
+  return useQuery({
+    queryKey: ['admin', 'assignmentHistory', params],
+    queryFn: () => adminService.getAssignmentHistory(params),
+    staleTime: 30 * 1000,
+  });
+};

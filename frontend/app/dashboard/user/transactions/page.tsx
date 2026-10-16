@@ -282,9 +282,15 @@ function UserTransactionsContent() {
                         : "Recent"}
                     </span>
 
-                    <span className="font-sans text-[11px] text-[#5A752A] bg-[#1A230A] px-2 py-0.5 rounded border border-[#2D3C13]">
-                      {order.paymentGateway || "CASHFLOWS"}
-                    </span>
+                    {order.paymentGateway === "ADMIN_MANUAL" ? (
+                      <span className="inline-flex items-center gap-1 font-sans text-[11px] font-bold text-[#60A5FA] bg-[#1E3A8A]/30 border border-[#3B82F6]/50 px-2.5 py-0.5 rounded-full">
+                        <span>🛡️</span> Admin Assigned
+                      </span>
+                    ) : (
+                      <span className="font-sans text-[11px] text-[#5A752A] bg-[#1A230A] px-2 py-0.5 rounded border border-[#2D3C13]">
+                        {order.paymentGateway || "CASHFLOWS"}
+                      </span>
+                    )}
                   </div>
 
                   {/* Status Badge */}

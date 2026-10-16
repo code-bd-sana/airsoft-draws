@@ -266,4 +266,177 @@ export const adminService = {
     const { data } = await api.patch(`/admin/withdrawals/${id}/status`, { status, adminNotes });
     return data;
   },
+
+  // Manual Ticket Assignment
+  async getAssignmentCompetitions(params?: { search?: string; status?: string; hostId?: string }): Promise<AssignmentCompetition[]> {
+    const { data } = await api.get('/admin/ticket-assignment/competitions', { params });
+    return data;
+  },
+
+  async getCompetitionTicketDetails(raffleId: string): Promise<CompetitionTicketDetails> {
+    const { data } = await api.get(`/admin/ticket-assignment/competitions/${raffleId}`);
+    return data;
+  },
+
+  async searchUsersForAssignment(q: string): Promise<UserSearchResult[]> {
+    const { data } = await api.get('/admin/ticket-assignment/users/search', { params: { q } });
+    return data;
+  },
+
+  async assignTickets(payload: AssignTicketsPayload): Promise<AssignTicketsResponse> {
+    const { data } = await api.post('/admin/ticket-assignment/assign', payload);
+    return data;
+  },
+
+  async getAssignmentHistory(params?: { page?: number; limit?: number }): Promise<AssignmentHistoryResponse> {
+    const { data } = await api.get('/admin/ticket-assignment/history', { params });
+    return data;
+  },
 };
+
+export interface AssignmentCompetition {
+  id: string;
+  title: string;
+  slug: string;
+  mainImage: string;
+  status: string;
+  category: string;
+  totalTickets: number;
+  ticketsSold: number;
+  remainingTickets: number;
+  pricePerTicket: number;
+  startDate: string;
+  endDate: string;
+  isAutoDraw: boolean;
+  hostId: string;
+  hostName: string;
+  totalInstantWins: number;
+  unclaimedInstantWins: number;
+}
+
+export interface CompetitionTicketDetails {
+  raffle: {
+    id: string;
+    title: string;
+    slug: string;
+    mainImage: string;
+    pricePerTicket: number;
+    totalTickets: number;
+    ticketsSold: number;
+    remainingTickets: number;
+    status: string;
+    startDate: string;
+    endDate: string;
+    category: string;
+    isAutoDraw: boolean;
+    host: {
+      id: string;
+      businessName: string;
+      walletBalance: number;
+    };
+  };
+  stats: {
+    totalTickets: number;
+    soldTickets: number;
+    availableTickets: number;
+    totalInstantWins: number;
+    unclaimedInstantWins: number;
+    ticketPrice: number;
+    totalValue: number;
+    soldValue: number;
+  };
+  instantWins: Array<{
+    id: string;
+    ticketNumber: number;
+    prizeName: string;
+    rrpValue: number | null;
+    image: string | null;
+    isClaimed: boolean;
+  }>;
+  soldTickets: Array<{
+    id: string;
+    ticketNumber: number;
+    userId: string;
+    userName: string;
+    userEmail: string;
+    purchasedAt: string;
+    paymentGateway: string;
+  }>;
+}
+
+export interface UserSearchResult {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  role: string;
+  isBlocked: boolean;
+  ukaraNumber?: string | null;
+  avatarUrl?: string | null;
+}
+
+export interface AssignTicketsPayload {
+  raffleId: string;
+  userId: string;
+  ticketNumbers?: number[];
+  quantity?: number;
+  adminNotes?: string;
+}
+
+export interface AssignTicketsResponse {
+  success: boolean;
+  message: string;
+  assignedNumbers: number[];
+  quantity: number;
+  totalAmount: number;
+  transactionId: string;
+  paymentGateway: string;
+  raffle: {
+    id: string;
+    title: string;
+    pricePerTicket: number;
+  };
+  recipient: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  instantWinsWon: Array<{
+    ticketNumber: number;
+    prizeName: string;
+    rrpValue: number | null;
+    prizeImage: string | null;
+  }>;
+  notes?: string;
+}
+
+export interface AssignmentHistoryItem {
+  id: string;
+  gatewayTransactionId: string;
+  date: string;
+  amount: number;
+  ticketsCount: number;
+  ticketNumbers: number[];
+  recipient: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  raffle: {
+    id: string;
+    title: string;
+    slug: string;
+    mainImage: string;
+    pricePerTicket: number;
+  } | null;
+}
+
+export interface AssignmentHistoryResponse {
+  data: AssignmentHistoryItem[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}

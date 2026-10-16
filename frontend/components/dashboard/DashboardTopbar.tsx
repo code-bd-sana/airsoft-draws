@@ -139,6 +139,32 @@ export default function DashboardTopbar({
                 <p className="text-sm font-medium text-[#E8EDD4] truncate">{account.name}</p>
                 <p className="text-xs text-[#B3B8AA] truncate capitalize">{account.role} Account</p>
               </div>
+              <Link
+                href={account.role === "host" ? "/dashboard/host/profile" : account.role === "admin" ? "/dashboard/admin/settings" : "/dashboard/user/profile"}
+                onClick={() => setIsProfileOpen(false)}
+                className="w-full block text-left px-4 py-2 text-sm text-[#E8EDD4] hover:bg-[#1A230A] hover:text-[#8CB34A] transition-colors"
+              >
+                My Profile
+              </Link>
+              {account.role === "user" && (
+                <>
+                  <Link
+                    href="/dashboard/user/tickets"
+                    onClick={() => setIsProfileOpen(false)}
+                    className="w-full block text-left px-4 py-2 text-sm text-[#E8EDD4] hover:bg-[#1A230A] hover:text-[#8CB34A] transition-colors"
+                  >
+                    My Tickets
+                  </Link>
+                  <Link
+                    href="/dashboard/user/settings"
+                    onClick={() => setIsProfileOpen(false)}
+                    className="w-full block text-left px-4 py-2 text-sm text-[#E8EDD4] hover:bg-[#1A230A] hover:text-[#8CB34A] transition-colors"
+                  >
+                    Account Settings
+                  </Link>
+                </>
+              )}
+              <div className="h-px bg-[#2D3C13] my-1" />
               <button
                 onClick={handleLogout}
                 className="w-full text-left px-4 py-2 text-sm text-[#f76b6b] hover:bg-[#1A230A] transition-colors"
