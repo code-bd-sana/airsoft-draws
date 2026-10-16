@@ -51,13 +51,29 @@ export default function WinnerCard({ winner }: WinnerCardProps) {
         </div>
       </div>
 
-      {/* Bottom Row: ticket ref */}
+      {/* Bottom Row: Ticket Badge & Win Type */}
       {ticketNumber && (
-        <div className="flex items-center justify-end mt-4 pr-24 sm:pr-0">
-          {/* Masked Ticket Reference Number (For transparency) */}
-          <span className="font-sans text-[9px] text-text-muted/50 tracking-wider font-semibold mr-1">
-            {ticketNumber}
-          </span>
+        <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#2D3C13]/60">
+          <div className="flex items-center gap-1.5 text-[11px] text-[#72943A] font-medium leading-none">
+            <svg className="w-3.5 h-3.5 text-[#4ADE80] shrink-0" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clipRule="evenodd" />
+            </svg>
+            <span>{winner.winnerType === "instant" ? "Instant Win" : "Verified Draw"}</span>
+          </div>
+
+          <div className="inline-flex items-center gap-2 h-7 pl-1.5 pr-3 rounded-full bg-[#083B18] border border-[#4ADE80]/40 text-[#4ADE80] shadow-[0_0_12px_rgba(74,222,128,0.2)]">
+            <div className="w-5 h-5 rounded-full bg-[#4ADE80]/15 flex items-center justify-center shrink-0">
+              <svg className="w-3 h-3 text-[#4ADE80]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+                <line x1="12" y1="5" x2="12" y2="7" />
+                <line x1="12" y1="11" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12" y2="19" />
+              </svg>
+            </div>
+            <span className="font-mono font-bold text-xs tracking-wider text-[#4ADE80] leading-none select-none">
+              Ticket #{ticketNumber.replace(/^#/, "")}
+            </span>
+          </div>
         </div>
       )}
 

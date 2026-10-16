@@ -41,8 +41,19 @@ describe('AdminUsersController', () => {
         limit: '10',
         search: 'Alice',
         role: 'CLIENT',
+        status: 'Active',
+        sortBy: 'spent',
+        sortOrder: 'desc',
       } as any);
-      expect(mockService.getUsers).toHaveBeenCalledWith(1, 10, 'Alice', 'CLIENT');
+      expect(mockService.getUsers).toHaveBeenCalledWith(
+        1,
+        10,
+        'Alice',
+        'CLIENT',
+        'Active',
+        'spent',
+        'desc',
+      );
       expect(result).toEqual({ users: [] });
     });
   });

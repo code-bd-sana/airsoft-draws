@@ -6,23 +6,50 @@ import { format } from "date-fns";
 import ConfirmBlockModal from "./ConfirmBlockModal";
 import UserDetailsModal from "./UserDetailsModal";
 import { User } from "../../../services/admin.service";
+import { ArrowUpDown, ArrowDownWideNarrow, ArrowUpNarrowWide } from "lucide-react";
 
 export default function UsersTable() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState<"createdAt" | "tickets" | "spent">("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const limit = 10;
-  
+
   const [blockModalUser, setBlockModalUser] = useState<User | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
-  // Convert "All", "Active", "Blocked" filter state to role or status if needed.
-  // For now we map filter to search params if possible, but our backend supports `role` and `search`.
-  // To handle blocked/active we can filter client-side or add backend support. We'll filter client-side if it's small,
-  // or ideally the backend should support `isBlocked` filtering. We'll just fetch and if they want blocked, we can filter locally for now.
-  const { data, isLoading, isError } = useAdminUsers({ page, limit, search });
+  const { data, isLoading, isError } = useAdminUsers({
+    page,
+    limit,
+    search,
+    status: activeFilter,
+    sortBy,
+    sortOrder,
+  });
   const toggleBlock = useToggleUserBlockMutation();
+
+  const handleSort = (column: "tickets" | "spent") => {
+    if (sortBy === column) {
+      if (sortOrder === "desc") {
+        setSortOrder("asc");
+      } else {
+        // Reset to default (createdAt desc)
+        setSortBy("createdAt");
+        setSortOrder("desc");
+      }
+    } else {
+      setSortBy(column);
+      setSortOrder("desc"); // Default to high-to-low (higher spending / most tickets)
+    }
+    setPage(1);
+  };
+
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter);
+    setPage(1);
+  };
 
   const handleExportCSV = () => {
     if (filteredUsers.length === 0) {
@@ -75,23 +102,51 @@ export default function UsersTable() {
     return email[0].toUpperCase();
   };
 
+  const renderSortIcon = (column: "tickets" | "spent") => {
+    const isSelected = sortBy === column;
+    const isAsc = isSelected && sortOrder === "asc";
+    const isDesc = isSelected && sortOrder === "desc";
+
+    if (!isSelected) {
+      return (
+        <ArrowUpDown
+          className="w-3.5 h-3.5 text-[#5A752A] group-hover:text-[#8CB34A] transition-colors shrink-0"
+          strokeWidth={1.75}
+        />
+      );
+    }
+
+    if (isDesc) {
+      return (
+        <span className="inline-flex items-center gap-1 shrink-0">
+          <ArrowDownWideNarrow className="w-3.5 h-3.5 text-[#8CB34A] shrink-0" strokeWidth={2.2} />
+          <span className="text-[8px] font-sans font-semibold tracking-normal px-1 py-0.5 rounded bg-[#8CB34A]/15 text-[#8CB34A] leading-none">
+            HIGH
+          </span>
+        </span>
+      );
+    }
+
+    return (
+      <span className="inline-flex items-center gap-1 shrink-0">
+        <ArrowUpNarrowWide className="w-3.5 h-3.5 text-[#8CB34A] shrink-0" strokeWidth={2.2} />
+        <span className="text-[8px] font-sans font-semibold tracking-normal px-1 py-0.5 rounded bg-[#8CB34A]/15 text-[#8CB34A] leading-none">
+          LOW
+        </span>
+      </span>
+    );
+  };
+
   const users = data?.users || [];
-  
-  // Client-side filtering for Active/Blocked since backend doesn't explicitly filter by status yet
-  const filteredUsers = users.filter((user) => {
-    if (activeFilter === "All") return true;
-    if (activeFilter === "Active") return !user.isBlocked;
-    if (activeFilter === "Blocked") return user.isBlocked;
-    return true;
-  });
+  const filteredUsers = users;
 
   return (
     <>
       <div className="flex flex-col gap-6">
-      
+
       {/* Controls Row */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        
+
         {/* Left: Search & Filters */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
           {/* Search Input */}
@@ -99,9 +154,9 @@ export default function UsersTable() {
             <svg className="w-4 h-4 text-[#72943A] shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
             </svg>
-            <input 
-              type="text" 
-              placeholder="Search users by name or email..." 
+            <input
+              type="text"
+              placeholder="Search users by name or email..."
               value={search}
               onChange={handleSearchChange}
               className="bg-transparent border-none outline-none text-[#E8EDD4] text-[13px] placeholder:text-[#5A752A] w-full ml-2 font-sans"
@@ -113,21 +168,42 @@ export default function UsersTable() {
             {["All", "Active", "Blocked"].map((filter) => (
               <button
                 key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-1.5 rounded-full text-[12px] font-sans font-medium transition-colors whitespace-nowrap ${
-                  activeFilter === filter 
-                    ? 'border border-[#8CB34A] text-[#8CB34A]' 
+                onClick={() => handleFilterChange(filter)}
+                className={`px-4 py-1.5 rounded-full text-[12px] font-sans font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                  activeFilter === filter
+                    ? 'border border-[#8CB34A] text-[#8CB34A]'
                     : 'border border-[#2D3C13] text-[#72943A] hover:border-[#43581E] hover:text-[#E8EDD4]'
                 }`}
               >
                 {filter}
               </button>
             ))}
+
+            {/* Active Sort Pill Indicator */}
+            {sortBy !== "createdAt" && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1A230A] border border-[#8CB34A]/40 text-[#8CB34A] text-[12px] font-sans shrink-0">
+                <span>
+                  Sorted: {sortBy === "spent" ? "Spent" : "Tickets"} ({sortOrder === "desc" ? "High to Low" : "Low to High"})
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSortBy("createdAt");
+                    setSortOrder("desc");
+                    setPage(1);
+                  }}
+                  className="ml-1 text-[#8CB34A] hover:text-[#E8EDD4] cursor-pointer"
+                  title="Reset to default sorting"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Right: Export CSV */}
-        <button 
+        <button
           onClick={handleExportCSV}
           disabled={filteredUsers.length === 0}
           className="h-[40px] px-4 bg-transparent border border-[#2D3C13] hover:bg-[#1A230A] rounded-[8px] flex items-center justify-center gap-2 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
@@ -147,8 +223,48 @@ export default function UsersTable() {
             <tr className="border-b border-[#2D3C13] bg-[#111210]">
               <th className="py-4 px-6 font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px] w-[30%]">NAME / EMAIL</th>
               <th className="py-4 px-6 font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px] w-[15%]">JOINED</th>
-              <th className="py-4 px-6 font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px] w-[15%] text-center">TICKETS</th>
-              <th className="py-4 px-6 font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px] w-[15%] text-center">SPENT</th>
+              <th className="py-4 px-6 font-sans text-[10px] font-medium uppercase tracking-[1px] w-[15%] text-center">
+                <button
+                  type="button"
+                  onClick={() => handleSort("tickets")}
+                  className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1 -my-1 rounded-[6px] transition-all duration-150 cursor-pointer group font-sans text-[10px] uppercase tracking-[1px] font-semibold select-none outline-none focus:outline-none focus:ring-0 focus-visible:ring-1 focus-visible:ring-[#8CB34A]/50 ${
+                    sortBy === "tickets"
+                      ? "bg-[#1A230A] border border-[#8CB34A]/40 text-[#8CB34A] shadow-xs"
+                      : "text-[#5A752A] hover:text-[#E8EDD4] hover:bg-[#1A230A]/60 border border-transparent"
+                  }`}
+                  title={
+                    sortBy === "tickets"
+                      ? sortOrder === "desc"
+                        ? "Sorted by tickets: High to Low. Click for Low to High."
+                        : "Sorted by tickets: Low to High. Click to reset sorting."
+                      : "Click to sort by tickets (High to Low)"
+                  }
+                >
+                  <span>TICKETS</span>
+                  {renderSortIcon("tickets")}
+                </button>
+              </th>
+              <th className="py-4 px-6 font-sans text-[10px] font-medium uppercase tracking-[1px] w-[15%] text-center">
+                <button
+                  type="button"
+                  onClick={() => handleSort("spent")}
+                  className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1 -my-1 rounded-[6px] transition-all duration-150 cursor-pointer group font-sans text-[10px] uppercase tracking-[1px] font-semibold select-none outline-none focus:outline-none focus:ring-0 focus-visible:ring-1 focus-visible:ring-[#8CB34A]/50 ${
+                    sortBy === "spent"
+                      ? "bg-[#1A230A] border border-[#8CB34A]/40 text-[#8CB34A] shadow-xs"
+                      : "text-[#5A752A] hover:text-[#E8EDD4] hover:bg-[#1A230A]/60 border border-transparent"
+                  }`}
+                  title={
+                    sortBy === "spent"
+                      ? sortOrder === "desc"
+                        ? "Sorted by spending: High to Low. Click for Low to High."
+                        : "Sorted by spending: Low to High. Click to reset sorting."
+                      : "Click to sort by amount spent (High to Low)"
+                  }
+                >
+                  <span>SPENT</span>
+                  {renderSortIcon("spent")}
+                </button>
+              </th>
               <th className="py-4 px-6 font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px] w-[15%]">STATUS</th>
               <th className="py-4 px-6 font-sans text-[10px] font-medium text-[#5A752A] uppercase tracking-[1px] w-[10%] text-right">ACTIONS</th>
             </tr>
@@ -226,9 +342,9 @@ export default function UsersTable() {
                 </td>
                 <td className="py-4 px-6">
                   <div className="flex items-center justify-end gap-3">
-                    <button 
+                    <button
                       onClick={() => { setSelectedUser(user); setIsDetailsOpen(true); }}
-                      className="text-[#5A752A] hover:text-[#8CB34A] hover:scale-110 active:scale-90 transition-all duration-150 flex items-center justify-center shrink-0 cursor-pointer" 
+                      className="text-[#5A752A] hover:text-[#8CB34A] hover:scale-110 active:scale-90 transition-all duration-150 flex items-center justify-center shrink-0 cursor-pointer"
                       title="View details"
                     >
                       <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -237,10 +353,10 @@ export default function UsersTable() {
                       </svg>
                     </button>
                     {user.isBlocked ? (
-                      <button 
+                      <button
                         onClick={() => setBlockModalUser(user)}
                         disabled={toggleBlock.isPending}
-                        className="text-[#4ADE80] hover:text-[#22c55e] transition-colors disabled:opacity-50" 
+                        className="text-[#4ADE80] hover:text-[#22c55e] transition-colors disabled:opacity-50"
                         title="Unblock user"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -248,10 +364,10 @@ export default function UsersTable() {
                         </svg>
                       </button>
                     ) : (
-                      <button 
+                      <button
                         onClick={() => setBlockModalUser(user)}
                         disabled={toggleBlock.isPending}
-                        className="text-[#f76b6b] hover:text-[#ef4444] transition-colors disabled:opacity-50" 
+                        className="text-[#f76b6b] hover:text-[#ef4444] transition-colors disabled:opacity-50"
                         title="Block user"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -270,7 +386,7 @@ export default function UsersTable() {
       {/* Pagination Controls */}
       {data && data.totalPages > 1 && (
         <div className="flex justify-between items-center bg-[#161810] border border-[#2D3C13] rounded-[16px] px-6 py-4">
-          <button 
+          <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
             className="text-[13px] font-sans font-medium text-[#E8EDD4] disabled:text-[#5A752A] hover:text-[#8CB34A] transition-colors"
@@ -278,7 +394,7 @@ export default function UsersTable() {
             Previous
           </button>
           <span className="text-[13px] font-sans text-[#72943A]">Page {page} of {data.totalPages}</span>
-          <button 
+          <button
             onClick={() => setPage(p => Math.min(data.totalPages, p + 1))}
             disabled={page === data.totalPages}
             className="text-[13px] font-sans font-medium text-[#E8EDD4] disabled:text-[#5A752A] hover:text-[#8CB34A] transition-colors"
@@ -290,7 +406,7 @@ export default function UsersTable() {
 
     </div>
 
-      <ConfirmBlockModal 
+      <ConfirmBlockModal
         isOpen={!!blockModalUser}
         onClose={() => setBlockModalUser(null)}
         onConfirm={() => {

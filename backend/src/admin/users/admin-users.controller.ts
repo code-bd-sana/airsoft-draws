@@ -44,6 +44,9 @@ export class AdminUsersController {
       limitNumber,
       query.search || '',
       query.role || '',
+      query.status || 'All',
+      query.sortBy || 'createdAt',
+      query.sortOrder || 'desc',
     );
   }
 

@@ -49,6 +49,95 @@ describe('AdminUsersService', () => {
       expect(result.users[0].ticketsCount).toBe(5);
       expect(result.total).toBe(1);
     });
+
+    it('should sort by tickets count when sortBy is tickets', async () => {
+      mockPrisma.user.findMany.mockResolvedValue([
+        {
+          id: 'u-1',
+          email: 'top@test.com',
+          firstName: 'Top',
+          lastName: 'Buyer',
+          role: 'CLIENT',
+          isBlocked: false,
+          isEmailVerified: true,
+          createdAt: new Date(),
+          _count: { tickets: 100 },
+          transactions: [],
+        },
+      ]);
+      mockPrisma.user.count.mockResolvedValue(1);
+
+      const result = await service.getUsers(
+        1,
+        10,
+        '',
+        '',
+        'All',
+        'tickets',
+        'desc',
+      );
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: [{ tickets: { _count: 'desc' } }, { createdAt: 'desc' }],
+        }),
+      );
+      expect(result.users[0].ticketsCount).toBe(100);
+    });
+
+    it('should sort by spent using raw query when sortBy is spent', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue([{ id: 'u-spent-1' }]);
+      mockPrisma.user.count.mockResolvedValue(1);
+      mockPrisma.user.findMany.mockResolvedValue([
+        {
+          id: 'u-spent-1',
+          email: 'bigspender@test.com',
+          firstName: 'Big',
+          lastName: 'Spender',
+          role: 'CLIENT',
+          isBlocked: false,
+          isEmailVerified: true,
+          createdAt: new Date(),
+          _count: { tickets: 50 },
+          transactions: [{ amount: '250.00' }, { amount: '150.00' }],
+        },
+      ]);
+
+      const result = await service.getUsers(
+        1,
+        10,
+        '',
+        '',
+        'All',
+        'spent',
+        'desc',
+      );
+      expect(mockPrisma.$queryRaw).toHaveBeenCalled();
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: { in: ['u-spent-1'] } },
+        }),
+      );
+      expect(result.users[0].totalSpent).toBe(400);
+    });
+
+    it('should apply status filter for Active and Blocked users', async () => {
+      mockPrisma.user.findMany.mockResolvedValue([]);
+      mockPrisma.user.count.mockResolvedValue(0);
+
+      await service.getUsers(1, 10, '', '', 'Active');
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ isBlocked: false }),
+        }),
+      );
+
+      await service.getUsers(1, 10, '', '', 'Blocked');
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ isBlocked: true }),
+        }),
+      );
+    });
   });
 
   describe('getStats', () => {

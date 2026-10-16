@@ -174,7 +174,15 @@ export interface AdminDashboardOverview {
 
 
 export const adminService = {
-  async getUsers(params: { page?: number; limit?: number; search?: string; role?: string }): Promise<GetUsersResponse> {
+  async getUsers(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+    status?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }): Promise<GetUsersResponse> {
     const { data } = await api.get('/admin/users', { params });
     return data;
   },

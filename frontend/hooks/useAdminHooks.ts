@@ -1,7 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService, AdminDashboardOverview, RevenueStatsResponse, ReportsAnalyticsResponse } from '../services/admin.service';
 
-export const useAdminUsers = (params: { page?: number; limit?: number; search?: string; role?: string }) => {
+export const useAdminUsers = (params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  role?: string;
+  status?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}) => {
   return useQuery({
     queryKey: ['admin', 'users', params],
     queryFn: () => adminService.getUsers(params),

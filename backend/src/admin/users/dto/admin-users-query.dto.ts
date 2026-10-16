@@ -37,4 +37,31 @@ export class AdminUsersQueryDto {
   @IsOptional()
   @IsString()
   role?: string;
+
+  @ApiPropertyOptional({
+    example: 'All',
+    enum: ['All', 'Active', 'Blocked'],
+    description: 'Filter by user status',
+  })
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @ApiPropertyOptional({
+    example: 'spent',
+    enum: ['createdAt', 'tickets', 'spent', 'name'],
+    description: 'Field to sort by',
+  })
+  @IsOptional()
+  @IsString()
+  sortBy?: string;
+
+  @ApiPropertyOptional({
+    example: 'desc',
+    enum: ['asc', 'desc'],
+    description: 'Sort direction',
+  })
+  @IsOptional()
+  @IsString()
+  sortOrder?: 'asc' | 'desc';
 }
